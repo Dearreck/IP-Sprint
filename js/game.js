@@ -7,38 +7,33 @@ import * as storage from './storage.js';
 import * as ui from './ui.js'; // Importar funciones y elementos de UI
 import { getNextQuestion } from './questions.js'; // Importar generador de preguntas
 
-// --- Variables de Estado del Juego ---
+// --- Variables de Estado del Juego (ahora en este módulo) ---
 let currentUsername = '';
-let currentUserData = {}; // Almacena { unlockedLevels: [], entryPerfectStreak: 0, ... }
+let currentUserData = {};
 let currentScore = 0;
-let currentLevel = ''; // Nivel actual ('Entry', 'Associate', etc.)
-let currentGameMode = 'standard'; // Modo actual ('standard' o 'mastery')
+let currentLevel = '';
+let currentGameMode = 'standard'; // 'standard' o 'mastery' (para Entry con timer)
 let currentQuestionData = null; // Guarda { question, options, correctAnswer, explanation }
-let questionsAnswered = 0; // Contador para la ronda actual
-let roundResults = []; // Guarda historial de aciertos (true/false) en la ronda actual
-let questionTimerInterval = null; // Referencia al intervalo del timer
-let timeLeft = 0; // Tiempo restante para la pregunta actual
+let correctAnswer = null; // Guarda solo la respuesta correcta para comparación rápida en handleAnswerClick
+let questionsAnswered = 0;
+let roundResults = []; // Guarda true/false por cada pregunta de la ronda
+let questionTimerInterval = null;
+let timeLeft = 0;
 
 // --- Funciones Principales del Flujo del Juego ---
 
-/**
- * Maneja el login inicial del usuario. Carga/crea datos y muestra selección de nivel.
- * @param {string} username - El nombre de usuario ingresado.
- */
+/** Maneja el login/carga inicial de datos del usuario */
 export function handleUserLogin(username) {
     currentUsername = username;
     try {
-        currentUserData = storage.getUserData(username); // Carga o crea datos por defecto
-        storage.saveUserData(username, currentUserData); // Guardar por si es un usuario nuevo
-        ui.updatePlayerInfo(currentUsername, '', ''); // Actualizar display (aunque esté oculto)
-
-        // Mostrar secciones relevantes post-login
+        currentUserData = storage.getUserData(username);
+        storage.saveUserData(username, currentUserData); // Guardar por si es nuevo usuario con datos default
+        ui.updatePlayerInfo(currentUsername, '', ''); // Solo nombre inicialmente
+        // Mostrar secciones post-login
         if(ui.highScoresSection) ui.highScoresSection.style.display = 'block';
         if(ui.unlockProgressSection) ui.unlockProgressSection.style.display = 'block';
-
-        // Llamar a la función de UI para mostrar los botones de nivel
+        // Pasa la función que manejará la selección desde la UI
         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
-
     } catch (error) {
         console.error("Error durante handleUserLogin:", error);
         alert("Hubo un problema al cargar los datos del usuario.");
@@ -46,56 +41,48 @@ export function handleUserLogin(username) {
     }
 }
 
-/**
- * Establece el nivel y modo seleccionados por el usuario y comienza el juego.
- * Llamada desde la UI cuando se hace clic en un botón de nivel.
- * @param {string} level - Nivel seleccionado ('Entry', 'Associate', etc.)
- * @param {string} mode - Modo seleccionado ('standard', 'mastery')
- */
+/** Llamada desde la UI cuando se selecciona un nivel y modo */
 export function selectLevelAndMode(level, mode) {
     currentLevel = level;
-    currentGameMode = mode; // Guardar el modo elegido
-    startGame(); // Iniciar el juego con esta configuración
+    currentGameMode = mode;
+    startGame(); // Iniciar el juego con el nivel y modo seleccionados
 }
 
-/**
- * Inicializa el estado para una nueva partida/ronda.
- */
+/** Inicia una nueva partida en el nivel y modo actuales */
 export function startGame() {
-    clearInterval(questionTimerInterval); // Limpiar cualquier timer anterior
+    clearInterval(questionTimerInterval); // Limpiar timer anterior
     currentScore = 0;
     questionsAnswered = 0;
-    roundResults = []; // Resetear historial de la ronda
+    roundResults = [];
     ui.updatePlayerInfo(currentUsername, currentLevel, currentScore); // Info inicial
-    ui.showSection(ui.gameAreaSection); // Mostrar el área de juego
-    // Mostrar estrellas de ronda (vacías), considerando el modo para coronas
-    ui.updateRoundProgressUI(roundResults, currentGameMode === 'mastery');
+    ui.showSection(ui.gameAreaSection); // Mostrar área de juego
+    ui.updateRoundProgressUI(roundResults, currentGameMode === 'mastery'); // Mostrar estrellas de ronda (vacías)
     loadNextQuestion(); // Cargar la primera pregunta
 }
 
-/**
- * Carga los datos de la siguiente pregunta, inicia el timer si aplica, y actualiza la UI.
- */
+/** Carga y muestra la siguiente pregunta */
 function loadNextQuestion() {
     // Limpiar estado de la pregunta anterior
     if(ui.feedbackArea) { ui.feedbackArea.innerHTML = ''; ui.feedbackArea.className = ''; }
     if(ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
-    currentQuestionData = null; // Limpiar datos globales de la pregunta
-    correctAnswer = null; // Limpiar respuesta global
-    clearInterval(questionTimerInterval); // Detener timer si corría
-    ui.showTimerDisplay(false); // Ocultar timer por defecto
-    if(ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time'); // Quitar estilo low-time
+    currentQuestionData = null;
+    correctAnswer = null; // Limpiar respuesta anterior también
+    clearInterval(questionTimerInterval);
+    ui.showTimerDisplay(false);
+    if(ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time');
 
     try {
         // Obtener datos de la siguiente pregunta desde el módulo questions
-        const questionDataResult = getNextQuestion(currentLevel);
+        const questionDataResult = getNextQuestion(currentLevel); // Llama al módulo questions
 
-        // Validar los datos recibidos
+        // Validar datos recibidos del generador
         if (questionDataResult && questionDataResult.question && questionDataResult.options && Array.isArray(questionDataResult.options) && questionDataResult.correctAnswer !== undefined && questionDataResult.explanation !== undefined) {
             currentQuestionData = questionDataResult; // Guardar datos completos globalmente
-            correctAnswer = currentQuestionData.correctAnswer; // Guardar respuesta para comparación rápida
+            // ***** CORRECCIÓN CLAVE: Asignar correctAnswer global *****
+            correctAnswer = currentQuestionData.correctAnswer;
+            // *******************************************************
 
-            // INICIAR TIMER (solo si es Entry en modo mastery)
+            // INICIAR TIMER (si aplica)
             const timerCondition = (currentLevel === 'Entry' && currentGameMode === 'mastery');
             ui.showTimerDisplay(timerCondition); // Mostrar u ocultar display
             if (timerCondition) {
@@ -105,14 +92,14 @@ function loadNextQuestion() {
                 questionTimerInterval = setInterval(updateTimer, 1000);
             }
 
-            // Mostrar la pregunta y opciones en la UI (pasar el handler de respuesta)
+            // Mostrar pregunta y opciones (pasa el handler de respuesta)
             ui.displayQuestion(currentQuestionData.question, currentQuestionData.options, handleAnswerClick);
         } else {
-            // No se pudo generar pregunta (nivel no implementado o error en generador)
+            // Error si el generador devolvió null o datos inválidos
             throw new Error("Datos de pregunta inválidos o nulos recibidos del generador.");
         }
     } catch (error) {
-        // Manejo de errores al cargar/generar pregunta
+        // Manejo de errores simplificado en catch
         console.error("Error fatal en loadNextQuestion:", error);
         if(ui.questionText) ui.questionText.innerHTML = "Error al cargar pregunta.";
         if(ui.optionsContainer) ui.optionsContainer.innerHTML = '';
@@ -121,197 +108,103 @@ function loadNextQuestion() {
     }
  }
 
-/**
- * Actualiza el temporizador de la pregunta cada segundo y maneja el caso de tiempo agotado.
- */
+
+/** Actualiza el timer y maneja timeout */
  function updateTimer() {
-    timeLeft--;
-    ui.updateTimerDisplay(timeLeft); // Actualiza UI del timer
+     timeLeft--;
+     ui.updateTimerDisplay(timeLeft); // Actualiza UI del timer
+     if (timeLeft <= 0) {
+         clearInterval(questionTimerInterval);
+         if(ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled');
+         roundResults.push(false); // Timeout cuenta como incorrecta
+         const isMastery = (currentLevel === 'Entry' && currentGameMode === 'mastery');
+         ui.updateRoundProgressUI(roundResults, isMastery); // Actualizar estrellas ronda
 
-    if (timeLeft <= 0) {
-        // --- TIEMPO AGOTADO ---
-        clearInterval(questionTimerInterval); // Detener este timer
-        if(ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled'); // Deshabilitar opciones
+         // Mostrar feedback de timeout (usa ui.displayFeedback pero adaptamos el texto)
+         const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
+         ui.displayFeedback(false, isMastery, timeoutFeedbackData, proceedToNextStep); // Llama a la función de UI
 
-        roundResults.push(false); // Timeout cuenta como incorrecta
-        const isMastery = (currentLevel === 'Entry' && currentGameMode === 'mastery');
-        ui.updateRoundProgressUI(roundResults, isMastery); // Actualizar estrellas (mostrar una roja/incorrecta)
+         // Añadir texto específico de timeout
+         if(ui.feedbackArea) {
+            const feedbackContent = ui.feedbackArea.querySelector('#feedback-text-content span:first-child');
+            if(feedbackContent) { feedbackContent.innerHTML = `¡Tiempo Agotado! ⌛ La respuesta correcta era: <strong>${currentQuestionData.correctAnswer}</strong>`; }
+            else { ui.feedbackArea.innerHTML = `<div id="feedback-text-content"><span>¡Tiempo Agotado! ⌛ La respuesta correcta era: <strong>${currentQuestionData.correctAnswer}</strong></span><span class="explanation">${currentQuestionData.explanation || ''}</span></div>` + ui.feedbackArea.innerHTML; }
+         }
+     }
+ }
 
-        // Mostrar feedback de timeout (usa ui.displayFeedback pero adaptamos el texto)
-        // Creamos un objeto similar a questionData para pasar a displayFeedback
-        const timeoutFeedbackData = {
-             ...currentQuestionData, // Usar datos de la pregunta actual
-             questionsAnswered: questionsAnswered, // Pasar contadores
-             totalQuestions: config.TOTAL_QUESTIONS_PER_GAME
-         };
-        // Llamamos a la función de UI, indicando que fue incorrecto
-        ui.displayFeedback(false, isMastery, timeoutFeedbackData, proceedToNextStep);
 
-        // Añadir/Modificar texto específico de timeout en el feedback area
-        if(ui.feedbackArea) {
-           const feedbackContent = ui.feedbackArea.querySelector('#feedback-text-content span:first-child'); // Buscar el span del mensaje
-           if(feedbackContent) {
-                feedbackContent.innerHTML = `¡Tiempo Agotado! ⌛ La respuesta correcta era: <strong>${currentQuestionData.correctAnswer}</strong>`; // Cambiar texto
-           } else { // Si displayFeedback no creó el span (porque falló?), añadirlo
-                ui.feedbackArea.innerHTML = `<div id="feedback-text-content"><span>¡Tiempo Agotado! ⌛ La respuesta correcta era: <strong>${currentQuestionData.correctAnswer}</strong></span><span class="explanation">${currentQuestionData.explanation || ''}</span></div>` + ui.feedbackArea.innerHTML;
-           }
-        }
-    }
-}
-
-/**
- * Función intermedia llamada después de una respuesta (automática o manual)
- * para decidir si cargar la siguiente pregunta o terminar el juego.
- */
+/** Función intermedia para avanzar */
  function proceedToNextStep() {
-    clearInterval(questionTimerInterval); // Detener timer si se llamó manualmente antes de tiempo
-    questionsAnswered++; // Incrementar contador de preguntas de la ronda
+    clearInterval(questionTimerInterval);
+    questionsAnswered++;
     if (questionsAnswered >= config.TOTAL_QUESTIONS_PER_GAME) {
-         endGame(); // Terminar si se alcanzó el límite
+        endGame();
     } else {
-         loadNextQuestion(); // Cargar la siguiente si no
+        loadNextQuestion();
     }
 }
 
-/**
- * Maneja el clic del usuario en un botón de opción de respuesta.
- * Es exportada para que ui.js pueda asignarla como listener.
- * @param {Event} event - El objeto del evento click.
- */
+/** Maneja el clic en un botón de respuesta */
  export function handleAnswerClick(event) {
-    clearInterval(questionTimerInterval); // Detener timer tan pronto se responde
+    clearInterval(questionTimerInterval); // Detener timer al responder
 
-    // Verificar que tenemos datos de la pregunta actual
-    if (!currentQuestionData) { console.error("handleAnswerClick llamado sin currentQuestionData"); return; }
+    if (!currentQuestionData || correctAnswer === null) { console.error("handleAnswerClick sin datos de pregunta o respuesta correcta."); return; }
 
     const selectedButton = event.target;
     const selectedAnswer = selectedButton.textContent;
-
-    // Deshabilitar opciones para evitar múltiples clics
     if(ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled');
 
-    // Determinar si la respuesta es correcta
-    let isCorrect = (selectedAnswer === currentQuestionData.correctAnswer);
-    roundResults.push(isCorrect); // Registrar resultado para estrellas de ronda
-
-    // Determinar si estamos en modo Realeza/Mastery
+    let isCorrect = (selectedAnswer === correctAnswer); // Comparar con correctAnswer global
+    roundResults.push(isCorrect);
     const isMastery = (currentLevel === 'Entry' && currentGameMode === 'mastery');
 
     if (isCorrect) {
-        // --- RESPUESTA CORRECTA ---
-        currentScore += config.POINTS_PER_QUESTION; // Actualizar puntuación
-        ui.updatePlayerInfo(currentUsername, currentLevel, currentScore); // Reflejar en UI
-
-        // Mostrar feedback simple de acierto (la función de UI se encarga del estilo mastery/correct)
+        currentScore += config.POINTS_PER_QUESTION;
+        ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
         ui.displayFeedback(isCorrect, isMastery, currentQuestionData, proceedToNextStep);
-        if(selectedButton) selectedButton.classList.add(isMastery ? 'mastery' : 'correct'); // Estilo al botón
-
-        // Avance automático a la siguiente pregunta/fin de juego
-        setTimeout(proceedToNextStep, 1200);
-
+        if(selectedButton) selectedButton.classList.add(isMastery ? 'mastery' : 'correct');
+        setTimeout(proceedToNextStep, 1200); // Avance automático
     } else {
-        // --- RESPUESTA INCORRECTA ---
-         // Pasar todos los datos necesarios a displayFeedback para que muestre
-         // explicación, respuesta correcta y cree el botón "Siguiente >>"
-         const feedbackData = {
-             ...currentQuestionData,
-             questionsAnswered: questionsAnswered,
-             totalQuestions: config.TOTAL_QUESTIONS_PER_GAME
-         };
+         const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
         ui.displayFeedback(isCorrect, isMastery, feedbackData, proceedToNextStep);
-        if(selectedButton) selectedButton.classList.add('incorrect'); // Marcar botón incorrecto
-        // El resaltado de la respuesta correcta se hace dentro de ui.displayFeedback
+        if(selectedButton) selectedButton.classList.add('incorrect');
+        // El resaltado de la correcta se hace dentro de ui.displayFeedback
     }
-
-    // Actualizar estrellas de progreso de la ronda (amarillas/verdes/púrpuras o rojas)
     ui.updateRoundProgressUI(roundResults, isMastery);
-}
+ }
 
-
-/**
- * Finaliza la partida actual, calcula rachas, desbloquea niveles,
- * guarda datos, y muestra la pantalla de Game Over.
- */
+/** Finaliza la partida */
  function endGame() {
     clearInterval(questionTimerInterval); // Asegurar detener timer
     const isPerfect = (currentScore === config.PERFECT_SCORE);
-    let message = "¡Partida completada!"; // Mensaje por defecto
-
+    let message = "¡Partida completada!";
     try {
-        currentUserData = storage.getUserData(currentUsername); // Recargar datos frescos
-
+        currentUserData = storage.getUserData(currentUsername); // Recargar datos
         // --- Lógica de Racha/Desbloqueo ---
-        if (currentLevel === 'Entry') {
-            if (isPerfect) {
-                currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1;
-                if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) {
-                    currentUserData.unlockedLevels.push('Associate');
-                    currentUserData.entryPerfectStreak = 0; // Resetear racha al desbloquear
-                    message = "¡3 Rondas Perfectas! ¡Nivel Associate Desbloqueado! 🎉";
-                } else if (!currentUserData.unlockedLevels.includes('Associate')) {
-                    message = `¡Ronda Perfecta! Racha (Entry): ${currentUserData.entryPerfectStreak}/3.`;
-                } else { message = "¡Ronda Perfecta!"; } // Ya tenía Associate desbloqueado
-            } else {
-                if (currentUserData.entryPerfectStreak > 0) { /* Opcional: Log reseteo */ }
-                currentUserData.entryPerfectStreak = 0; // Resetear racha Entry si no fue perfecta
-                // message se queda como "Partida completada!" si no fue perfecta
-            }
-        } else if (currentLevel === 'Associate') {
-            // Lógica para racha de Associate -> desbloqueo de Professional
-             if (isPerfect) {
-                 currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1;
-                 if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) {
-                     currentUserData.unlockedLevels.push('Professional');
-                     currentUserData.associatePerfectStreak = 0; // Resetear racha Associate
-                     message = "¡3 Rondas Perfectas! ¡Nivel Professional Desbloqueado! 🏆";
-                 } else if (!currentUserData.unlockedLevels.includes('Professional')) {
-                     message = `¡Ronda Perfecta en Associate! Racha: ${currentUserData.associatePerfectStreak}/3.`;
-                 } else { message = "¡Ronda Perfecta en Associate!"; } // Ya tenía Pro desbloqueado
-             } else {
-                  if (currentUserData.associatePerfectStreak > 0) { /* Opcional: Log reseteo */ }
-                 currentUserData.associatePerfectStreak = 0; // Resetear racha Associate si no fue perfecta
-                 // message se queda como "Partida completada!"
-             }
-             // TODO: Implementar preguntas de Associate en questions.js
-        }
-        // Añadir 'else if (currentLevel === 'Professional')' si hay más niveles/rachas
+        if (currentLevel === 'Entry') { if (isPerfect) { currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1; if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) { currentUserData.unlockedLevels.push('Associate'); currentUserData.entryPerfectStreak = 0; message = "¡3 Rondas Perfectas! ¡Nivel Associate Desbloqueado! 🎉"; } else if (!currentUserData.unlockedLevels.includes('Associate')) { message = `¡Ronda Perfecta! Racha (Entry): ${currentUserData.entryPerfectStreak}/3.`; } else { message = "¡Ronda Perfecta!"; } } else { currentUserData.entryPerfectStreak = 0; } }
+        else if (currentLevel === 'Associate') { if (isPerfect) { currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1; if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) { currentUserData.unlockedLevels.push('Professional'); currentUserData.associatePerfectStreak = 0; message = "¡3 Rondas Perfectas! ¡Nivel Professional Desbloqueado! 🏆"; } else if (!currentUserData.unlockedLevels.includes('Professional')) { message = `¡Ronda Perfecta en Associate! Racha: ${currentUserData.associatePerfectStreak}/3.`; } else { message = "¡Ronda Perfecta en Associate!"; } } else { currentUserData.associatePerfectStreak = 0; } }
         // --- Fin Lógica Racha ---
-
         storage.saveUserData(currentUsername, currentUserData); // Guardar TODOS los datos actualizados
         storage.saveHighScore(currentUsername, currentScore); // Guardar puntuación alta
         const highScores = storage.loadHighScores(); // Cargar scores para mostrar
         ui.displayHighScores(highScores); // Mostrar scores actualizados
-
-        // Mostrar pantalla Game Over con info correcta (pasa handler del botón)
-        ui.displayGameOver(currentScore, message, currentUserData); // El listener del botón se añade en main.js
-        currentQuestionData = null; // Limpiar datos de la última pregunta
-
+        // Mostrar pantalla Game Over con info correcta
+        ui.displayGameOver(currentScore, message, currentUserData); // El handler del botón se añade en main.js
+        currentQuestionData = null; // Limpiar
     } catch (error) { console.error("Error en endGame:", error); }
-}
+ }
 
-/**
- * Maneja el botón 'Jugar de Nuevo / Elegir Nivel' en la pantalla Game Over.
- * Exportada para que main.js la use como listener.
- */
-export function handlePlayAgain() {
-    // Recargar datos frescos por si acaso hubo un desbloqueo
-    if(currentUsername) {
-         currentUserData = storage.getUserData(currentUsername);
-    } else {
-         // Esto no debería pasar si el juego terminó, pero por seguridad
-         currentUserData = { unlockedLevels: ['Entry'], entryPerfectStreak: 0, associatePerfectStreak: 0 };
-    }
-    // Llama a la función de UI para mostrar la selección de nivel actualizada
+/** Maneja el botón 'Jugar de Nuevo / Elegir Nivel' en la pantalla Game Over */
+ export function handlePlayAgain() {
+    if(currentUsername) { currentUserData = storage.getUserData(currentUsername); }
+    else { currentUserData = { unlockedLevels: ['Entry'], entryPerfectStreak: 0, associatePerfectStreak: 0 }; }
     ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
 }
 
-/**
- * Inicializa el estado del juego al cargar la página.
- * Exportada para que main.js la llame.
- */
-export function initializeGame() {
+/** Inicializa el juego */
+ export function initializeGame() {
     const initialHighScores = storage.loadHighScores();
     ui.displayHighScores(initialHighScores);
-    // Ocultar todas las secciones excepto el setup inicial
-    ui.showSection(ui.userSetupSection);
+    ui.showSection(ui.userSetupSection); // Mostrar solo el setup inicial
 }
