@@ -28,6 +28,8 @@ export const playAgainButton = document.getElementById('play-again-button');
 export const scoreList = document.getElementById('score-list');
 export const timerDisplayDiv = document.getElementById('timer-display');
 export const timeLeftSpan = document.getElementById('time-left');
+export const restartRoundButton = document.getElementById('restart-round-button');
+export const exitToMenuButton = document.getElementById('exit-to-menu-button');
 
 /** Muestra/Oculta secciones según el estado del juego */
 export function showSection(sectionToShow) {
