@@ -173,6 +173,42 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
     display: block; /* Asegurar que esté en nueva línea */
 }
 
+/* --- Estilos para Tabla en Explicaciones --- */
+.explanation-table {
+    width: 95%; /* Ocupar casi todo el ancho del feedback */
+    margin: 10px auto; /* Centrarla con margen */
+    border-collapse: collapse; /* Bordes simples */
+    font-size: 0.85em; /* Texto un poco más pequeño */
+    background-color: #fff; /* Fondo blanco para la tabla */
+}
+
+.explanation-table th,
+.explanation-table td {
+    border: 1px solid #ccc; /* Bordes grises */
+    padding: 4px 8px; /* Espaciado interno */
+    text-align: center; /* Centrar texto */
+    font-weight: normal; /* Resetear peso */
+}
+
+.explanation-table th {
+    background-color: #e9ecef; /* Fondo gris claro para encabezados */
+    font-weight: bold; /* Encabezados en negrita */
+}
+
+.explanation-table .highlight-row td {
+    background-color: #d4edda; /* Fondo verde pálido para fila correcta */
+    font-weight: bold; /* Resaltar fila correcta */
+}
+
+/* Ajuste al contenedor de explicación para HTML */
+#feedback-text-content .explanation {
+    font-weight: normal;
+    font-size: 1em; /* Resetear tamaño para que la tabla controle el suyo */
+    margin-top: 8px;
+    color: #333; /* Texto principal oscuro */
+    display: block;
+}
+
 /* Estilo para el botón "Siguiente" */
 #next-question-button {
     padding: 5px 15px;
