@@ -318,6 +318,61 @@ button:active {
     margin-left: 10px;
 }
 
+/* --- Estilos para Selección de Nivel --- */
+#level-select h2 {
+    margin-bottom: 25px;
+}
+
+#level-buttons-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px; /* Espacio entre botones de nivel */
+}
+
+#level-buttons-container button {
+    width: 70%;
+    max-width: 300px;
+    padding: 15px; /* Botones de nivel más grandes */
+    font-size: 1.1em;
+}
+
+/* --- Estilos para Progreso de Desbloqueo --- */
+#unlock-progress {
+    background-color: #e9ecef; /* Fondo ligero para destacar */
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 30px; /* Más espacio arriba */
+    border: 1px solid #ced4da;
+}
+
+#unlock-progress h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #495057; /* Color de título más suave */
+    font-family: 'Montserrat', sans-serif; /* Asegurar fuente */
+    font-weight: 700;
+}
+
+#progress-stars {
+    font-size: 2em; /* Estrellas más grandes */
+    color: #ffc107; /* Color amarillo/dorado para estrellas */
+    letter-spacing: 5px; /* Espacio entre estrellas */
+    margin-right: 10px; /* Espacio antes del icono info */
+}
+
+.info-icon {
+    color: #6c757d; /* Color gris para icono info */
+    cursor: help; /* Cambiar cursor a ayuda */
+    font-size: 1.1em;
+    vertical-align: middle;
+}
+
+/* --- Ajuste Botón Game Over --- */
+#play-again-button {
+    /* Ya tiene estilos generales, podrías añadir algo específico si quieres */
+    /* Ejemplo: background-color: #17a2b8; */ /* Un color diferente */
+}
 
 /* --- Responsiveness (Basic Example) --- */
 @media (max-width: 600px) {
@@ -351,4 +406,20 @@ button:active {
      #game-info i {
          font-size: 1em; /* Adjust icon size if needed */
      }
+
+    #level-buttons-container button {
+        width: 90%;
+        padding: 12px;
+        font-size: 1em;
+    }
+
+     #unlock-progress h4 {
+        font-size: 0.9em;
+    }
+     #progress-stars {
+        font-size: 1.8em;
+    }
+    .info-icon {
+        font-size: 1em;
+    }
 }
