@@ -175,14 +175,19 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
 
 /* Estilo para el botón "Siguiente" */
 #next-question-button {
-    padding: 5px 15px;   /* Más pequeño */
-    font-size: 0.85em; /* Texto más pequeño */
-    background-color: #6c757d; /* Un gris neutral */
-    align-self: flex-end; /* Alinearlo a la derecha */
-    margin-top: auto; /* Empujarlo hacia abajo */
+    padding: 5px 15px;
+    font-size: 0.85em;
+    background-color: #28a745;
+    align-self: flex-end;
+    margin-top: auto;
+    color: white; /* Asegurar texto blanco */
+    border: none; /* Asegurar que no tenga borde */
+    border-radius: 5px; /* Heredado, pero por si acaso */
+    cursor: pointer; /* Heredado */
+    transition: background-color 0.3s ease, transform 0.1s ease; /* Heredado */
 }
 #next-question-button:hover {
-    background-color: #5a6268;
+    background-color: #218838;
 }
 
 /* --- Game Over Styles --- */
