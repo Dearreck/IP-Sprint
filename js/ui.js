@@ -1,6 +1,7 @@
 // js/ui.js
 import { TOTAL_QUESTIONS_PER_GAME } from './config.js';
-import { handleAnswerClick } from './game.js'; // Importar para añadir listener
+// Necesitamos importar el handler del juego para añadirlo a los botones
+import { handleAnswerClick, handlePlayAgain } from './game.js';
 
 // Selección de Elementos del DOM (centralizada aquí)
 export const userSetupSection = document.getElementById('user-setup');
@@ -28,7 +29,6 @@ export const scoreList = document.getElementById('score-list');
 export const timerDisplayDiv = document.getElementById('timer-display');
 export const timeLeftSpan = document.getElementById('time-left');
 
-
 /** Muestra/Oculta secciones según el estado del juego */
 export function showSection(sectionToShow) {
     const sections = [
@@ -38,7 +38,7 @@ export function showSection(sectionToShow) {
     sections.forEach(section => {
         if (section) { // Verificar que el elemento existe
             if (section === sectionToShow ||
-               // Lógica especial para mostrar siempre progreso/scores post-login
+               // Mostrar siempre progreso/scores post-login (en Level Select y Game Over)
                (section === unlockProgressSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection)) ||
                (section === highScoresSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection))
                ) {
@@ -48,7 +48,7 @@ export function showSection(sectionToShow) {
             }
         }
     });
-     // Caso especial: ocultar progreso y scores durante el juego activo
+     // Ocultar progreso y scores durante el juego activo
      if(sectionToShow === gameAreaSection) {
          if(unlockProgressSection) unlockProgressSection.style.display = 'none';
          if(highScoresSection) highScoresSection.style.display = 'none';
@@ -62,7 +62,7 @@ export function updatePlayerInfo(username, level, score) {
     if (scoreDisplay) scoreDisplay.textContent = score;
 }
 
-/** Muestra la pantalla de selección de nivel */
+/** Muestra la pantalla de selección de nivel con botones de texto corto */
 export function displayLevelSelection(unlockedLevels, currentUserData, levelSelectHandler) {
     if (!levelButtonsContainer || !unlockedLevels) return;
 
@@ -71,7 +71,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
     // Botón Entry (Normal) - Siempre disponible si está desbloqueado
     if (unlockedLevels.includes('Entry')) {
         const entryBtn = document.createElement('button');
-        entryBtn.textContent = `Jugar Nivel Entry (Normal ★)`; // Identificador visual
+        entryBtn.textContent = `Entry ★`; // <-- TEXTO CORTO
         entryBtn.addEventListener('click', () => levelSelectHandler('Entry', 'standard'));
         levelButtonsContainer.appendChild(entryBtn);
     }
@@ -79,7 +79,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
     // Botón Entry (Timer) - Solo si Associate está desbloqueado
     if (unlockedLevels.includes('Associate')) {
         const entryTimerBtn = document.createElement('button');
-        entryTimerBtn.textContent = `Jugar Nivel Entry (Timer 👑)`; // Identificador visual
+        entryTimerBtn.textContent = `Entry 👑`; // <-- TEXTO CORTO
         entryTimerBtn.addEventListener('click', () => levelSelectHandler('Entry', 'mastery'));
         levelButtonsContainer.appendChild(entryTimerBtn);
     }
@@ -88,22 +88,22 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
     unlockedLevels.forEach(level => {
         if (level !== 'Entry') { // Ya manejamos Entry arriba
             const button = document.createElement('button');
-            button.textContent = `Jugar Nivel ${level}`;
-            // Asumir modo standard para niveles > Entry por ahora
-            button.addEventListener('click', () => levelSelectHandler(level, 'standard'));
+            button.textContent = `${level}`; // <-- TEXTO CORTO (Solo nombre)
+            button.addEventListener('click', () => levelSelectHandler(level, 'standard')); // Asumir standard
             levelButtonsContainer.appendChild(button);
         }
     });
 
     updateUnlockProgressUI(currentUserData); // Actualizar estrellas de desbloqueo
-    showSection(levelSelectSection); // Mostrar la sección correcta
+    showSection(levelSelectSection); // Mostrar esta sección correcta
 }
+
 
 /** Actualiza la UI de progreso de DESBLOQUEO de nivel (3 estrellas) */
 export function updateUnlockProgressUI(currentUserData) {
     try {
         if (!currentUserData || !unlockProgressSection || !unlockProgressDiv || !progressStarsSpan) return;
-        unlockProgressSection.style.display = 'block'; // Visible en las pantallas donde se llama
+        unlockProgressSection.style.display = 'block';
         const unlocked = currentUserData.unlockedLevels || ['Entry'];
         const entryStreak = currentUserData.entryPerfectStreak || 0;
         const associateStreak = currentUserData.associatePerfectStreak || 0;
@@ -118,11 +118,11 @@ export function updateUnlockProgressUI(currentUserData) {
 
         if (showProgress) { let stars = ''; for (let i = 0; i < 3; i++) { stars += (i < currentStreak) ? '★' : '☆'; } progressStarsSpan.textContent = stars; unlockProgressDiv.style.display = 'block'; }
         else { unlockProgressDiv.style.display = 'none'; }
-    } catch (error) { console.error("Error en updateUnlockProgressUI:", error); }
+    } catch(error) { console.error("Error en updateUnlockProgressUI:", error); }
 }
 
 /** Actualiza las estrellas de progreso DENTRO de la ronda actual */
-export function updateRoundProgressUI(roundResults, isMasteryMode) { // Necesita saber el modo
+export function updateRoundProgressUI(roundResults, isMasteryMode) {
     try {
         if (!roundProgressStarsDiv) return; let starsHTML = '';
         for (let i = 0; i < TOTAL_QUESTIONS_PER_GAME; i++) {
@@ -136,7 +136,7 @@ export function updateRoundProgressUI(roundResults, isMasteryMode) { // Necesita
                 starsHTML += '<i class="far fa-star star-pending"></i>';
             }
         } roundProgressStarsDiv.innerHTML = starsHTML;
-    } catch (error) { console.error("Error en updateRoundProgressUI:", error); }
+    } catch(error) { console.error("Error en updateRoundProgressUI:", error); }
 }
 
 /** Muestra pregunta y opciones */
@@ -144,11 +144,10 @@ export function displayQuestion(questionHTML, optionsArray, answerClickHandler) 
     try {
          if(!questionText || !optionsContainer || !feedbackArea) return;
          questionText.innerHTML = questionHTML; optionsContainer.innerHTML = ''; feedbackArea.innerHTML = ''; feedbackArea.className = '';
-         if (!optionsArray || !Array.isArray(optionsArray)) { throw new Error("optionsArray inválido"); }
+         if (!optionsArray || !Array.isArray(optionsArray)) throw new Error("optionsArray inválido");
          optionsArray.forEach(optionText => {
              const button = document.createElement('button'); button.textContent = optionText; button.classList.add('option-button');
-             // Pasar el handler desde game.js
-             button.addEventListener('click', answerClickHandler);
+             button.addEventListener('click', answerClickHandler); // Usa el handler pasado
              optionsContainer.appendChild(button);
          });
          optionsContainer.classList.remove('options-disabled');
@@ -157,7 +156,7 @@ export function displayQuestion(questionHTML, optionsArray, answerClickHandler) 
 
 /** Muestra el feedback y opcionalmente el botón Siguiente */
 export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStepHandler) {
-    if (!feedbackArea || !currentQuestionData) return;
+    if (!feedbackArea || !questionData) return;
 
     let feedbackHTML = '';
     const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
@@ -165,6 +164,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     if (isCorrect) {
         feedbackHTML = `<div id="feedback-text-content">¡Correcto! ✔️</div>`;
         feedbackArea.className = isMasteryMode ? 'mastery' : 'correct';
+        // El avance automático se maneja en game.js
     } else {
         feedbackHTML = `
             <div id="feedback-text-content">
@@ -177,22 +177,30 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         // Resaltar correcta (con estilo mastery si aplica)
         if(optionsContainer) { Array.from(optionsContainer.children).forEach(button => { if (button.textContent === questionData.correctAnswer) button.classList.add(correctButtonClass); }); }
 
-        // Crear botón siguiente
-        const buttonText = (questionData.questionsAnswered + 1 >= TOTAL_QUESTIONS_PER_GAME) ? 'Ver Resultado Final &gt;&gt;' : 'Siguiente &gt;&gt;';
+        // Crear botón siguiente HTML
+        const buttonText = (questionData.questionsAnswered + 1 >= questionData.totalQuestions) ? 'Ver Resultado Final &gt;&gt;' : 'Siguiente &gt;&gt;';
         feedbackHTML += `<button id="next-question-button">${buttonText}</button>`;
     }
 
     feedbackArea.innerHTML = feedbackHTML;
 
-    // Añadir listener si se creó el botón
+    // Añadir listener si se creó el botón (caso incorrecto)
     if (!isCorrect) {
         const newNextButton = document.getElementById('next-question-button');
-        if (newNextButton) newNextButton.addEventListener('click', nextStepHandler);
+        if (newNextButton) {
+             // Asegurarse que el handler existe antes de añadir listener
+            if (typeof nextStepHandler === 'function') {
+                newNextButton.addEventListener('click', nextStepHandler);
+            } else {
+                console.error("nextStepHandler no es una función en displayFeedback");
+            }
+        }
     }
 }
 
+
 /** Actualiza la pantalla de Game Over */
-export function displayGameOver(score, message, playAgainHandler, currentUserData) {
+export function displayGameOver(score, message, currentUserData) { // playAgainHandler se añade en main.js
     if(finalScoreDisplay) finalScoreDisplay.textContent = score;
     if(highScoreMessage) highScoreMessage.textContent = message;
 
@@ -201,44 +209,28 @@ export function displayGameOver(score, message, playAgainHandler, currentUserDat
         if (currentUserData.unlockedLevels.length <= 1) { playAgainButton.textContent = `Jugar de Nuevo (${currentUserData.unlockedLevels[0] || 'Entry'})`; }
         else { playAgainButton.textContent = 'Elegir Nivel'; }
     }
-    // El listener ya está añadido en main.js
 
     updateUnlockProgressUI(currentUserData); // Asegurar que estrellas de desbloqueo estén actualizadas
-    showSection(gameOverSection); // Mostrar esta sección
+    showSection(gameOverSection);
 }
 
 /** Actualiza la lista de High Scores en la UI */
 export function displayHighScores(scores) {
      if(!scoreList) return;
      scoreList.innerHTML = ''; // Limpiar
-     if (!scores || scores.length === 0) {
-         scoreList.innerHTML = '<li>Aún no hay puntuaciones. ¡Sé el primero!</li>';
-         return;
-     }
-     scores.forEach(scoreItem => {
-         const li = document.createElement('li');
-         li.textContent = `${scoreItem.name}: `;
-         const strong = document.createElement('strong');
-         strong.textContent = scoreItem.score;
-         li.appendChild(strong);
-         scoreList.appendChild(li);
-     });
+     if (!scores || scores.length === 0) { scoreList.innerHTML = '<li>Aún no hay puntuaciones. ¡Sé el primero!</li>'; return; }
+     scores.forEach(scoreItem => { const li = document.createElement('li'); li.textContent = `${scoreItem.name}: `; const strong = document.createElement('strong'); strong.textContent = scoreItem.score; li.appendChild(strong); scoreList.appendChild(li); });
 }
 
 /** Actualiza el display del timer */
 export function updateTimerDisplay(timeLeftValue) {
     if (!timerDisplayDiv || !timeLeftSpan) return;
     timeLeftSpan.textContent = timeLeftValue;
-    if (timeLeftValue <= 5) {
-        timerDisplayDiv.classList.add('low-time');
-    } else {
-        timerDisplayDiv.classList.remove('low-time');
-    }
+    if (timeLeftValue <= 5) { timerDisplayDiv.classList.add('low-time'); }
+    else { timerDisplayDiv.classList.remove('low-time'); }
 }
 
 /** Muestra u oculta el display del timer */
 export function showTimerDisplay(show) {
-     if (timerDisplayDiv) {
-         timerDisplayDiv.style.display = show ? 'block' : 'none';
-     }
+     if (timerDisplayDiv) { timerDisplayDiv.style.display = show ? 'block' : 'none'; }
 }
