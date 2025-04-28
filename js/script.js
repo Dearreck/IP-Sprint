@@ -485,70 +485,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /** Maneja el clic en un botón de respuesta */
     function handleAnswerClick(event) {
-        if (!currentQuestionData) { console.error("handleAnswerClick sin currentQuestionData"); return; } // Safety check
+        if (!currentQuestionData) { console.error("handleAnswerClick sin currentQuestionData"); return; }
 
         const selectedButton = event.target;
         const selectedAnswer = selectedButton.textContent;
 
-        if(optionsContainer) optionsContainer.classList.add('options-disabled'); // Disable buttons
+        if(optionsContainer) optionsContainer.classList.add('options-disabled');
 
         let isCorrect = (selectedAnswer === currentQuestionData.correctAnswer);
-        roundResults.push(isCorrect); // Record result for round stars
+        roundResults.push(isCorrect); // Registrar resultado para estrellas de ronda
 
-        let feedbackHTML = '';
+        let feedbackHTML = ''; // Variable para construir el HTML del feedback
 
         if (isCorrect) {
-            // --- CORRECT ANSWER ---
+            // --- RESPUESTA CORRECTA ---
             currentScore += POINTS_PER_QUESTION;
             if(scoreDisplay) scoreDisplay.textContent = currentScore;
 
-            feedbackHTML = `<div id="feedback-text-content">¡Correcto! ✔️</div>`; // Simple correct feedback
+            feedbackHTML = `<div id="feedback-text-content">¡Correcto! ✔️</div>`; // Mensaje simple
 
-            if(feedbackArea) feedbackArea.className = 'correct'; // Apply correct style class
-            if(selectedButton) selectedButton.classList.add('correct'); // Highlight selected button
+            if(feedbackArea) {
+                feedbackArea.className = 'correct'; // Aplicar clase CSS
+                feedbackArea.innerHTML = feedbackHTML; // **MOSTRAR FEEDBACK**
+            }
+            if(selectedButton) selectedButton.classList.add('correct');
 
-            // Automatic advance after delay
+            // Avance automático
             setTimeout(proceedToNextStep, 1200);
 
         } else {
-            // --- INCORRECT ANSWER ---
-            // Build feedback HTML with explanation
+            // --- RESPUESTA INCORRECTA ---
+            // Construir HTML con explicación
             feedbackHTML = `
                 <div id="feedback-text-content">
                     <span>Incorrecto. La respuesta correcta era: <strong>${currentQuestionData.correctAnswer}</strong> ❌</span>
                     <span class="explanation">${currentQuestionData.explanation || ''}</span>
                 </div>
             `;
-            if(feedbackArea) feedbackArea.className = 'incorrect'; // Apply incorrect style class
-            if(selectedButton) selectedButton.classList.add('incorrect'); // Highlight selected button
 
-            // Highlight the actual correct option button
+            if(feedbackArea) {
+                feedbackArea.className = 'incorrect'; // Aplicar clase CSS
+                // NO ponemos innerHTML todavía si vamos a añadir botón con appendChild
+            }
+            if(selectedButton) selectedButton.classList.add('incorrect');
+
+            // Resaltar opción correcta aunque haya fallado
             if(optionsContainer) {
                 Array.from(optionsContainer.children).forEach(button => {
                     if (button.textContent === currentQuestionData.correctAnswer) {
-                        button.classList.add('correct'); // Show the right one
+                        button.classList.add('correct'); // Marcarla en verde
                     }
                 });
             }
 
-            // Create and add "Next" button HTML
-            // Check if this is the last question
-            const buttonText = (questionsAnswered + 1 >= TOTAL_QUESTIONS_PER_GAME) ? 'Ver Resultado Final &gt;&gt;' : 'Siguiente &gt;&gt;';
-            feedbackHTML += `<button id="next-question-button">${buttonText}</button>`;
+            // Crear botón "Siguiente"
+            const nextButton = document.createElement('button');
+            nextButton.id = 'next-question-button';
+            nextButton.textContent = (questionsAnswered + 1 >= TOTAL_QUESTIONS_PER_GAME) ? 'Ver Resultado Final &gt;&gt;' : 'Siguiente &gt;&gt;';
+            nextButton.addEventListener('click', proceedToNextStep);
 
-            // Update feedback area with text, explanation, and button
-            if(feedbackArea) feedbackArea.innerHTML = feedbackHTML;
-
-            // Add listener to the *newly created* button
-            const newNextButton = document.getElementById('next-question-button');
-            if (newNextButton) {
-                newNextButton.addEventListener('click', proceedToNextStep);
+            // Poner el texto/explicación y LUEGO añadir el botón
+            if(feedbackArea) {
+                feedbackArea.innerHTML = feedbackHTML; // Poner texto y explicación
+                feedbackArea.appendChild(nextButton); // Añadir el botón al final
             }
         }
 
-        updateRoundProgressUI(); // Update round stars (yellow or red)
-        // Note: questionsAnswered is incremented in proceedToNextStep
+        updateRoundProgressUI(); // Actualizar estrellas de ronda (amarillas/verdes o rojas)
+        // questionsAnswered se incrementa en proceedToNextStep
     }
+
 
     /** Finaliza la partida */
     function endGame() {
