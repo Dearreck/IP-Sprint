@@ -1,6 +1,7 @@
 /* --- General Styles --- */
 body {
-    font-family: sans-serif; /* Using a common sans-serif font */
+    /* Establece Montserrat como fuente principal para el cuerpo */
+    font-family: 'Montserrat', sans-serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
@@ -9,6 +10,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh; /* Ensure footer stays at bottom */
+    font-weight: 400; /* Peso regular por defecto */
 }
 
 main {
@@ -22,8 +24,11 @@ main {
 }
 
 h1, h2 {
+    /* Usa Comfortaa para los encabezados principales */
+    font-family: 'Comfortaa', sans-serif;
     color: #0056b3; /* A shade of blue for headings */
     text-align: center;
+    font-weight: 700; /* Usa el peso Bold para títulos */
 }
 
 a {
@@ -54,6 +59,9 @@ header h1 {
     margin: 0;
     color: #ffffff; /* Ensure h1 is white */
     font-size: 2em;
+    /* Asegura que use Comfortaa y Bold */
+    font-family: 'Comfortaa', sans-serif;
+    font-weight: 700;
 }
 
 footer {
@@ -130,10 +138,12 @@ footer img {
     width: 80%;
     max-width: 300px;
     box-sizing: border-box; /* Include padding in width */
+    font-family: 'Montserrat', sans-serif; /* Asegura la fuente correcta */
 }
 
 /* --- General Button Styles --- */
 button {
+    font-family: 'Montserrat', sans-serif; /* Asegura la fuente correcta */
     background-color: #007bff; /* Blue background */
     color: white;
     border: none;
@@ -143,6 +153,7 @@ button {
     font-size: 1em;
     transition: background-color 0.3s ease, transform 0.1s ease; /* Smooth transitions */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 700; /* Hacer texto de botón un poco más grueso */
 }
 
 button:hover {
@@ -164,7 +175,26 @@ button:active {
 
 #game-info span {
     margin: 0 10px;
+    white-space: nowrap; /* Evita que se partan las líneas en los spans */
 }
+
+/* --- Estilos para Iconos Font Awesome en Game Info --- */
+#game-info i {
+    margin-right: 5px;          /* Espacio a la derecha del icono */
+    color: #007bff;              /* Color azul primario */
+    font-size: 0.95em;           /* Tamaño ligeramente menor al texto */
+    vertical-align: baseline;    /* Intenta alinear con la base del texto */
+    transition: color 0.3s ease, transform 0.3s ease; /* Transición suave */
+    display: inline-block;       /* Permite aplicar transform */
+}
+
+#game-info i:hover {
+    color: #0056b3;              /* Color azul más oscuro al pasar el ratón */
+    transform: scale(1.15) rotate(-5deg); /* Aumenta tamaño y rota un poco */
+    cursor: default;             /* Mantiene cursor normal */
+}
+/* --- Fin Estilos Iconos --- */
+
 
 #question-container {
     margin: 25px 0;
@@ -312,4 +342,13 @@ button:active {
     #question-container {
         font-size: 1.2em;
     }
+
+     #game-info span {
+        margin: 0 5px; /* Reduce margin on smaller screens */
+        display: block; /* Stack info items vertically if needed */
+        margin-bottom: 5px;
+    }
+     #game-info i {
+         font-size: 1em; /* Adjust icon size if needed */
+     }
 }
