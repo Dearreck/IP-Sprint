@@ -7,9 +7,18 @@ body {
     font-weight: 400;
 }
 main {
-    flex-grow: 1; max-width: 800px; margin: 20px auto; padding: 20px;
-    background-color: #ffffff; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    flex-grow: 1; /* Mantiene el footer abajo */
+    max-width: 800px;
+    margin: 20px auto; /* Centra horizontalmente el bloque <main> */
+    padding: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
+
+    display: flex;              /* Activa Flexbox para <main> */
+    flex-direction: column;     /* Apila las secciones verticalmente */
+    justify-content: center;    /* Centra el contenido verticalmente */
+    /* align-items: center; */ /* Aañadir esto para centrar horizontalmente el contenido *dentro* de main, pero margin:auto en las secciones o su propio width/max-width suele ser suficiente */
 }
 h1, h2 {
     font-family: 'Comfortaa', sans-serif; color: #0056b3;
