@@ -40,7 +40,17 @@
              </div>
         </section>
 
-        <section id="game-area" class="game-section" style="display: none;"> <div id="game-info">
+        <section id="game-area" class="game-section" style="display: none;">
+            <div class="game-controls">
+                <button id="restart-round-button" title="Reiniciar Ronda Actual (mismo nivel)">
+                    <i class="fas fa-rotate-right"></i> Reiniciar Ronda
+                </button>
+                <button id="exit-to-menu-button" title="Salir al Menú de Niveles (pierde progreso ronda)">
+                    <i class="fas fa-bars"></i> Menú Niveles
+                </button>
+            </div>
+
+            <div id="game-info">
                 <div id="main-game-info">
                     <span><i class="fas fa-layer-group"></i> Nivel: <span id="level-display"></span></span> |
                     <span><i class="fas fa-user"></i> Usuario: <span id="username-display"></span></span> |
