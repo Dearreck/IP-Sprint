@@ -1,2 +1,315 @@
+/* --- General Styles --- */
+body {
+    font-family: sans-serif; /* Using a common sans-serif font */
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6; /* Light grey background */
+    color: #333; /* Dark grey text */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensure footer stays at bottom */
+}
 
-/**/
+main {
+    flex-grow: 1; /* Allow main content to take up available space */
+    max-width: 800px; /* Limit content width for readability */
+    margin: 20px auto; /* Center main content */
+    padding: 20px;
+    background-color: #ffffff; /* White background for content area */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 8px; /* Rounded corners */
+}
+
+h1, h2 {
+    color: #0056b3; /* A shade of blue for headings */
+    text-align: center;
+}
+
+a {
+    color: #0056b3;
+    text-decoration: none; /* Remove underline from links */
+}
+
+a:hover {
+    text-decoration: underline; /* Add underline on hover */
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-color: #e0e0e0; /* Light grey horizontal rule */
+    margin: 20px 0;
+}
+
+/* --- Header and Footer Styles --- */
+header {
+    background-color: #007bff; /* Blue header background */
+    color: #ffffff; /* White text */
+    padding: 15px 0;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    color: #ffffff; /* Ensure h1 is white */
+    font-size: 2em;
+}
+
+footer {
+    background-color: #343a40; /* Dark footer background */
+    color: #f8f9fa; /* Light text */
+    text-align: center;
+    padding: 15px 0;
+    margin-top: auto; /* Push footer to the bottom */
+    font-size: 0.9em;
+}
+
+footer p {
+    margin: 5px 0;
+}
+
+footer a {
+    color: #adb5bd; /* Lighter grey for links in footer */
+}
+
+footer a:hover {
+    color: #ffffff;
+}
+
+footer img {
+    vertical-align: middle; /* Align icon with text */
+    margin-right: 5px;
+    height: 1em; /* Adjust icon size relative to font */
+    width: auto;
+}
+
+
+/* --- Game Section Styles --- */
+.game-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    background-color: #fdfdfd; /* Slightly off-white for sections */
+}
+
+/* Hide sections by default (JS will show the active one) */
+/* .game-section {
+    display: none;
+} */
+
+/* Show the active section */
+/* .game-section.active {
+    display: block;
+} */
+/* Note: We are currently using inline style="display: none;" in HTML.
+   You can switch to using this class-based approach later if preferred. */
+
+
+/* --- User Setup Form Styles --- */
+#user-setup h2 {
+    margin-top: 0;
+}
+
+#username-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px; /* Space between elements */
+}
+
+#username-form label {
+    font-weight: bold;
+}
+
+#username-form input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 80%;
+    max-width: 300px;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+/* --- General Button Styles --- */
+button {
+    background-color: #007bff; /* Blue background */
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.1s ease; /* Smooth transitions */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+button:active {
+    transform: translateY(1px); /* Slight press effect */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Game Area Styles --- */
+#game-info {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #555;
+    font-size: 0.9em;
+}
+
+#game-info span {
+    margin: 0 10px;
+}
+
+#question-container {
+    margin: 25px 0;
+    text-align: center;
+    font-size: 1.4em; /* Larger font for the question/IP */
+    font-weight: bold;
+    color: #333;
+    min-height: 50px; /* Ensure space even when loading */
+}
+
+#options-container {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically */
+    align-items: center; /* Center buttons */
+    gap: 10px; /* Space between option buttons */
+    margin-top: 20px;
+}
+
+.option-button {
+    width: 80%;
+    max-width: 400px;
+    background-color: #6c757d; /* Grey for options initially */
+}
+
+.option-button:hover {
+    background-color: #5a6268; /* Darker grey on hover */
+}
+
+/* Styles for correct/incorrect feedback on buttons (to be added by JS) */
+.option-button.correct {
+    background-color: #28a745; /* Green for correct */
+    color: white;
+}
+.option-button.correct:hover {
+    background-color: #218838;
+}
+
+.option-button.incorrect {
+    background-color: #dc3545; /* Red for incorrect */
+    color: white;
+}
+.option-button.incorrect:hover {
+    background-color: #c82333;
+}
+
+/* Disable pointer events after selection */
+.options-disabled .option-button {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+
+#feedback-area {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+    min-height: 1.5em; /* Reserve space */
+}
+
+#feedback-area.correct {
+    color: #28a745; /* Green text */
+}
+
+#feedback-area.incorrect {
+    color: #dc3545; /* Red text */
+}
+
+/* --- Game Over Styles --- */
+#game-over {
+    text-align: center;
+}
+
+#game-over h2 {
+    color: #dc3545; /* Red heading for game over */
+}
+
+#final-score {
+    font-size: 1.8em;
+    color: #0056b3;
+}
+
+#high-score-message {
+    font-style: italic;
+    color: #17a2b8; /* Teal color for high score message */
+}
+
+#play-again-button {
+    margin-top: 20px;
+    background-color: #28a745; /* Green button */
+}
+
+#play-again-button:hover {
+    background-color: #218838;
+}
+
+
+/* --- High Scores List Styles --- */
+#high-scores-section h2 {
+    margin-bottom: 15px;
+}
+
+#score-list {
+    list-style: none; /* Remove bullet points */
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+#score-list li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #e0e0e0; /* Dashed separator */
+    font-size: 1.1em;
+}
+
+#score-list li:last-child {
+    border-bottom: none; /* Remove border from last item */
+}
+
+#score-list li strong {
+    color: #0056b3; /* Highlight score */
+    margin-left: 10px;
+}
+
+
+/* --- Responsiveness (Basic Example) --- */
+@media (max-width: 600px) {
+    main {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    header h1 {
+        font-size: 1.6em;
+    }
+
+    #username-form input[type="text"] {
+        width: 95%;
+    }
+
+    .option-button {
+        width: 95%;
+        padding: 10px 15px;
+    }
+
+    #question-container {
+        font-size: 1.2em;
+    }
+}
