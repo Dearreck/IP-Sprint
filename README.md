@@ -51,4 +51,3 @@ Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE)
 
 ---
 
-*(Opcional: Sección de Contribución, Agradecimientos, etc.)*
