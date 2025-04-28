@@ -42,6 +42,36 @@ footer img { vertical-align: middle; margin-right: 5px; height: 1em; width: auto
     margin-bottom: 30px; padding: 20px; border: 1px solid #e0e0e0;
     border-radius: 5px; background-color: #fdfdfd;
 }
+
+/* --- Estilos para Controles Durante el Juego --- */
+.game-controls {
+    text-align: right; /* Alinea botones a la derecha */
+    margin-bottom: 10px; /* Espacio debajo */
+    /* Opcional: position:absolute; top:10px; right:10px; si los quieres en esquina */
+}
+
+.game-controls button {
+    background-color: #6c757d; /* Gris neutral */
+    color: white;
+    padding: 4px 10px;   /* Más pequeños */
+    font-size: 0.8em;    /* Más pequeños */
+    margin-left: 8px;   /* Espacio entre ellos */
+    box-shadow: none;    /* Menos prominentes */
+    font-weight: normal; /* Texto normal */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.game-controls button:hover {
+    background-color: #5a6268; /* Gris oscuro */
+}
+
+.game-controls button i {
+    margin-right: 4px; /* Espacio entre icono y texto */
+}
+
 /* Control de visibilidad se hará principalmente con JS ahora */
 
 /* --- User Setup Form Styles --- */
@@ -309,4 +339,11 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
     #unlock-progress h4 { font-size: 0.9em; }
     #progress-stars { font-size: 1.8em; }
     .info-icon { font-size: 1em; }
+    .game-controls {
+        text-align: center; /* Centrar botones en móvil */
+        margin-bottom: 15px;
+    }
+    .game-controls button {
+        margin: 0 5px; /* Espacio horizontal */
+    }
 }
