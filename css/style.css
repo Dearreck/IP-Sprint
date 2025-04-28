@@ -124,6 +124,50 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
      margin: 0 1px;
 }
 
+/* --- Estilos Tema Realeza (Entry con Timer) --- */
+
+/* Feedback correcto en modo Realeza */
+#feedback-area.mastery {
+    color: #4d1a7f; /* Púrpura oscuro para texto */
+    background-color: #e9d8f3; /* Fondo lila pálido */
+    border: 1px solid #d3b6e3; /* Borde lila */
+    /* Hereda padding, etc. de las reglas generales de #feedback-area */
+}
+
+/* Botón de opción correcto en modo Realeza */
+.option-button.mastery {
+    background-color: #6f42c1; /* Púrpura principal */
+    color: white;
+    border-color: #6f42c1;
+}
+.option-button.mastery:hover {
+    background-color: #5a32a3; /* Púrpura más oscuro */
+    border-color: #5a32a3;
+}
+
+/* Estrella/Corona correcta en modo Realeza */
+#round-progress-stars .star-mastery {
+    color: #6f42c1; /* Púrpura principal */
+    margin: 0 1px;
+}
+
+/* Asegurar que el icono de corona se vea bien si se usa */
+ #round-progress-stars .fa-crown {
+     /* Mismos estilos que otras estrellas/coronas en esta área */
+     margin: 0 1px;
+     font-size: inherit; /* Heredar tamaño */
+     vertical-align: baseline; /* O ajustar si es necesario */
+ }
+
+/* Sobreescribir el color verde de la clase .correct si también está .mastery */
+/* Esto es por si acaso, la lógica JS intentará no poner ambas */
+.option-button.correct.mastery {
+     background-color: #6f42c1;
+}
+ .option-button.correct.mastery:hover {
+     background-color: #5a32a3;
+}
+
 /* Estilo para el botón "Siguiente" (puede ser el mismo que play-again) */
 #next-question-button {
     margin-top: 15px;
