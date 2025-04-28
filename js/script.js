@@ -2,305 +2,55 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Selección de Elementos del DOM ---
-    const userSetupSection = document.getElementById('user-setup');
-    const levelSelectSection = document.getElementById('level-select');
-    const gameAreaSection = document.getElementById('game-area');
-    const gameOverSection = document.getElementById('game-over');
-    const unlockProgressSection = document.getElementById('unlock-progress-section');
-    const highScoresSection = document.getElementById('high-scores-section');
-    const usernameForm = document.getElementById('username-form');
-    const usernameInput = document.getElementById('username');
-    const levelButtonsContainer = document.getElementById('level-buttons-container');
-    const unlockProgressDiv = document.getElementById('unlock-progress');
-    const progressStarsSpan = document.getElementById('progress-stars');
-    const usernameDisplay = document.getElementById('username-display');
-    const levelDisplay = document.getElementById('level-display');
-    const scoreDisplay = document.getElementById('score-display');
-    const roundProgressStarsDiv = document.getElementById('round-progress-stars');
-    const questionText = document.getElementById('question-text');
-    const optionsContainer = document.getElementById('options-container');
-    const feedbackArea = document.getElementById('feedback-area');
-    const finalScoreDisplay = document.getElementById('final-score');
-    const highScoreMessage = document.getElementById('high-score-message');
-    const playAgainButton = document.getElementById('play-again-button');
-    const scoreList = document.getElementById('score-list');
+    const userSetupSection = document.getElementById('user-setup'); const levelSelectSection = document.getElementById('level-select'); const gameAreaSection = document.getElementById('game-area'); const gameOverSection = document.getElementById('game-over'); const unlockProgressSection = document.getElementById('unlock-progress-section'); const highScoresSection = document.getElementById('high-scores-section'); const usernameForm = document.getElementById('username-form'); const usernameInput = document.getElementById('username'); const levelButtonsContainer = document.getElementById('level-buttons-container'); const unlockProgressDiv = document.getElementById('unlock-progress'); const progressStarsSpan = document.getElementById('progress-stars'); const usernameDisplay = document.getElementById('username-display'); const levelDisplay = document.getElementById('level-display'); const scoreDisplay = document.getElementById('score-display'); const roundProgressStarsDiv = document.getElementById('round-progress-stars'); const questionText = document.getElementById('question-text'); const optionsContainer = document.getElementById('options-container'); const feedbackArea = document.getElementById('feedback-area'); const finalScoreDisplay = document.getElementById('final-score'); const highScoreMessage = document.getElementById('high-score-message'); const playAgainButton = document.getElementById('play-again-button'); const scoreList = document.getElementById('score-list');
 
     // --- Variables de Estado del Juego ---
-    let currentUsername = '';
-    let currentUserData = {};
-    let currentScore = 0;
-    let currentLevel = '';
-    let correctAnswer = null;
-    let currentQuestionData = null; // Guarda {question, options, correctAnswer, explanation}
-    let questionsAnswered = 0;
-    let roundResults = []; // Guarda true/false por cada pregunta de la ronda
-    const TOTAL_QUESTIONS_PER_GAME = 10;
-    const MAX_HIGH_SCORES = 10;
-    const POINTS_PER_QUESTION = 10;
-    const PERFECT_SCORE = TOTAL_QUESTIONS_PER_GAME * POINTS_PER_QUESTION;
-    const USER_DATA_KEY = 'ipSprintUserData';
-    const HIGH_SCORES_KEY = 'ipSprintHighScores';
+    let currentUsername = ''; let currentUserData = {}; let currentScore = 0; let currentLevel = ''; let correctAnswer = null; let currentQuestionData = null; let questionsAnswered = 0; let roundResults = [];
+    const TOTAL_QUESTIONS_PER_GAME = 10; const MAX_HIGH_SCORES = 10; const POINTS_PER_QUESTION = 10; const PERFECT_SCORE = TOTAL_QUESTIONS_PER_GAME * POINTS_PER_QUESTION; const USER_DATA_KEY = 'ipSprintUserData'; const HIGH_SCORES_KEY = 'ipSprintHighScores';
 
     // --- Funciones de Gestión de Datos de Usuario ---
-    function getAllUserData() {
-        try { return JSON.parse(localStorage.getItem(USER_DATA_KEY)) || {}; }
-        catch (error) { console.error("Error al parsear UserData:", error); return {}; }
-    }
-    function getUserData(username) {
-        const allUserData = getAllUserData();
-        if (allUserData[username]) {
-             allUserData[username].unlockedLevels = allUserData[username].unlockedLevels || ['Entry'];
-             allUserData[username].entryPerfectStreak = allUserData[username].entryPerfectStreak || 0;
-             allUserData[username].associatePerfectStreak = allUserData[username].associatePerfectStreak || 0;
-            return allUserData[username];
-        } else {
-            return { unlockedLevels: ['Entry'], entryPerfectStreak: 0, associatePerfectStreak: 0 };
-        }
-     }
-    function saveUserData(username, userData) {
-        if (!username || !userData) return;
-        const allUserData = getAllUserData(); allUserData[username] = userData;
-        try { localStorage.setItem(USER_DATA_KEY, JSON.stringify(allUserData)); }
-        catch (error) { console.error("Error al guardar UserData:", error); }
-     }
+    function getAllUserData() { try { return JSON.parse(localStorage.getItem(USER_DATA_KEY)) || {}; } catch (error) { console.error("Error parseando UserData:", error); return {}; } }
+    function getUserData(username) { const allUserData = getAllUserData(); if (allUserData[username]) { allUserData[username].unlockedLevels = allUserData[username].unlockedLevels || ['Entry']; allUserData[username].entryPerfectStreak = allUserData[username].entryPerfectStreak || 0; allUserData[username].associatePerfectStreak = allUserData[username].associatePerfectStreak || 0; return allUserData[username]; } else { return { unlockedLevels: ['Entry'], entryPerfectStreak: 0, associatePerfectStreak: 0 }; } }
+    function saveUserData(username, userData) { if (!username || !userData) return; const allUserData = getAllUserData(); allUserData[username] = userData; try { localStorage.setItem(USER_DATA_KEY, JSON.stringify(allUserData)); } catch (error) { console.error("Error guardando UserData:", error); } }
 
     // --- Funciones de Utilidad ---
-    function getRandomInt(min, max) {
-        min = Math.ceil(min); max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-     }
-    function generateRandomIp() {
-        const oct1 = getRandomInt(1, 254); const oct2 = getRandomInt(0, 255);
-        const oct3 = getRandomInt(0, 255); const oct4 = getRandomInt(1, 254);
-        return `${oct1}.${oct2}.${oct3}.${oct4}`;
-     }
-     function generateRandomPrivateIp() {
-         const type = getRandomInt(1, 3); let ip = '';
-         if (type === 1) { ip = `10.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; }
-         else if (type === 2) { ip = `172.${getRandomInt(16, 31)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; }
-         else { ip = `192.168.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; }
-         return ip;
-     }
-     function getIpInfo(ipString) {
-        try {
-            if (!ipString) throw new Error("IP string is empty or null");
-            const octets = ipString.split('.').map(Number);
-            if (octets.length !== 4 || octets.some(isNaN)) throw new Error("Invalid IP format");
-            const firstOctet = octets[0];
-            let ipClass = ''; let ipType = 'Pública'; let defaultMask = 'N/A';
-            if (firstOctet >= 1 && firstOctet <= 126) { ipClass = 'A'; defaultMask = '255.0.0.0'; }
-            else if (firstOctet >= 128 && firstOctet <= 191) { ipClass = 'B'; defaultMask = '255.255.0.0'; }
-            else if (firstOctet >= 192 && firstOctet <= 223) { ipClass = 'C'; defaultMask = '255.255.255.0'; }
-            else if (firstOctet >= 224 && firstOctet <= 239) { ipClass = 'D'; ipType = 'N/A'; }
-            else if (firstOctet >= 240 && firstOctet <= 255) { ipClass = 'E'; ipType = 'N/A'; }
-            else if (firstOctet === 127) { ipClass = 'A'; ipType = 'Loopback'; defaultMask = '255.0.0.0'; }
-            if (firstOctet === 10 || (firstOctet === 172 && octets[1] >= 16 && octets[1] <= 31) || (firstOctet === 192 && octets[1] === 168)) { if (ipType !== 'Loopback') ipType = 'Privada'; }
-            return { class: ipClass, type: ipType, defaultMask: defaultMask };
-        } catch (error) { console.error("Error en getIpInfo con IP:", ipString, error); return { class: 'N/A', type: 'N/A', defaultMask: 'N/A' }; }
-     }
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; }
-     }
-     /** Genera HTML para la tabla de rangos de clases */
-     function generateClassRangeTableHTML(highlightClass = null) {
-        const ranges = [ { class: 'A', range: '1 - 126' }, { class: 'B', range: '128 - 191' }, { class: 'C', range: '192 - 223' }, { class: 'D', range: '224 - 239', note: '(Multicast)' }, { class: 'E', range: '240 - 255', note: '(Experimental)' } ];
-        let tableHTML = '<p>La clase se determina por el <strong>primer octeto</strong>:</p><table class="explanation-table">'; tableHTML += '<thead><tr><th>Clase</th><th>Rango</th><th>Nota</th></tr></thead>'; tableHTML += '<tbody>';
-        ranges.forEach(item => { const highlight = (item.class === highlightClass) ? ' class="highlight-row"' : ''; tableHTML += `<tr${highlight}><td>${item.class}</td><td>${item.range}</td><td>${item.note || ''}</td></tr>`; });
-        tableHTML += '</tbody></table>'; if (highlightClass === 'A') { tableHTML += '<p style="font-size:0.8em; text-align:center; margin-top:5px;">(Nota: El rango 127.x.x.x es para Loopback)</p>'; }
-        return tableHTML;
-    }
+    function getRandomInt(min, max) { min = Math.ceil(min); max = Math.floor(max); return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function generateRandomIp() { const oct1 = getRandomInt(1, 254); const oct2 = getRandomInt(0, 255); const oct3 = getRandomInt(0, 255); const oct4 = getRandomInt(1, 254); return `${oct1}.${oct2}.${oct3}.${oct4}`; }
+    function generateRandomPrivateIp() { const type = getRandomInt(1, 3); let ip = ''; if (type === 1) { ip = `10.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; } else if (type === 2) { ip = `172.${getRandomInt(16, 31)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; } else { ip = `192.168.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; } return ip; }
+    function getIpInfo(ipString) { try { if (!ipString) throw new Error("IP string vacía"); const octets = ipString.split('.').map(Number); if (octets.length !== 4 || octets.some(isNaN)) throw new Error("Formato IP inválido"); const firstOctet = octets[0]; let ipClass = ''; let ipType = 'Pública'; let defaultMask = 'N/A'; if (firstOctet >= 1 && firstOctet <= 126) { ipClass = 'A'; defaultMask = '255.0.0.0'; } else if (firstOctet >= 128 && firstOctet <= 191) { ipClass = 'B'; defaultMask = '255.255.0.0'; } else if (firstOctet >= 192 && firstOctet <= 223) { ipClass = 'C'; defaultMask = '255.255.255.0'; } else if (firstOctet >= 224 && firstOctet <= 239) { ipClass = 'D'; ipType = 'N/A'; } else if (firstOctet >= 240 && firstOctet <= 255) { ipClass = 'E'; ipType = 'N/A'; } else if (firstOctet === 127) { ipClass = 'A'; ipType = 'Loopback'; defaultMask = '255.0.0.0'; } if (firstOctet === 10 || (firstOctet === 172 && octets[1] >= 16 && octets[1] <= 31) || (firstOctet === 192 && octets[1] === 168)) { if (ipType !== 'Loopback') ipType = 'Privada'; } return { class: ipClass, type: ipType, defaultMask: defaultMask }; } catch (error) { console.error("Error en getIpInfo:", error); return { class: 'N/A', type: 'N/A', defaultMask: 'N/A' }; } }
+    function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
+    function generateClassRangeTableHTML(highlightClass = null) { const ranges = [ { class: 'A', range: '1 - 126' }, { class: 'B', range: '128 - 191' }, { class: 'C', range: '192 - 223' }, { class: 'D', range: '224 - 239', note: '(Multicast)' }, { class: 'E', range: '240 - 255', note: '(Experimental)' } ]; let tableHTML = '<p>La clase se determina por el <strong>primer octeto</strong>:</p><table class="explanation-table">'; tableHTML += '<thead><tr><th>Clase</th><th>Rango</th><th>Nota</th></tr></thead>'; tableHTML += '<tbody>'; ranges.forEach(item => { const highlight = (item.class === highlightClass) ? ' class="highlight-row"' : ''; tableHTML += `<tr${highlight}><td>${item.class}</td><td>${item.range}</td><td>${item.note || ''}</td></tr>`; }); tableHTML += '</tbody></table>'; if (highlightClass === 'A') { tableHTML += '<p style="font-size:0.8em; text-align:center; margin-top:5px;">(Nota: El rango 127.x.x.x es para Loopback)</p>'; } return tableHTML; }
+    function generateClassMaskTableHTML(highlightClass = null) { const data = [ { class: 'A', range: '1 - 126', mask: '255.0.0.0' }, { class: 'B', range: '128 - 191', mask: '255.255.0.0' }, { class: 'C', range: '192 - 223', mask: '255.255.255.0' } ]; let tableHTML = '<p>La máscara por defecto está determinada por la clase (basada en el 1er octeto):</p>'; tableHTML += '<table class="explanation-table">'; tableHTML += '<thead><tr><th>Clase</th><th>Rango 1er Octeto</th><th>Máscara por Defecto</th></tr></thead>'; tableHTML += '<tbody>'; data.forEach(item => { const highlight = (item.class === highlightClass) ? ' class="highlight-row"' : ''; tableHTML += `<tr${highlight}><td>${item.class}</td><td>${item.range}</td><td>${item.mask}</td></tr>`; }); tableHTML += '</tbody></table>'; return tableHTML; }
+    function generatePrivateRangeTableHTML(highlightIp = null) { const ranges = [ { cidr: '10.0.0.0/8', range: '10.0.0.0 - 10.255.255.255' }, { cidr: '172.16.0.0/12', range: '172.16.0.0 - 172.31.255.255' }, { cidr: '192.168.0.0/16', range: '192.168.0.0 - 192.168.255.255' } ]; let highlightCIDR = null; if (highlightIp) { const info = getIpInfo(highlightIp); if (info.type === 'Privada') { const octets = highlightIp.split('.').map(Number); if(octets[0] === 10) { highlightCIDR = '10.0.0.0/8'; } else if(octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) { highlightCIDR = '172.16.0.0/12'; } else if(octets[0] === 192 && octets[1] === 168) { highlightCIDR = '192.168.0.0/16'; } } } let tableHTML = '<p>Los rangos de IP privadas (RFC 1918) son:</p>'; tableHTML += '<table class="explanation-table">'; tableHTML += '<thead><tr><th>Bloque (CIDR)</th><th>Rango de Direcciones</th></tr></thead>'; tableHTML += '<tbody>'; ranges.forEach(item => { const highlight = (item.cidr === highlightCIDR) ? ' class="highlight-row"' : ''; tableHTML += `<tr${highlight}><td>${item.cidr}</td><td>${item.range}</td></tr>`; }); tableHTML += '</tbody></table>'; if (highlightCIDR) { tableHTML += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">(La IP ${highlightIp} pertenece al rango resaltado).</p>`; } else if (highlightIp) { tableHTML += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">(La IP ${highlightIp} es pública).</p>`; } return tableHTML; }
 
     // --- Generadores de Preguntas (Nivel Entry) ---
-    function generateClassQuestion() {
-        const ip = generateRandomIp(); const info = getIpInfo(ip); const question = `Dada la IP: <strong>${ip}</strong><br>¿A qué clase pertenece?`;
-        const options = ['A', 'B', 'C', 'D', 'E']; const correct = info.class || 'A';
-        const explanation = generateClassRangeTableHTML(correct); correctAnswer = correct;
-        return { question, options, correctAnswer: correct, explanation };
-     }
-    function generateTypeQuestion() {
-        let ip, info, attempts = 0; let forcePrivate = Math.random() < 0.4; ip = forcePrivate ? generateRandomPrivateIp() : generateRandomIp(); info = getIpInfo(ip);
-        while ((info.type === 'N/A' || info.type === 'Loopback') && attempts < 50) { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; }
-        if (attempts >= 50 || info.type === 'N/A' || info.type === 'Loopback') { ip = '8.8.8.8'; info = getIpInfo(ip); }
-        const question = `Dada la IP: <strong>${ip}</strong><br>¿Es Pública o Privada?`; const options = ['Pública', 'Privada']; const correct = info.type;
-        let explanation = `Las IPs privadas están en los rangos RFC 1918:<br><strong>10.0.0.0/8</strong> | <strong>172.16.0.0/12</strong> | <strong>192.168.0.0/16</strong>.<br>`;
-        if (correct === 'Privada') { const octets = ip.split('.').map(Number); if(octets[0] === 10) explanation += `La IP ${ip} cae dentro del rango 10.x.x.x.`; else if(octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) explanation += `La IP ${ip} cae dentro del rango 172.16.x.x - 172.31.x.x.`; else if(octets[0] === 192 && octets[1] === 168) explanation += `La IP ${ip} cae dentro del rango 192.168.x.x.`; }
-        else { explanation += `La IP ${ip} no pertenece a ninguno de esos rangos.`; }
-        correctAnswer = correct; return { question, options, correctAnswer: correct, explanation };
-    }
-    function generateDefaultMaskQuestion() {
-        let ip, info, attempts = 0;
-        do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C') && attempts < 100);
-        if (attempts >= 100) { ip = '192.168.1.1'; info = getIpInfo(ip); }
-        const question = `Dada la IP: <strong>${ip}</strong> (Clase ${info.class})<br>¿Cuál es su máscara de subred por defecto?`;
-        const options = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; const correct = info.defaultMask;
-        let explanation = `La máscara por defecto depende de la Clase:<br>A=${options[0]}, B=${options[1]}, C=${options[2]}.<br>Esta IP es Clase ${info.class}, por lo tanto su máscara es ${correct}.`;
-        correctAnswer = correct; return { question, options, correctAnswer: correct, explanation };
-    }
-    function generateSelectClassQuestion() {
-        const targetClasses = ['A', 'B', 'C']; const targetClass = targetClasses[getRandomInt(0, targetClasses.length - 1)];
-        const question = `¿Cuál de las siguientes IPs pertenece a la Clase <strong>${targetClass}</strong>?`;
-        let correctIp = ''; let incorrectIps = []; let attempts = 0; let ipSet = new Set();
-        while (!correctIp && attempts < 100) { let ip = generateRandomIp(); if (getIpInfo(ip).class === targetClass && getIpInfo(ip).type !== 'Loopback') { correctIp = ip; ipSet.add(ip); } attempts++; }
-        if (!correctIp) { if(targetClass === 'A') correctIp = '10.1.1.1'; else if(targetClass === 'B') correctIp = '172.16.1.1'; else correctIp = '192.168.1.1'; ipSet.add(correctIp); }
-        attempts = 0; while (incorrectIps.length < 3 && attempts < 200) { let ip = generateRandomIp(); if (getIpInfo(ip).class !== targetClass && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; }
-        while (incorrectIps.length < 3) { let ip = generateRandomIp(); if(!ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } else { attempts++; if(attempts > 500) break;} }
-        if(incorrectIps.length < 3) {incorrectIps.push(...['8.8.8.8', '224.0.0.5', '169.254.1.1'].filter(ip => !ipSet.has(ip) && getIpInfo(ip).class !== targetClass).slice(0, 3 - incorrectIps.length)); } incorrectIps = incorrectIps.slice(0, 3);
-        const options = [correctIp, ...incorrectIps]; shuffleArray(options); const correct = correctIp;
-        const explanation = `Se busca una IP de Clase ${targetClass}. La correcta es ${correct} porque su primer octeto (${correct.split('.')[0]}) está en el rango de esa clase.<br>${generateClassRangeTableHTML(targetClass)}`;
-        correctAnswer = correct; return { question, options, correctAnswer: correct, explanation };
-     }
-    function generateSelectPrivateIpQuestion() {
-        const question = `¿Cuál de las siguientes direcciones IP es <strong>Privada</strong>?`;
-        let correctIp = generateRandomPrivateIp(); let incorrectIps = []; let attempts = 0; let ipSet = new Set([correctIp]);
-        while (incorrectIps.length < 3 && attempts < 200) { let ip = generateRandomIp(); if (getIpInfo(ip).type === 'Pública' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; }
-        while (incorrectIps.length < 3) { let ip = generateRandomIp(); if(getIpInfo(ip).type === 'Pública' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip);} else {attempts++; if(attempts > 500) break;}}
-        if(incorrectIps.length < 3) {incorrectIps.push(...['8.8.8.8', '1.1.1.1', '203.0.113.1'].filter(ip => !ipSet.has(ip)).slice(0, 3 - incorrectIps.length));} incorrectIps = incorrectIps.slice(0, 3);
-        const options = [correctIp, ...incorrectIps]; shuffleArray(options); const correct = correctIp; const infoCorrecta = getIpInfo(correct);
-        let explanation = `Las IPs privadas están en los rangos RFC 1918 (10/8, 172.16/12, 192.168/16).<br>`;
-         if(infoCorrecta.type === 'Privada') { const octets = correct.split('.').map(Number); if(octets[0] === 10) explanation += `La IP ${correct} pertenece al rango 10.x.x.x.`; else if(octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) explanation += `La IP ${correct} pertenece al rango 172.16.x.x - 172.31.x.x.`; else if(octets[0] === 192 && octets[1] === 168) explanation += `La IP ${correct} pertenece al rango 192.168.x.x.`; }
-         else { explanation += `La IP ${correct} es la correcta (error en generación).`;}
-        correctAnswer = correct; return { question, options, correctAnswer: correct, explanation };
-     }
-    function generateSelectIpByDefaultMaskQuestion() {
-        const targetMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; const targetMask = targetMasks[getRandomInt(0, targetMasks.length - 1)];
-        const question = `¿Cuál de las siguientes IPs usaría la máscara por defecto <strong>${targetMask}</strong>?`;
-        let correctIp = ''; let incorrectIps = []; let attempts = 0; let ipSet = new Set();
-        while (!correctIp && attempts < 100) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask === targetMask && info.type !== 'Loopback') { correctIp = ip; ipSet.add(ip); } attempts++; }
-        if (!correctIp) { if(targetMask === '255.0.0.0') correctIp = '10.1.1.1'; else if(targetMask === '255.255.0.0') correctIp = '172.16.1.1'; else correctIp = '192.168.1.1'; ipSet.add(correctIp); }
-        attempts = 0; while (incorrectIps.length < 3 && attempts < 200) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask !== 'N/A' && info.defaultMask !== targetMask && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; }
-        while (incorrectIps.length < 3) { let ip = generateRandomIp(); if(!ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } else { attempts++; if(attempts > 500) break;} }
-        if(incorrectIps.length < 3) {incorrectIps.push(...['8.8.8.8', '224.0.0.1', '169.254.1.1'].filter(ip => !ipSet.has(ip) && getIpInfo(ip).defaultMask !== targetMask).slice(0, 3 - incorrectIps.length));} incorrectIps = incorrectIps.slice(0, 3);
-        const options = [correctIp, ...incorrectIps]; shuffleArray(options); const correct = correctIp;
-        const correctClass = getIpInfo(correct).class;
-        let explanation = `Se busca una IP cuya máscara por defecto sea ${targetMask}. La IP ${correct} es Clase ${correctClass}.<br>${generateClassRangeTableHTML(correctClass)}`;
-        correctAnswer = correct; return { question, options, correctAnswer: correct, explanation };
-    }
+    function generateClassQuestion() { const ip = generateRandomIp(); const info = getIpInfo(ip); const question = `Dada la IP: <strong>${ip}</strong><br>¿A qué clase pertenece?`; const options = ['A', 'B', 'C', 'D', 'E']; const correct = info.class || 'A'; const explanation = generateClassRangeTableHTML(correct); correctAnswer = correct; return { question, options, correctAnswer: correct, explanation }; }
+    function generateTypeQuestion() { let ip, info, attempts = 0; let forcePrivate = Math.random() < 0.4; ip = forcePrivate ? generateRandomPrivateIp() : generateRandomIp(); info = getIpInfo(ip); while ((info.type === 'N/A' || info.type === 'Loopback') && attempts < 50) { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } if (attempts >= 50 || info.type === 'N/A' || info.type === 'Loopback') { ip = '8.8.8.8'; info = getIpInfo(ip); } const question = `Dada la IP: <strong>${ip}</strong><br>¿Es Pública o Privada?`; const options = ['Pública', 'Privada']; const correct = info.type; const explanation = generatePrivateRangeTableHTML(ip); correctAnswer = correct; return { question, options, correctAnswer: correct, explanation }; }
+    function generateDefaultMaskQuestion() { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C') && attempts < 100); if (attempts >= 100) { ip = '192.168.1.1'; info = getIpInfo(ip); } const question = `Dada la IP: <strong>${ip}</strong> (Clase ${info.class})<br>¿Cuál es su máscara de subred por defecto?`; const options = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; const correct = info.defaultMask; const explanation = generateClassMaskTableHTML(info.class); correctAnswer = correct; return { question, options, correctAnswer: correct, explanation }; }
+    function generateSelectClassQuestion() { const targetClasses = ['A', 'B', 'C']; const targetClass = targetClasses[getRandomInt(0, targetClasses.length - 1)]; const question = `¿Cuál de las siguientes IPs pertenece a la Clase <strong>${targetClass}</strong>?`; let correctIp = ''; let incorrectIps = []; let attempts = 0; let ipSet = new Set(); while (!correctIp && attempts < 100) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.class === targetClass && info.type !== 'Loopback') { correctIp = ip; ipSet.add(ip); } attempts++; } if (!correctIp) { if(targetClass === 'A') correctIp = '10.1.1.1'; else if(targetClass === 'B') correctIp = '172.16.1.1'; else correctIp = '192.168.1.1'; ipSet.add(correctIp); } attempts = 0; while (incorrectIps.length < 3 && attempts < 200) { let ip = generateRandomIp(); if (getIpInfo(ip).class !== targetClass && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; } while (incorrectIps.length < 3) { let ip = generateRandomIp(); if(!ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } else { attempts++; if(attempts > 500) break;} } if(incorrectIps.length < 3) {incorrectIps.push(...['8.8.8.8', '224.0.0.5', '169.254.1.1'].filter(ip => !ipSet.has(ip) && getIpInfo(ip).class !== targetClass).slice(0, 3 - incorrectIps.length)); } incorrectIps = incorrectIps.slice(0, 3); const options = [correctIp, ...incorrectIps]; shuffleArray(options); const correct = correctIp; const explanation = `Se busca una IP de Clase ${targetClass}. La correcta es ${correct}.<br>${generateClassRangeTableHTML(targetClass)}`; correctAnswer = correct; return { question, options, correctAnswer: correct, explanation }; }
+    function generateSelectPrivateIpQuestion() { const question = `¿Cuál de las siguientes direcciones IP es <strong>Privada</strong>?`; let correctIp = generateRandomPrivateIp(); let incorrectIps = []; let attempts = 0; let ipSet = new Set([correctIp]); while (incorrectIps.length < 3 && attempts < 200) { let ip = generateRandomIp(); if (getIpInfo(ip).type === 'Pública' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; } while (incorrectIps.length < 3) { let ip = generateRandomIp(); if(getIpInfo(ip).type === 'Pública' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip);} else {attempts++; if(attempts > 500) break;}} if(incorrectIps.length < 3) {incorrectIps.push(...['8.8.8.8', '1.1.1.1', '203.0.113.1'].filter(ip => !ipSet.has(ip)).slice(0, 3 - incorrectIps.length));} incorrectIps = incorrectIps.slice(0, 3); const options = [correctIp, ...incorrectIps]; shuffleArray(options); const correct = correctIp; const explanation = generatePrivateRangeTableHTML(correct); correctAnswer = correct; return { question, options, correctAnswer: correct, explanation }; }
+    function generateSelectIpByDefaultMaskQuestion() { const targetMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; const targetMask = targetMasks[getRandomInt(0, targetMasks.length - 1)]; const question = `¿Cuál de las siguientes IPs usaría la máscara por defecto <strong>${targetMask}</strong>?`; let correctIp = ''; let incorrectIps = []; let attempts = 0; let ipSet = new Set(); while (!correctIp && attempts < 100) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask === targetMask && info.type !== 'Loopback') { correctIp = ip; ipSet.add(ip); } attempts++; } if (!correctIp) { if(targetMask === '255.0.0.0') correctIp = '10.1.1.1'; else if(targetMask === '255.255.0.0') correctIp = '172.16.1.1'; else correctIp = '192.168.1.1'; ipSet.add(correctIp); } attempts = 0; while (incorrectIps.length < 3 && attempts < 200) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask !== 'N/A' && info.defaultMask !== targetMask && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; } while (incorrectIps.length < 3) { let ip = generateRandomIp(); if(!ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } else { attempts++; if(attempts > 500) break;} } if(incorrectIps.length < 3) {incorrectIps.push(...['8.8.8.8', '224.0.0.1', '169.254.1.1'].filter(ip => !ipSet.has(ip) && getIpInfo(ip).defaultMask !== targetMask).slice(0, 3 - incorrectIps.length));} incorrectIps = incorrectIps.slice(0, 3); const options = [correctIp, ...incorrectIps]; shuffleArray(options); const correct = correctIp; const correctClass = getIpInfo(correct).class; const explanation = `Se busca una IP cuya clase (${correctClass}) tenga la máscara por defecto ${targetMask}.<br>${generateClassMaskTableHTML(correctClass)}`; correctAnswer = correct; return { question, options, correctAnswer: correct, explanation }; }
 
     // --- Funciones UI / Flujo ---
-    function updateUnlockProgressUI() {
-        try {
-             if (!currentUserData || !unlockProgressSection || !unlockProgressDiv || !progressStarsSpan) return;
-             unlockProgressSection.style.display = 'block'; const unlocked = currentUserData.unlockedLevels || ['Entry'];
-             const entryStreak = currentUserData.entryPerfectStreak || 0; const associateStreak = currentUserData.associatePerfectStreak || 0;
-             let targetLevel = null; let currentStreak = 0; let progressTitle = ""; let showProgress = false;
-             if (!unlocked.includes('Associate')) { targetLevel = 'Associate'; currentStreak = entryStreak; progressTitle = "Progreso para Nivel Associate:"; showProgress = true; }
-             else if (!unlocked.includes('Professional')) { targetLevel = 'Professional'; currentStreak = associateStreak; progressTitle = "Progreso para Nivel Professional:"; showProgress = true; }
-             else { targetLevel = 'None'; progressTitle = "¡Todos los niveles desbloqueados!"; showProgress = false; }
-             const titleElement = unlockProgressDiv.querySelector('h4'); if (titleElement) titleElement.textContent = progressTitle;
-             if (showProgress) { let stars = ''; for (let i = 0; i < 3; i++) { stars += (i < currentStreak) ? '★' : '☆'; } progressStarsSpan.textContent = stars; unlockProgressDiv.style.display = 'block'; }
-             else { unlockProgressDiv.style.display = 'none'; }
-         } catch(error) { console.error("Error en updateUnlockProgressUI:", error); }
-    }
-    function updateRoundProgressUI() {
-        try {
-             if (!roundProgressStarsDiv) return; let starsHTML = '';
-             for (let i = 0; i < TOTAL_QUESTIONS_PER_GAME; i++) { if (i < roundResults.length) { starsHTML += roundResults[i] ? '<i class="fas fa-star star-correct"></i>' : '<i class="fas fa-star star-incorrect"></i>'; } else { starsHTML += '<i class="far fa-star star-pending"></i>'; } }
-             roundProgressStarsDiv.innerHTML = starsHTML;
-         } catch(error) { console.error("Error en updateRoundProgressUI:", error); }
-    }
-    function showLevelSelection() {
-        try {
-            if (!currentUserData || !currentUserData.unlockedLevels) { console.error("currentUserData no listo en showLevelSelection"); return; }
-            if(userSetupSection) userSetupSection.style.display = 'none'; if(gameAreaSection) gameAreaSection.style.display = 'none'; if(gameOverSection) gameOverSection.style.display = 'none';
-            if(levelButtonsContainer) levelButtonsContainer.innerHTML = ''; const unlocked = currentUserData.unlockedLevels;
-            unlocked.forEach(level => { const button = document.createElement('button'); button.textContent = `Jugar Nivel ${level}`; button.addEventListener('click', () => startGame(level)); if(levelButtonsContainer) levelButtonsContainer.appendChild(button); });
-            if(levelSelectSection) levelSelectSection.style.display = 'block'; if(unlockProgressSection) unlockProgressSection.style.display = 'block'; if(highScoresSection) highScoresSection.style.display = 'block';
-            updateUnlockProgressUI();
-        } catch (error) { console.error("Error en showLevelSelection:", error); }
-    }
-    function startGame(levelToPlay) {
-        currentLevel = levelToPlay; currentScore = 0; questionsAnswered = 0; roundResults = [];
-        if(scoreDisplay) scoreDisplay.textContent = currentScore; if(levelDisplay) levelDisplay.textContent = currentLevel;
-        if(userSetupSection) userSetupSection.style.display = 'none'; if(levelSelectSection) levelSelectSection.style.display = 'none';
-        if(gameOverSection) gameOverSection.style.display = 'none'; if(unlockProgressSection) unlockProgressSection.style.display = 'none';
-        if(highScoresSection) highScoresSection.style.display = 'none'; if(gameAreaSection) gameAreaSection.style.display = 'block';
-        updateRoundProgressUI(); loadNextQuestion();
-     }
-    function displayQuestion(questionHTML, optionsArray) {
-        try {
-             if(!questionText || !optionsContainer || !feedbackArea) { console.error("Elementos de UI faltan en displayQuestion"); return; }
-             questionText.innerHTML = questionHTML; optionsContainer.innerHTML = ''; feedbackArea.innerHTML = ''; feedbackArea.className = '';
-             if (!optionsArray || !Array.isArray(optionsArray)) { throw new Error("optionsArray inválido"); }
-             optionsArray.forEach(optionText => { const button = document.createElement('button'); button.textContent = optionText; button.classList.add('option-button'); button.addEventListener('click', handleAnswerClick); optionsContainer.appendChild(button); });
-             optionsContainer.classList.remove('options-disabled');
-         } catch (error) { console.error("Error en displayQuestion:", error); }
-    }
-    function loadNextQuestion() {
-        if(feedbackArea) { feedbackArea.innerHTML = ''; feedbackArea.className = ''; } if(optionsContainer) optionsContainer.classList.remove('options-disabled');
-        currentQuestionData = null; let questionDataResult = null;
-        try {
-            let generatorFunction = null;
-            if (currentLevel === 'Entry') { const questionTypes = [ generateClassQuestion, generateTypeQuestion, generateDefaultMaskQuestion, generateSelectClassQuestion, generateSelectPrivateIpQuestion, generateSelectIpByDefaultMaskQuestion ]; const randomIndex = getRandomInt(0, questionTypes.length - 1); generatorFunction = questionTypes[randomIndex]; }
-            else if (currentLevel === 'Associate') { questionText.innerHTML = `Pregunta Nivel <strong>Associate</strong>... (Pendiente)`; optionsContainer.innerHTML = ''; setTimeout(endGame, 1000); return; }
-            else if (currentLevel === 'Professional') { questionText.innerHTML = `Pregunta Nivel <strong>Professional</strong>... (Pendiente)`; optionsContainer.innerHTML = ''; setTimeout(endGame, 1000); return; }
-            else { console.error("Nivel desconocido:", currentLevel); showLevelSelection(); return; }
-            if (generatorFunction) { questionDataResult = generatorFunction(); } else { throw new Error("No se pudo seleccionar generador."); }
-            if (questionDataResult && questionDataResult.question && questionDataResult.options && Array.isArray(questionDataResult.options) && questionDataResult.correctAnswer !== undefined && questionDataResult.explanation !== undefined) {
-                currentQuestionData = questionDataResult; correctAnswer = currentQuestionData.correctAnswer;
-                displayQuestion(currentQuestionData.question, currentQuestionData.options);
-            } else { throw new Error("questionData inválido generado por " + (generatorFunction ? generatorFunction.name : 'undefined')); }
-        } catch (error) { console.error("Error en loadNextQuestion:", error); if(questionText) questionText.innerHTML = "Error al cargar pregunta."; if(optionsContainer) optionsContainer.innerHTML = ''; setTimeout(endGame, 1500); }
-     }
-     function proceedToNextStep() {
-        questionsAnswered++;
-        if (questionsAnswered >= TOTAL_QUESTIONS_PER_GAME) { endGame(); }
-        else { loadNextQuestion(); }
-    }
-    function handleAnswerClick(event) {
-        if (!currentQuestionData) { console.error("handleAnswerClick sin currentQuestionData"); return; }
-        const selectedButton = event.target; const selectedAnswer = selectedButton.textContent;
-        if(optionsContainer) optionsContainer.classList.add('options-disabled');
-        let isCorrect = (selectedAnswer === currentQuestionData.correctAnswer);
-        roundResults.push(isCorrect);
-        let feedbackHTML = '';
-        if (isCorrect) {
-            currentScore += POINTS_PER_QUESTION; if(scoreDisplay) scoreDisplay.textContent = currentScore;
-            feedbackHTML = `<div id="feedback-text-content">¡Correcto! ✔️</div>`;
-            if(feedbackArea) feedbackArea.className = 'correct'; if(selectedButton) selectedButton.classList.add('correct');
-            setTimeout(proceedToNextStep, 1200);
-        } else {
-            feedbackHTML = `<div id="feedback-text-content"><span>Incorrecto. La respuesta correcta era: <strong>${currentQuestionData.correctAnswer}</strong> ❌</span><span class="explanation">${currentQuestionData.explanation || ''}</span></div>`;
-            if(feedbackArea) feedbackArea.className = 'incorrect'; if(selectedButton) selectedButton.classList.add('incorrect');
-            if(optionsContainer) { Array.from(optionsContainer.children).forEach(button => { if (button.textContent === currentQuestionData.correctAnswer) button.classList.add('correct'); }); }
-            const buttonText = (questionsAnswered + 1 >= TOTAL_QUESTIONS_PER_GAME) ? 'Ver Resultado Final &gt;&gt;' : 'Siguiente &gt;&gt;';
-            feedbackHTML += `<button id="next-question-button">${buttonText}</button>`;
-        }
-        if(feedbackArea) feedbackArea.innerHTML = feedbackHTML;
-        if (!isCorrect) { const newNextButton = document.getElementById('next-question-button'); if (newNextButton) newNextButton.addEventListener('click', proceedToNextStep); }
-        updateRoundProgressUI();
-     }
-    function endGame() {
-        const isPerfect = (currentScore === PERFECT_SCORE); let message = "¡Partida completada!";
-        try {
-            currentUserData = getUserData(currentUsername);
-            if (currentLevel === 'Entry') { if (isPerfect) { currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1; if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) { currentUserData.unlockedLevels.push('Associate'); currentUserData.entryPerfectStreak = 0; message = "¡3 Rondas Perfectas! ¡Nivel Associate Desbloqueado! 🎉"; } else if (!currentUserData.unlockedLevels.includes('Associate')) { message = `¡Ronda Perfecta! Racha (Entry): ${currentUserData.entryPerfectStreak}/3.`; } else { message = "¡Ronda Perfecta!"; } } else { currentUserData.entryPerfectStreak = 0; /* message remains "Partida completada!" */ } }
-            else if (currentLevel === 'Associate') { if (isPerfect) { currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1; if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) { currentUserData.unlockedLevels.push('Professional'); currentUserData.associatePerfectStreak = 0; message = "¡3 Rondas Perfectas! ¡Nivel Professional Desbloqueado! 🏆"; } else if (!currentUserData.unlockedLevels.includes('Professional')) { message = `¡Ronda Perfecta en Associate! Racha: ${currentUserData.associatePerfectStreak}/3.`; } else { message = "¡Ronda Perfecta en Associate!"; } } else { currentUserData.associatePerfectStreak = 0; /* message remains "Partida completada!" */ } }
-            else { /* message remains "Partida completada!" */ }
-            saveUserData(currentUsername, currentUserData); saveHighScore(currentUsername, currentScore); loadHighScores();
-            if(highScoreMessage) highScoreMessage.textContent = message; if(finalScoreDisplay) finalScoreDisplay.textContent = currentScore;
-            if(gameAreaSection) gameAreaSection.style.display = 'none'; if(levelSelectSection) levelSelectSection.style.display = 'none'; if(gameOverSection) gameOverSection.style.display = 'block'; if(unlockProgressSection) unlockProgressSection.style.display = 'block'; if(highScoresSection) highScoresSection.style.display = 'block';
-             updateUnlockProgressUI(); currentQuestionData = null;
-         } catch (error) { console.error("Error en endGame:", error); }
-     }
+    function updateUnlockProgressUI() { try { if (!currentUserData || !unlockProgressSection || !unlockProgressDiv || !progressStarsSpan) return; unlockProgressSection.style.display = 'block'; const unlocked = currentUserData.unlockedLevels || ['Entry']; const entryStreak = currentUserData.entryPerfectStreak || 0; const associateStreak = currentUserData.associatePerfectStreak || 0; let targetLevel = null; let currentStreak = 0; let progressTitle = ""; let showProgress = false; if (!unlocked.includes('Associate')) { targetLevel = 'Associate'; currentStreak = entryStreak; progressTitle = "Progreso para Nivel Associate:"; showProgress = true; } else if (!unlocked.includes('Professional')) { targetLevel = 'Professional'; currentStreak = associateStreak; progressTitle = "Progreso para Nivel Professional:"; showProgress = true; } else { targetLevel = 'None'; progressTitle = "¡Todos los niveles desbloqueados!"; showProgress = false; } const titleElement = unlockProgressDiv.querySelector('h4'); if (titleElement) titleElement.textContent = progressTitle; if (showProgress) { let stars = ''; for (let i = 0; i < 3; i++) { stars += (i < currentStreak) ? '★' : '☆'; } progressStarsSpan.textContent = stars; unlockProgressDiv.style.display = 'block'; } else { unlockProgressDiv.style.display = 'none'; } } catch(error) { console.error("Error en updateUnlockProgressUI:", error); } }
+    function updateRoundProgressUI() { try { if (!roundProgressStarsDiv) return; let starsHTML = ''; for (let i = 0; i < TOTAL_QUESTIONS_PER_GAME; i++) { if (i < roundResults.length) { starsHTML += roundResults[i] ? '<i class="fas fa-star star-correct"></i>' : '<i class="fas fa-star star-incorrect"></i>'; } else { starsHTML += '<i class="far fa-star star-pending"></i>'; } } roundProgressStarsDiv.innerHTML = starsHTML; } catch(error) { console.error("Error en updateRoundProgressUI:", error); } }
+    function showLevelSelection() { try { if (!currentUserData || !currentUserData.unlockedLevels) { console.error("currentUserData no listo"); return; } if(userSetupSection) userSetupSection.style.display = 'none'; if(gameAreaSection) gameAreaSection.style.display = 'none'; if(gameOverSection) gameOverSection.style.display = 'none'; if(levelButtonsContainer) levelButtonsContainer.innerHTML = ''; const unlocked = currentUserData.unlockedLevels; unlocked.forEach(level => { const button = document.createElement('button'); button.textContent = `Jugar Nivel ${level}`; button.addEventListener('click', () => startGame(level)); if(levelButtonsContainer) levelButtonsContainer.appendChild(button); }); if(levelSelectSection) levelSelectSection.style.display = 'block'; if(unlockProgressSection) unlockProgressSection.style.display = 'block'; if(highScoresSection) highScoresSection.style.display = 'block'; updateUnlockProgressUI(); } catch (error) { console.error("Error en showLevelSelection:", error); } }
+    function startGame(levelToPlay) { currentLevel = levelToPlay; currentScore = 0; questionsAnswered = 0; roundResults = []; if(scoreDisplay) scoreDisplay.textContent = currentScore; if(levelDisplay) levelDisplay.textContent = currentLevel; if(userSetupSection) userSetupSection.style.display = 'none'; if(levelSelectSection) levelSelectSection.style.display = 'none'; if(gameOverSection) gameOverSection.style.display = 'none'; if(unlockProgressSection) unlockProgressSection.style.display = 'none'; if(highScoresSection) highScoresSection.style.display = 'none'; if(gameAreaSection) gameAreaSection.style.display = 'block'; updateRoundProgressUI(); loadNextQuestion(); }
+    function displayQuestion(questionHTML, optionsArray) { try { if(!questionText || !optionsContainer || !feedbackArea) { return; } questionText.innerHTML = questionHTML; optionsContainer.innerHTML = ''; feedbackArea.innerHTML = ''; feedbackArea.className = ''; if (!optionsArray || !Array.isArray(optionsArray)) { throw new Error("optionsArray inválido"); } optionsArray.forEach(optionText => { const button = document.createElement('button'); button.textContent = optionText; button.classList.add('option-button'); button.addEventListener('click', handleAnswerClick); optionsContainer.appendChild(button); }); optionsContainer.classList.remove('options-disabled'); } catch (error) { console.error("Error en displayQuestion:", error); } }
+    function loadNextQuestion() { if(feedbackArea) { feedbackArea.innerHTML = ''; feedbackArea.className = ''; } if(optionsContainer) optionsContainer.classList.remove('options-disabled'); currentQuestionData = null; let questionDataResult = null; try { let generatorFunction = null; if (currentLevel === 'Entry') { const questionTypes = [ generateClassQuestion, generateTypeQuestion, generateDefaultMaskQuestion, generateSelectClassQuestion, generateSelectPrivateIpQuestion, generateSelectIpByDefaultMaskQuestion ]; const randomIndex = getRandomInt(0, questionTypes.length - 1); generatorFunction = questionTypes[randomIndex]; } else if (currentLevel === 'Associate') { questionText.innerHTML = `Pregunta Nivel <strong>Associate</strong>... (Pendiente)`; optionsContainer.innerHTML = ''; setTimeout(endGame, 1000); return; } else if (currentLevel === 'Professional') { questionText.innerHTML = `Pregunta Nivel <strong>Professional</strong>... (Pendiente)`; optionsContainer.innerHTML = ''; setTimeout(endGame, 1000); return; } else { console.error("Nivel desconocido:", currentLevel); showLevelSelection(); return; } if (generatorFunction) { questionDataResult = generatorFunction(); } else { throw new Error("No se pudo seleccionar generador."); } if (questionDataResult && questionDataResult.question && questionDataResult.options && Array.isArray(questionDataResult.options) && questionDataResult.correctAnswer !== undefined && questionDataResult.explanation !== undefined) { currentQuestionData = questionDataResult; correctAnswer = currentQuestionData.correctAnswer; displayQuestion(currentQuestionData.question, currentQuestionData.options); } else { throw new Error("questionData inválido generado por " + (generatorFunction ? generatorFunction.name : 'undefined')); } } catch (error) { console.error("Error en loadNextQuestion:", error); if(questionText) questionText.innerHTML = "Error al cargar pregunta."; if(optionsContainer) optionsContainer.innerHTML = ''; setTimeout(endGame, 1500); } }
+    function proceedToNextStep() { questionsAnswered++; if (questionsAnswered >= TOTAL_QUESTIONS_PER_GAME) { endGame(); } else { loadNextQuestion(); } }
+    function handleAnswerClick(event) { if (!currentQuestionData) { return; } const selectedButton = event.target; const selectedAnswer = selectedButton.textContent; if(optionsContainer) optionsContainer.classList.add('options-disabled'); let isCorrect = (selectedAnswer === currentQuestionData.correctAnswer); roundResults.push(isCorrect); let feedbackHTML = ''; if (isCorrect) { currentScore += POINTS_PER_QUESTION; if(scoreDisplay) scoreDisplay.textContent = currentScore; feedbackHTML = `<div id="feedback-text-content">¡Correcto! ✔️</div>`; if(feedbackArea) feedbackArea.className = 'correct'; if(selectedButton) selectedButton.classList.add('correct'); setTimeout(proceedToNextStep, 1200); } else { feedbackHTML = `<div id="feedback-text-content"><span>Incorrecto. La respuesta correcta era: <strong>${currentQuestionData.correctAnswer}</strong> ❌</span><span class="explanation">${currentQuestionData.explanation || ''}</span></div>`; if(feedbackArea) feedbackArea.className = 'incorrect'; if(selectedButton) selectedButton.classList.add('incorrect'); if(optionsContainer) { Array.from(optionsContainer.children).forEach(button => { if (button.textContent === currentQuestionData.correctAnswer) button.classList.add('correct'); }); } const buttonText = (questionsAnswered + 1 >= TOTAL_QUESTIONS_PER_GAME) ? 'Ver Resultado Final &gt;&gt;' : 'Siguiente &gt;&gt;'; feedbackHTML += `<button id="next-question-button">${buttonText}</button>`; } if(feedbackArea) feedbackArea.innerHTML = feedbackHTML; if (!isCorrect) { const newNextButton = document.getElementById('next-question-button'); if (newNextButton) newNextButton.addEventListener('click', proceedToNextStep); } updateRoundProgressUI(); }
+    function endGame() { const isPerfect = (currentScore === PERFECT_SCORE); let message = "¡Partida completada!"; try { currentUserData = getUserData(currentUsername); if (currentLevel === 'Entry') { if (isPerfect) { currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1; if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) { currentUserData.unlockedLevels.push('Associate'); currentUserData.entryPerfectStreak = 0; message = "¡3 Rondas Perfectas! ¡Nivel Associate Desbloqueado! 🎉"; } else if (!currentUserData.unlockedLevels.includes('Associate')) { message = `¡Ronda Perfecta! Racha (Entry): ${currentUserData.entryPerfectStreak}/3.`; } else { message = "¡Ronda Perfecta!"; } } else { if (currentUserData.entryPerfectStreak > 0) {/*console.log("Racha Entry reiniciada")*/} currentUserData.entryPerfectStreak = 0; /* message remains */ } } else if (currentLevel === 'Associate') { if (isPerfect) { currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1; if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) { currentUserData.unlockedLevels.push('Professional'); currentUserData.associatePerfectStreak = 0; message = "¡3 Rondas Perfectas! ¡Nivel Professional Desbloqueado! 🏆"; } else if (!currentUserData.unlockedLevels.includes('Professional')) { message = `¡Ronda Perfecta en Associate! Racha: ${currentUserData.associatePerfectStreak}/3.`; } else { message = "¡Ronda Perfecta en Associate!"; } } else { if (currentUserData.associatePerfectStreak > 0) {/*console.log("Racha Associate reiniciada")*/} currentUserData.associatePerfectStreak = 0; /* message remains */ } } else { /* message remains */ } saveUserData(currentUsername, currentUserData); saveHighScore(currentUsername, currentScore); loadHighScores(); if(highScoreMessage) highScoreMessage.textContent = message; if(finalScoreDisplay) finalScoreDisplay.textContent = currentScore; if(playAgainButton && currentUserData && currentUserData.unlockedLevels) { if (currentUserData.unlockedLevels.length <= 1) { playAgainButton.textContent = `Jugar de Nuevo (${currentUserData.unlockedLevels[0] || 'Entry'})`; } else { playAgainButton.textContent = 'Elegir Nivel'; } } if(gameAreaSection) gameAreaSection.style.display = 'none'; if(levelSelectSection) levelSelectSection.style.display = 'none'; if(gameOverSection) gameOverSection.style.display = 'block'; if(unlockProgressSection) unlockProgressSection.style.display = 'block'; if(highScoresSection) highScoresSection.style.display = 'block'; updateUnlockProgressUI(); currentQuestionData = null; } catch (error) { console.error("Error en endGame:", error); } }
 
     // --- Funciones de Puntuaciones Altas ---
     function saveHighScore(name, score) { if (!name || score === undefined) return; try { const highScores = JSON.parse(localStorage.getItem(HIGH_SCORES_KEY)) || []; const newScore = { name, score }; highScores.push(newScore); highScores.sort((a, b) => b.score - a.score); const uniqueUserScores = []; const userNames = new Set(); for (const scoreEntry of highScores) { if (!userNames.has(scoreEntry.name)) { uniqueUserScores.push(scoreEntry); userNames.add(scoreEntry.name); } } const finalScores = uniqueUserScores.slice(0, MAX_HIGH_SCORES); localStorage.setItem(HIGH_SCORES_KEY, JSON.stringify(finalScores)); } catch (error) { console.error("Error en saveHighScore:", error); } }
     function loadHighScores() { try { const highScores = JSON.parse(localStorage.getItem(HIGH_SCORES_KEY)) || []; if(!scoreList) return; scoreList.innerHTML = ''; if (highScores.length === 0) { scoreList.innerHTML = '<li>Aún no hay puntuaciones. ¡Sé el primero!</li>'; return; } highScores.sort((a, b) => b.score - a.score); const topScores = highScores.slice(0, MAX_HIGH_SCORES); topScores.forEach(scoreItem => { const li = document.createElement('li'); li.textContent = `${scoreItem.name}: `; const strong = document.createElement('strong'); strong.textContent = scoreItem.score; li.appendChild(strong); scoreList.appendChild(li); }); } catch (error) { console.error("Error en loadHighScores:", error); if(scoreList) scoreList.innerHTML = '<li>Error al cargar puntuaciones.</li>'; } }
 
     // --- Lógica de Inicio y Event Listeners ---
-    function handleUserLogin(username) {
-         currentUsername = username;
-         try {
-             currentUserData = getUserData(username); saveUserData(username, currentUserData);
-             if(usernameDisplay) usernameDisplay.textContent = currentUsername;
-             if(highScoresSection) highScoresSection.style.display = 'block'; if(unlockProgressSection) unlockProgressSection.style.display = 'block';
-             showLevelSelection();
-         } catch (error) { console.error("Error durante handleUserLogin:", error); alert("Hubo un problema al cargar los datos del usuario."); /* ... */ }
-    }
+    function handleUserLogin(username) { currentUsername = username; try { currentUserData = getUserData(username); saveUserData(username, currentUserData); if(usernameDisplay) usernameDisplay.textContent = currentUsername; if(highScoresSection) highScoresSection.style.display = 'block'; if(unlockProgressSection) unlockProgressSection.style.display = 'block'; showLevelSelection(); } catch (error) { console.error("Error durante handleUserLogin:", error); alert("Hubo un problema al cargar los datos del usuario."); if(userSetupSection) userSetupSection.style.display = 'block'; if(levelSelectSection) levelSelectSection.style.display = 'none'; if(unlockProgressSection) unlockProgressSection.style.display = 'none'; if(highScoresSection) highScoresSection.style.display = 'none'; } }
     loadHighScores();
     if (usernameForm) { usernameForm.addEventListener('submit', (event) => { event.preventDefault(); const enteredUsername = usernameInput.value.trim(); if (enteredUsername) { handleUserLogin(enteredUsername); } else { alert("Por favor, ingresa un nombre de usuario."); } }); } else { console.error("#username-form no encontrado"); }
     if(playAgainButton) { playAgainButton.addEventListener('click', showLevelSelection); } else { console.error("#play-again-button no encontrado"); }
-
     // Ocultar secciones post-login al inicio
     if(levelSelectSection) levelSelectSection.style.display = 'none'; if(unlockProgressSection) unlockProgressSection.style.display = 'none'; if(highScoresSection) highScoresSection.style.display = 'none'; if(gameAreaSection) gameAreaSection.style.display = 'none'; if(gameOverSection) gameOverSection.style.display = 'none';
 
