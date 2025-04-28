@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentLevel = '';
     let correctAnswer = null;
     let questionsAnswered = 0;
-    let correctAnswersThisRound = 0;
+    let roundResults = []; // Guarda true/false por cada pregunta de la ronda
     const TOTAL_QUESTIONS_PER_GAME = 10;
     const MAX_HIGH_SCORES = 10;
     const POINTS_PER_QUESTION = 10;
@@ -96,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const ip = generateRandomIp(); const info = getIpInfo(ip);
         const question = `Dada la IP: <strong>${ip}</strong><br>¿A qué clase pertenece?`;
         const options = ['A', 'B', 'C', 'D', 'E']; correctAnswer = info.class;
-        // Asegurar que correctAnswer sea una opción válida si getIpInfo falla
         if (!options.includes(correctAnswer)) correctAnswer = options[0];
         return { question, options };
      }
@@ -107,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (attempts >= 100) { ip = '8.8.8.8'; info = getIpInfo(ip); }
         const question = `Dada la IP: <strong>${ip}</strong><br>¿Es Pública o Privada?`;
         const options = ['Pública', 'Privada']; correctAnswer = info.type;
-         // Asegurar que correctAnswer sea una opción válida
          if (!options.includes(correctAnswer)) correctAnswer = options[0];
         return { question, options };
     }
@@ -118,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (attempts >= 100) { ip = '192.168.1.1'; info = getIpInfo(ip); }
         const question = `Dada la IP: <strong>${ip}</strong> (Clase ${info.class})<br>¿Cuál es su máscara de subred por defecto?`;
         const options = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; correctAnswer = info.defaultMask;
-        // Asegurar que correctAnswer sea una opción válida
         if (!options.includes(correctAnswer)) correctAnswer = options[0];
         return { question, options };
     }
@@ -130,9 +127,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!correctIp) { if(targetClass === 'A') correctIp = '10.1.1.1'; else if(targetClass === 'B') correctIp = '172.16.1.1'; else correctIp = '192.168.1.1'; ipSet.add(correctIp); }
         attempts = 0;
         while (incorrectIps.length < 3 && attempts < 200) { let ip = generateRandomIp(); if (getIpInfo(ip).class !== targetClass && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; }
-        while (incorrectIps.length < 3) { let ip = generateRandomIp(); if(!ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } else { attempts++; if(attempts > 500) break;} } // Evitar bucle infinito extremo
-        if(incorrectIps.length < 3) incorrectIps.push('8.8.8.8', '8.8.4.4', '1.1.1.1'); // Rellenar si todo falla
-        incorrectIps = incorrectIps.slice(0, 3); // Asegurar solo 3
+        while (incorrectIps.length < 3) { let ip = generateRandomIp(); if(!ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } else { attempts++; if(attempts > 500) break;} }
+        if(incorrectIps.length < 3) incorrectIps.push('8.8.8.8', '8.8.4.4', '1.1.1.1');
+        incorrectIps = incorrectIps.slice(0, 3);
         const options = [correctIp, ...incorrectIps]; shuffleArray(options); correctAnswer = correctIp;
         return { question, options };
      }
@@ -170,47 +167,46 @@ document.addEventListener('DOMContentLoaded', () => {
              if (!currentUserData || !unlockProgressSection || !unlockProgressDiv || !progressStarsSpan) return;
              unlockProgressSection.style.display = 'block';
              const unlocked = currentUserData.unlockedLevels || ['Entry'];
-             if (!unlocked.includes('Associate')) {
-                 const streak = currentUserData.entryPerfectStreak || 0; let stars = '';
-                 for (let i = 0; i < 3; i++) { stars += (i < streak) ? '★' : '☆'; }
-                 progressStarsSpan.textContent = stars; unlockProgressDiv.style.display = 'block';
-             } else if (!unlocked.includes('Professional')) {
-                 const streak = currentUserData.associatePerfectStreak || 0; let stars = '';
-                 for (let i = 0; i < 3; i++) { stars += (i < streak) ? '★' : '☆'; }
-                 const titleElement = unlockProgressDiv.querySelector('h4');
-                 if(titleElement) titleElement.textContent = "Progreso para Nivel Professional:";
-                 progressStarsSpan.textContent = stars; unlockProgressDiv.style.display = 'block';
-             } else { unlockProgressDiv.style.display = 'none'; }
+             const entryStreak = currentUserData.entryPerfectStreak || 0;
+             const associateStreak = currentUserData.associatePerfectStreak || 0;
+             let targetLevel = null; let currentStreak = 0; let progressTitle = ""; let showProgress = false;
+             if (!unlocked.includes('Associate')) { targetLevel = 'Associate'; currentStreak = entryStreak; progressTitle = "Progreso para Nivel Associate:"; showProgress = true; }
+             else if (!unlocked.includes('Professional')) { targetLevel = 'Professional'; currentStreak = associateStreak; progressTitle = "Progreso para Nivel Professional:"; showProgress = true; }
+             else { targetLevel = 'None'; progressTitle = "¡Todos los niveles desbloqueados!"; showProgress = false; }
+             const titleElement = unlockProgressDiv.querySelector('h4'); if (titleElement) titleElement.textContent = progressTitle;
+             if (showProgress) { let stars = ''; for (let i = 0; i < 3; i++) { stars += (i < currentStreak) ? '★' : '☆'; } progressStarsSpan.textContent = stars; unlockProgressDiv.style.display = 'block'; }
+             else { unlockProgressDiv.style.display = 'none'; }
          } catch(error) { console.error("Error en updateUnlockProgressUI:", error); }
     }
     function updateRoundProgressUI() {
         try {
-             if (!roundProgressStarsDiv) return; let starsHTML = '';
-             for (let i = 0; i < TOTAL_QUESTIONS_PER_GAME; i++) { starsHTML += (i < correctAnswersThisRound) ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>'; }
+             if (!roundProgressStarsDiv) return;
+             let starsHTML = '';
+             for (let i = 0; i < TOTAL_QUESTIONS_PER_GAME; i++) {
+                 if (i < roundResults.length) {
+                     starsHTML += roundResults[i] ? '<i class="fas fa-star star-correct"></i>' : '<i class="fas fa-star star-incorrect"></i>';
+                 } else {
+                     starsHTML += '<i class="far fa-star star-pending"></i>';
+                 }
+             }
              roundProgressStarsDiv.innerHTML = starsHTML;
          } catch(error) { console.error("Error en updateRoundProgressUI:", error); }
     }
     function showLevelSelection() {
         try {
             if (!currentUserData || !currentUserData.unlockedLevels) { console.error("currentUserData no listo en showLevelSelection"); return; }
-            if(userSetupSection) userSetupSection.style.display = 'none';
-            if(gameAreaSection) gameAreaSection.style.display = 'none';
-            if(gameOverSection) gameOverSection.style.display = 'none';
-            if(levelButtonsContainer) levelButtonsContainer.innerHTML = '';
-            const unlocked = currentUserData.unlockedLevels;
+            if(userSetupSection) userSetupSection.style.display = 'none'; if(gameAreaSection) gameAreaSection.style.display = 'none'; if(gameOverSection) gameOverSection.style.display = 'none';
+            if(levelButtonsContainer) levelButtonsContainer.innerHTML = ''; const unlocked = currentUserData.unlockedLevels;
             unlocked.forEach(level => {
                 const button = document.createElement('button'); button.textContent = `Jugar Nivel ${level}`;
-                button.addEventListener('click', () => startGame(level));
-                if(levelButtonsContainer) levelButtonsContainer.appendChild(button);
+                button.addEventListener('click', () => startGame(level)); if(levelButtonsContainer) levelButtonsContainer.appendChild(button);
             });
-            if(levelSelectSection) levelSelectSection.style.display = 'block';
-            if(unlockProgressSection) unlockProgressSection.style.display = 'block';
-            if(highScoresSection) highScoresSection.style.display = 'block';
+            if(levelSelectSection) levelSelectSection.style.display = 'block'; if(unlockProgressSection) unlockProgressSection.style.display = 'block'; if(highScoresSection) highScoresSection.style.display = 'block';
             updateUnlockProgressUI();
         } catch (error) { console.error("Error en showLevelSelection:", error); }
     }
     function startGame(levelToPlay) {
-        currentLevel = levelToPlay; currentScore = 0; questionsAnswered = 0; correctAnswersThisRound = 0;
+        currentLevel = levelToPlay; currentScore = 0; questionsAnswered = 0; roundResults = []; // Resetear resultados de ronda
         if(scoreDisplay) scoreDisplay.textContent = currentScore; if(levelDisplay) levelDisplay.textContent = currentLevel;
         if(userSetupSection) userSetupSection.style.display = 'none'; if(levelSelectSection) levelSelectSection.style.display = 'none';
         if(gameOverSection) gameOverSection.style.display = 'none'; if(unlockProgressSection) unlockProgressSection.style.display = 'none';
@@ -221,54 +217,77 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
              if(!questionText || !optionsContainer || !feedbackArea) { console.error("Elementos de UI faltan en displayQuestion"); return; }
              questionText.innerHTML = questionHTML; optionsContainer.innerHTML = '';
-             if (!optionsArray || !Array.isArray(optionsArray)) { throw new Error("optionsArray inválido"); } // Añadir check
+             if (!optionsArray || !Array.isArray(optionsArray)) { throw new Error("optionsArray inválido"); }
              optionsArray.forEach(optionText => {
                  const button = document.createElement('button'); button.textContent = optionText; button.classList.add('option-button');
                  button.addEventListener('click', handleAnswerClick); optionsContainer.appendChild(button);
              });
-             feedbackArea.textContent = ''; optionsContainer.classList.remove('options-disabled');
+             feedbackArea.textContent = ''; feedbackArea.className = ''; // Resetear clases feedback
+             optionsContainer.classList.remove('options-disabled');
          } catch (error) { console.error("Error en displayQuestion:", error); }
     }
     function loadNextQuestion() {
-        if(feedbackArea) feedbackArea.textContent = '';
-        if(optionsContainer) optionsContainer.classList.remove('options-disabled');
+        if(feedbackArea) feedbackArea.textContent = ''; if(optionsContainer) optionsContainer.classList.remove('options-disabled');
         let questionData = null;
         try {
             let generatorFunction = null;
             if (currentLevel === 'Entry') {
                 const questionTypes = [ generateClassQuestion, generateTypeQuestion, generateDefaultMaskQuestion, generateSelectClassQuestion, generateSelectPrivateIpQuestion, generateSelectIpByDefaultMaskQuestion ];
-                const randomIndex = getRandomInt(0, questionTypes.length - 1);
-                generatorFunction = questionTypes[randomIndex];
+                const randomIndex = getRandomInt(0, questionTypes.length - 1); generatorFunction = questionTypes[randomIndex];
             } else if (currentLevel === 'Associate') { questionText.innerHTML = `Pregunta Nivel <strong>Associate</strong>... (Pendiente)`; optionsContainer.innerHTML = ''; setTimeout(endGame, 1000); return; }
             else if (currentLevel === 'Professional') { questionText.innerHTML = `Pregunta Nivel <strong>Professional</strong>... (Pendiente)`; optionsContainer.innerHTML = ''; setTimeout(endGame, 1000); return; }
             else { console.error("Nivel desconocido:", currentLevel); showLevelSelection(); return; }
-
-            if (generatorFunction) {
-                 questionData = generatorFunction();
-            } else {
-                 throw new Error("No se pudo seleccionar una función generadora.");
-            }
-
-            if (questionData && questionData.question && questionData.options && Array.isArray(questionData.options)) {
-                displayQuestion(questionData.question, questionData.options);
-            } else { throw new Error("questionData inválido generado por " + (generatorFunction ? generatorFunction.name : 'undefined')); }
+            if (generatorFunction) { questionData = generatorFunction(); } else { throw new Error("No se pudo seleccionar generador."); }
+            if (questionData && questionData.question && questionData.options && Array.isArray(questionData.options)) { displayQuestion(questionData.question, questionData.options); }
+            else { throw new Error("questionData inválido generado por " + (generatorFunction ? generatorFunction.name : 'undefined')); }
         } catch (error) { console.error("Error en loadNextQuestion:", error); if(questionText) questionText.innerHTML = "Error al cargar pregunta."; if(optionsContainer) optionsContainer.innerHTML = ''; setTimeout(endGame, 1500); }
      }
+     /** Función intermedia para avanzar */
+     function proceedToNextStep() {
+        questionsAnswered++;
+        if (questionsAnswered >= TOTAL_QUESTIONS_PER_GAME) {
+             endGame();
+        } else {
+             loadNextQuestion();
+        }
+    }
+    /** Maneja el clic en un botón de respuesta */
     function handleAnswerClick(event) {
         const selectedButton = event.target; const selectedAnswer = selectedButton.textContent;
         if(optionsContainer) optionsContainer.classList.add('options-disabled');
-        if (selectedAnswer === correctAnswer) {
-            currentScore += POINTS_PER_QUESTION; correctAnswersThisRound++;
-            if(scoreDisplay) scoreDisplay.textContent = currentScore; if(feedbackArea) { feedbackArea.textContent = "¡Correcto! ✔️"; feedbackArea.className = 'correct'; } if(selectedButton) selectedButton.classList.add('correct');
+        let isCorrect = (selectedAnswer === correctAnswer);
+        roundResults.push(isCorrect); // Guardar resultado de esta pregunta
+
+        if (isCorrect) {
+            currentScore += POINTS_PER_QUESTION;
+            if(scoreDisplay) scoreDisplay.textContent = currentScore;
+            if(feedbackArea) { feedbackArea.textContent = "¡Correcto! ✔️"; feedbackArea.className = 'correct'; }
+            if(selectedButton) selectedButton.classList.add('correct');
+            // AVANCE AUTOMÁTICO
+            setTimeout(proceedToNextStep, 1200); // Avanzar tras pausa
         } else {
-            correctAnswersThisRound = 0;
-            if(feedbackArea) { feedbackArea.textContent = `Incorrecto. La respuesta era: ${correctAnswer} ❌`; feedbackArea.className = 'incorrect'; } if(selectedButton) selectedButton.classList.add('incorrect');
+            // incorrecto
+            if(feedbackArea) {
+                feedbackArea.textContent = `Incorrecto. La respuesta era: ${correctAnswer} ❌`;
+                feedbackArea.className = 'incorrect';
+            }
+            if(selectedButton) selectedButton.classList.add('incorrect');
             if(optionsContainer) { Array.from(optionsContainer.children).forEach(button => { if (button.textContent === correctAnswer) button.classList.add('correct'); }); }
+
+            // Crear y mostrar botón "Siguiente"
+            const existingNextButton = document.getElementById('next-question-button');
+            if(existingNextButton) existingNextButton.remove();
+            const nextButton = document.createElement('button');
+            nextButton.id = 'next-question-button';
+            nextButton.textContent = (questionsAnswered + 1 >= TOTAL_QUESTIONS_PER_GAME) ? 'Ver Resultado Final' : 'Siguiente Pregunta'; // +1 porque questionsAnswered aún no se incrementó aquí
+            nextButton.addEventListener('click', proceedToNextStep); // Llama a la función intermedia
+            if(feedbackArea) feedbackArea.appendChild(nextButton);
         }
         correctAnswer = null; // Limpiar respuesta
-        updateRoundProgressUI(); questionsAnswered++;
-        if (questionsAnswered >= TOTAL_QUESTIONS_PER_GAME) { setTimeout(endGame, 1500); } else { setTimeout(loadNextQuestion, 1500); }
+        updateRoundProgressUI(); // Actualizar estrellas (amarillas o rojas)
+        // questionsAnswered se incrementa en proceedToNextStep
      }
+    /** Finaliza la partida */
     function endGame() {
         const isPerfect = (currentScore === PERFECT_SCORE); let message = "¡Partida completada!";
         try {
@@ -278,13 +297,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1;
                     if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) { currentUserData.unlockedLevels.push('Associate'); currentUserData.entryPerfectStreak = 0; message = "¡3 Rondas Perfectas! ¡Nivel Associate Desbloqueado! 🎉"; }
                     else if (!currentUserData.unlockedLevels.includes('Associate')) { message = `¡Ronda Perfecta! Racha (Entry): ${currentUserData.entryPerfectStreak}/3.`; } else { message = "¡Ronda Perfecta!"; }
-                } else { currentUserData.entryPerfectStreak = 0; message = "¡Partida completada!"; }
+                } else { if (currentUserData.entryPerfectStreak > 0) { /*Log opcional*/ } currentUserData.entryPerfectStreak = 0; message = "¡Partida completada!"; }
             } else if (currentLevel === 'Associate') {
                  if (isPerfect) {
                      currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1;
                      if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) { currentUserData.unlockedLevels.push('Professional'); currentUserData.associatePerfectStreak = 0; message = "¡3 Rondas Perfectas! ¡Nivel Professional Desbloqueado! 🏆"; }
                      else if (!currentUserData.unlockedLevels.includes('Professional')) { message = `¡Ronda Perfecta en Associate! Racha: ${currentUserData.associatePerfectStreak}/3.`; } else { message = "¡Ronda Perfecta en Associate!"; }
-                 } else { currentUserData.associatePerfectStreak = 0; message = "¡Partida completada!"; }
+                 } else { if (currentUserData.associatePerfectStreak > 0) { /*Log opcional*/ } currentUserData.associatePerfectStreak = 0; message = "¡Partida completada!"; }
             } else { message = "¡Partida completada!"; }
             saveUserData(currentUsername, currentUserData); saveHighScore(currentUsername, currentScore); loadHighScores();
             if(highScoreMessage) highScoreMessage.textContent = message; if(finalScoreDisplay) finalScoreDisplay.textContent = currentScore;
@@ -304,8 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
          try {
              currentUserData = getUserData(username); saveUserData(username, currentUserData);
              if(usernameDisplay) usernameDisplay.textContent = currentUsername;
-             if(highScoresSection) highScoresSection.style.display = 'block';
-             if(unlockProgressSection) unlockProgressSection.style.display = 'block';
+             if(highScoresSection) highScoresSection.style.display = 'block'; if(unlockProgressSection) unlockProgressSection.style.display = 'block';
              showLevelSelection();
          } catch (error) { console.error("Error durante handleUserLogin:", error); alert("Hubo un problema al cargar los datos del usuario."); /* ... */ }
     }
