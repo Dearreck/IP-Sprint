@@ -1,1 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="IP Sprint: Juego interactivo para practicar y aprender direccionamiento IPv4. ¡Pon a prueba tu velocidad y conocimientos!">
 
+    <title>IP Sprint - Juego de Direccionamiento IPv4</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    </head>
+<body>
+
+    <header>
+        <h1>IP Sprint 🚀</h1>
+    </header>
+
+    <main>
+
+        <section id="user-setup" class="game-section active">
+            <h2>¡Bienvenido/a!</h2>
+            <form id="username-form">
+                <label for="username">Ingresa tu nombre de usuario:</label>
+                <input type="text" id="username" name="username" required minlength="2" maxlength="20" placeholder="TuNombreDeJugador">
+                <button type="submit">¡Empezar a Jugar!</button>
+            </form>
+        </section>
+
+        <section id="game-area" class="game-section" style="display: none;"> <div id="game-info">
+                <span>Nivel: <span id="level-display">Entry</span></span> |
+                <span>Usuario: <span id="username-display"></span></span> |
+                <span>Puntos: <span id="score-display">0</span></span>
+                </div>
+            <hr>
+            <div id="question-container">
+                <p id="question-text">Cargando pregunta...</p>
+            </div>
+            <div id="options-container">
+                <button class="option-button">Opción 1</button>
+                <button class="option-button">Opción 2</button>
+                <button class="option-button">Opción 3</button>
+            </div>
+            <div id="feedback-area" style="min-height: 2em; margin-top: 1em;">
+                </div>
+        </section>
+
+        <section id="game-over" class="game-section" style="display: none;"> <h2>¡Juego Terminado!</h2>
+            <p>Tu puntuación final: <strong id="final-score">0</strong></p>
+            <p id="high-score-message"></p> <button id="play-again-button">Jugar de Nuevo</button>
+        </section>
+
+        <section id="high-scores-section" class="game-section">
+            <h2>Mejores Puntuaciones (Local)</h2>
+            <ul id="score-list">
+                <li>Cargando...</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Juego "IP Sprint" creado como herramienta de aprendizaje.</p>
+        <p>
+            <a href="https://t.me/dearreck_channel" target="_blank" rel="noopener noreferrer">
+                Únete al canal CCNA con Dearreck ✨ en Telegram
+            </a>
+        </p>
+    </footer>
+
+    <script src="js/script.js"></script>
+
+</body>
+</html>
