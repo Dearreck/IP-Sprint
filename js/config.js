@@ -2,16 +2,16 @@
 
 /** Constantes de configuración del juego */
 
-// Juego
-export const TOTAL_QUESTIONS_PER_GAME = 10;
-export const POINTS_PER_QUESTION = 10;
-export const PERFECT_SCORE = TOTAL_QUESTIONS_PER_GAME * POINTS_PER_QUESTION;
-export const QUESTION_TIMER_DURATION = 15; // Segundos por pregunta en modo timer
+// Configuración General del Juego
+export const TOTAL_QUESTIONS_PER_GAME = 10; // Número de preguntas por ronda
+export const POINTS_PER_QUESTION = 10;    // Puntos ganados por respuesta correcta
+export const PERFECT_SCORE = TOTAL_QUESTIONS_PER_GAME * POINTS_PER_QUESTION; // Puntuación para ronda perfecta
+export const QUESTION_TIMER_DURATION = 15;  // Segundos por pregunta en modo timer/mastery
 
-// Almacenamiento Local
-export const MAX_HIGH_SCORES = 10; // Máximo de puntuaciones a guardar
+// Almacenamiento Local (LocalStorage Keys)
+export const MAX_HIGH_SCORES = 10;          // Máximo número de puntuaciones altas a guardar
 export const USER_DATA_KEY = 'ipSprintUserData'; // Clave para datos de usuario (niveles, rachas)
-export const HIGH_SCORES_KEY = 'ipSprintHighScores'; // Clave para tabla de puntuaciones
+export const HIGH_SCORES_KEY = 'ipSprintHighScores'; // Clave para tabla global de puntuaciones
 
-// Niveles (podríamos usar un objeto para más detalle si crece)
-export const LEVELS = ['Entry', 'Associate', 'Professional'];
+// Niveles del Juego
+export const LEVELS = ['Entry', 'Associate', 'Professional']; // Orden de niveles
