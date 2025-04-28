@@ -59,8 +59,6 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
 /* --- Estilos Progreso de Desbloqueo --- */
 #unlock-progress-section { /* Estilo para la sección que lo contiene */
      background-color: #f8f9fa; /* Un fondo ligeramente diferente */
-    border: 5px solid red !important; /* Borde rojo muy visible */
-    min-height: 50px; /* Dale una altura mínima por si está vacía */
 }
 #unlock-progress { /* Contenedor interno */
     padding: 10px; /* Menos padding que otras secciones si se quiere */
