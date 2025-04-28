@@ -97,9 +97,82 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
 .option-button.incorrect { background-color: #dc3545; color: white; }
 .option-button.incorrect:hover { background-color: #c82333; }
 .options-disabled .option-button { pointer-events: none; opacity: 0.7; }
-#feedback-area { margin-top: 20px; text-align: center; font-weight: bold; min-height: 1.5em; }
-#feedback-area.correct { color: #28a745; }
-#feedback-area.incorrect { color: #dc3545; }
+
+/* --- Estilos para Progreso de Ronda (Estrellas durante el juego) --- */
+#round-progress-stars {
+    text-align: center;
+    line-height: 1;
+    margin-top: 8px;
+    font-size: 1.1em; /* Puedes ajustar el tamaño */
+}
+
+/* Estrella Correcta (Llena, Amarilla) */
+#round-progress-stars .star-correct {
+    color: #ffc107; /* Amarillo/dorado */
+    margin: 0 1px;
+}
+
+/* Estrella Incorrecta (Llena, Roja) */
+#round-progress-stars .star-incorrect {
+    color: #dc3545; /* Rojo */
+    margin: 0 1px;
+}
+
+/* Estrella Pendiente (Vacía, Gris) */
+#round-progress-stars .star-pending {
+    color: #adb5bd; /* Gris claro */
+     margin: 0 1px;
+}
+
+/* Estilo para el botón "Siguiente" (puede ser el mismo que play-again) */
+#next-question-button {
+    margin-top: 15px;
+    padding: 8px 20px;
+    font-size: 0.9em;
+    background-color: #17a2b8; /* Un color diferente, ej: teal */
+}
+#next-question-button:hover {
+    background-color: #138496;
+}
+
+/* Ajustar feedback para acomodar botón */
+#feedback-area {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+    min-height: 3.5em; /* Más altura para el botón */
+    padding-bottom: 10px; /* Espacio inferior */
+}
+
+#feedback-area.incorrect {
+    color: #721c24; /* Texto rojo oscuro */
+    background-color: #f8d7da; /* Fondo rojo pálido */
+    border: 1px solid #f5c6cb; /* Borde rojo */
+    padding: 10px; /* Añadir padding para que se vea mejor */
+    border-radius: 4px; /* Bordes redondeados */
+    margin-top: 15px; /* Ajustar margen si es necesario */
+}
+
+/* Puedes ajustar también la clase .correct si quieres un fondo verde */
+#feedback-area.correct {
+    color: #155724; /* Texto verde oscuro */
+    background-color: #d4edda; /* Fondo verde pálido */
+    border: 1px solid #c3e6cb; /* Borde verde */
+    padding: 10px;
+    border-radius: 4px;
+     margin-top: 15px;
+}
+
+/* Estilo para el botón "Siguiente" */
+#next-question-button {
+    margin-top: 15px; /* Espacio sobre el botón */
+    padding: 8px 20px; /* Un poco más pequeño que los botones principales */
+    font-size: 0.9em;
+    background-color: #28a745; /* Verde para avanzar */
+}
+#next-question-button:hover {
+    background-color: #218838;
+}
 
 /* --- Game Over Styles --- */
 #game-over { text-align: center; }
