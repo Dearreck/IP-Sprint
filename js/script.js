@@ -182,15 +182,45 @@ document.addEventListener('DOMContentLoaded', () => {
         highScoreMessage.textContent = "¡Partida completada!";
     }
 
+    /**
+     * Guarda la puntuación en localStorage, asegurando una sola entrada
+     * (la mejor) por usuario y manteniendo las N mejores puntuaciones globales.
+     * @param {string} name - Nombre del jugador.
+     * @param {number} score - Puntuación obtenida.
+     */
     function saveHighScore(name, score) {
-        if (!name || score === undefined) return;
+        if (!name || score === undefined) return; // No guardar si falta algo
+
+        // const MAX_HIGH_SCORES = 10; // Definida arriba ahora
         const highScores = JSON.parse(localStorage.getItem('ipSprintHighScores')) || [];
         const newScore = { name, score };
+
+        // 1. Añadir la nueva puntuación temporalmente
         highScores.push(newScore);
+
+        // 2. Ordenar todas las puntuaciones (incluida la nueva) de mayor a menor
         highScores.sort((a, b) => b.score - a.score);
-        highScores.splice(MAX_HIGH_SCORES); // Mantener solo los N mejores
-        localStorage.setItem('ipSprintHighScores', JSON.stringify(highScores));
-        console.log("Puntuaciones guardadas:", highScores);
+
+        // 3. Filtrar para quedarse solo con la MEJOR puntuación de cada usuario único
+        const uniqueUserScores = [];
+        const userNames = new Set(); // Para rastrear usuarios ya añadidos a la lista final
+
+        for (const scoreEntry of highScores) {
+            // Si aún no hemos añadido una puntuación para este usuario...
+            if (!userNames.has(scoreEntry.name)) {
+                // ...la añadimos (como está ordenada, esta será su mejor puntuación)
+                uniqueUserScores.push(scoreEntry);
+                // Y marcamos que ya hemos procesado a este usuario
+                userNames.add(scoreEntry.name);
+            }
+        }
+
+        // 4. Recortar la lista de puntuaciones únicas a las N mejores globales
+        const finalScores = uniqueUserScores.slice(0, MAX_HIGH_SCORES);
+
+        // 5. Guardar la lista final y filtrada en localStorage
+        localStorage.setItem('ipSprintHighScores', JSON.stringify(finalScores));
+        console.log("Puntuaciones (únicas por usuario y top N) guardadas:", finalScores);
     }
 
     function loadHighScores() {
