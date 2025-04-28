@@ -3,7 +3,7 @@ IP Sprint: Juego web para practicar y dominar direccionamiento IPv4. ¡Ideal par
 
 ¡Un juego web interactivo y rápido diseñado para ayudarte a practicar y dominar los conceptos fundamentales de direccionamiento IPv4! Ideal para estudiantes de redes, especialmente aquellos que preparan la certificación CCNA.
 
-**➡️ [¡Juega Ahora!]([https://dearreck.github.io/IP-Sprint/]) ⬅️**
+**➡️ [¡Juega Ahora!](https://dearreck.github.io/IP-Sprint/) ⬅️**
 *(¡Recuerda actualizar este enlace cuando despliegues el juego en GitHub Pages!)*
 
 *(Aquí es un buen lugar para añadir una captura de pantalla o un GIF animado del juego en acción)*
