@@ -33,4 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
          console.error("#play-again-button no encontrado");
     }
 
+    // Listener para el botón "Reiniciar / Salir" en juego activo
+    if (ui.restartRoundButton) {
+        ui.restartRoundButton.addEventListener('click', game.handleRestartRound);
+    } else { console.error("#restart-round-button no encontrado"); }
+
+    if (ui.exitToMenuButton) {
+        ui.exitToMenuButton.addEventListener('click', game.handleExitToMenu);
+    } else { console.error("#exit-to-menu-button no encontrado"); }
+
 }); // Fin DOMContentLoaded
