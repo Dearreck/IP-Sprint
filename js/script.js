@@ -23,224 +23,176 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUsername = '';
     let currentScore = 0;
     let currentLevel = 'Entry';
-    let correctAnswer = null; // Para guardar la respuesta correcta de la pregunta actual
+    let correctAnswer = null;
+    let questionsAnswered = 0; // Contador de preguntas respondidas
+    const TOTAL_QUESTIONS_PER_GAME = 10; // Definir cuántas preguntas por partida (ej. 10)
+    const MAX_HIGH_SCORES = 10; // Máximo de puntuaciones a guardar
 
     // --- Funciones de Utilidad ---
-
-    /** Genera un entero aleatorio entre min (incluido) y max (incluido) */
     function getRandomInt(min, max) {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    /** Genera una dirección IPv4 aleatoria como string */
     function generateRandomIp() {
-        // Genera 4 octetos aleatorios
-        const oct1 = getRandomInt(1, 254); // Evitar 0 y 255 en el primero por simplicidad
+        const oct1 = getRandomInt(1, 254);
         const oct2 = getRandomInt(0, 255);
         const oct3 = getRandomInt(0, 255);
-        const oct4 = getRandomInt(1, 254); // Evitar 0 y 255 en el último por simplicidad
+        const oct4 = getRandomInt(1, 254);
         return `${oct1}.${oct2}.${oct3}.${oct4}`;
-        // NOTA: Podríamos hacerla más sofisticada para generar IPs de clases/tipos específicos
     }
 
-    /**
-     * Obtiene información sobre una IP (Clase, Tipo, Máscara Default)
-     * @param {string} ipString - La IP en formato string "x.x.x.x"
-     * @returns {object} - Objeto con { class, type, defaultMask }
-     */
     function getIpInfo(ipString) {
         const octets = ipString.split('.').map(Number);
         const firstOctet = octets[0];
         let ipClass = '';
-        let ipType = 'Pública'; // Asumir pública por defecto
+        let ipType = 'Pública';
         let defaultMask = 'N/A';
 
-        // Determinar Clase y Máscara Default
         if (firstOctet >= 1 && firstOctet <= 126) {
-            ipClass = 'A';
-            defaultMask = '255.0.0.0';
+            ipClass = 'A'; defaultMask = '255.0.0.0';
         } else if (firstOctet >= 128 && firstOctet <= 191) {
-            ipClass = 'B';
-            defaultMask = '255.255.0.0';
+            ipClass = 'B'; defaultMask = '255.255.0.0';
         } else if (firstOctet >= 192 && firstOctet <= 223) {
-            ipClass = 'C';
-            defaultMask = '255.255.255.0';
+            ipClass = 'C'; defaultMask = '255.255.255.0';
         } else if (firstOctet >= 224 && firstOctet <= 239) {
-            ipClass = 'D'; // Multicast
-            ipType = 'N/A'; // No aplica Pública/Privada
+            ipClass = 'D'; ipType = 'N/A';
         } else if (firstOctet >= 240 && firstOctet <= 255) {
-            ipClass = 'E'; // Experimental
-            ipType = 'N/A';
+            ipClass = 'E'; ipType = 'N/A';
         } else if (firstOctet === 127) {
-            ipClass = 'A'; // Loopback es técnicamente Clase A
-            ipType = 'Loopback';
-            defaultMask = '255.0.0.0';
+            ipClass = 'A'; ipType = 'Loopback'; defaultMask = '255.0.0.0';
         }
-        // Considerar APIPA? 169.254.x.x -> Podría ser tipo 'APIPA'
 
-        // Determinar Tipo (Privada?) sobreescribe si aplica
         if (firstOctet === 10 ||
             (firstOctet === 172 && octets[1] >= 16 && octets[1] <= 31) ||
             (firstOctet === 192 && octets[1] === 168)) {
-            ipType = 'Privada';
+            if (ipType !== 'Loopback') ipType = 'Privada';
         }
-        // Podríamos añadir chequeo para APIPA aquí si quisiéramos un tipo específico
 
         return { class: ipClass, type: ipType, defaultMask: defaultMask };
     }
 
-
     // --- Generadores de Preguntas (Nivel Entry) ---
-
-    /** Genera una pregunta sobre la Clase de una IP */
     function generateClassQuestion() {
         const ip = generateRandomIp();
         const info = getIpInfo(ip);
-        // Evitar D y E para preguntas de clase sencillas por ahora? O incluirlas? Incluyamoslas.
-        if (info.class === 'D' || info.class === 'E') { // Asegurar que no preguntemos máscaras de D/E
-             info.defaultMask = 'N/A'; // Reafirmar
-        }
-
+        if (info.class === 'D' || info.class === 'E') info.defaultMask = 'N/A';
         const question = `Dada la IP: <strong>${ip}</strong><br>¿A qué clase pertenece?`;
-        const options = ['A', 'B', 'C', 'D', 'E']; // Opciones de respuesta
-        correctAnswer = info.class; // Guardar respuesta correcta
-
+        const options = ['A', 'B', 'C', 'D', 'E'];
+        correctAnswer = info.class;
         return { question, options };
     }
 
-     /** Genera una pregunta sobre el Tipo (Pública/Privada) de una IP */
     function generateTypeQuestion() {
         let ip, info;
-        // Generar IPs hasta encontrar una que no sea Clase D o E (donde el tipo es N/A)
-         do {
-            ip = generateRandomIp();
-            info = getIpInfo(ip);
-        } while (info.type === 'N/A' || info.type === 'Loopback'); // Excluir D, E, Loopback
-
+        do {
+            ip = generateRandomIp(); info = getIpInfo(ip);
+        } while (info.type === 'N/A' || info.type === 'Loopback');
         const question = `Dada la IP: <strong>${ip}</strong><br>¿Es Pública o Privada?`;
         const options = ['Pública', 'Privada'];
         correctAnswer = info.type;
-
         return { question, options };
     }
 
-     /** Genera una pregunta sobre la Máscara por Defecto de una IP */
-     function generateDefaultMaskQuestion() {
+    function generateDefaultMaskQuestion() {
         let ip, info;
-        // Generar IPs hasta encontrar una Clase A, B o C
         do {
-            ip = generateRandomIp();
-            info = getIpInfo(ip);
+            ip = generateRandomIp(); info = getIpInfo(ip);
         } while (info.class !== 'A' && info.class !== 'B' && info.class !== 'C');
-
         const question = `Dada la IP: <strong>${ip}</strong> (Clase ${info.class})<br>¿Cuál es su máscara de subred por defecto?`;
         const options = ['255.0.0.0', '255.255.0.0', '255.255.255.0'];
         correctAnswer = info.defaultMask;
-
         return { question, options };
     }
 
     // --- Funciones de Juego Principales ---
-
-    /**
-     * Muestra la pregunta y las opciones en la interfaz.
-     * @param {string} questionHTML - El texto/HTML de la pregunta.
-     * @param {string[]} optionsArray - Un array con los textos de las opciones.
-     */
     function displayQuestion(questionHTML, optionsArray) {
-        questionText.innerHTML = questionHTML; // Usar innerHTML por si hay etiquetas como <strong>
-        optionsContainer.innerHTML = ''; // Limpiar opciones anteriores
-
+        questionText.innerHTML = questionHTML;
+        optionsContainer.innerHTML = '';
         optionsArray.forEach(optionText => {
             const button = document.createElement('button');
             button.textContent = optionText;
             button.classList.add('option-button');
-            button.addEventListener('click', handleAnswerClick); // Añadir listener
+            button.addEventListener('click', handleAnswerClick);
             optionsContainer.appendChild(button);
         });
-
-        feedbackArea.textContent = ''; // Limpiar feedback
-        optionsContainer.classList.remove('options-disabled'); // Habilitar botones
+        feedbackArea.textContent = '';
+        optionsContainer.classList.remove('options-disabled');
     }
 
-
-    /**
-     * Carga la siguiente pregunta basada en el nivel actual.
-     */
     function loadNextQuestion() {
-        feedbackArea.textContent = ''; // Limpiar feedback anterior
-        optionsContainer.classList.remove('options-disabled'); // Asegurar que opciones estén habilitadas
-
+        feedbackArea.textContent = '';
+        optionsContainer.classList.remove('options-disabled');
         let questionData;
 
-        // Por ahora, solo preguntas de Nivel Entry
         if (currentLevel === 'Entry') {
-            // Elegir aleatoriamente un tipo de pregunta de Entry
-            const questionTypes = [
-                generateClassQuestion,
-                generateTypeQuestion,
-                generateDefaultMaskQuestion
-                // TODO: Añadir aquí las funciones para las preguntas inversas
-                // generateSelectPrivateIpQuestion,
-                // generateSelectClassQuestion
-            ];
+            const questionTypes = [generateClassQuestion, generateTypeQuestion, generateDefaultMaskQuestion];
             const randomIndex = getRandomInt(0, questionTypes.length - 1);
             const generatorFunction = questionTypes[randomIndex];
-            questionData = generatorFunction(); // Llama a la función generadora
+            questionData = generatorFunction();
         } else {
-            // TODO: Lógica para niveles Associate y Professional
             questionText.textContent = `¡Próximamente Nivel ${currentLevel}!`;
             optionsContainer.innerHTML = '';
-            return; // Salir si no es Entry por ahora
+            setTimeout(endGame, 500); // Terminar si llegamos a un nivel no implementado
+            return;
         }
-
-        // Muestra la pregunta generada
         displayQuestion(questionData.question, questionData.options);
     }
 
-    /**
-     * Maneja el clic en un botón de respuesta.
-     * @param {Event} event - El objeto del evento click.
-     */
     function handleAnswerClick(event) {
         const selectedButton = event.target;
         const selectedAnswer = selectedButton.textContent;
 
-        // Deshabilitar todos los botones después de la selección
         optionsContainer.classList.add('options-disabled');
 
-        // Comprobar si la respuesta es correcta
         if (selectedAnswer === correctAnswer) {
-            // Respuesta Correcta
-            currentScore += 10; // Aumentar puntuación (ej. 10 puntos)
-            scoreDisplay.textContent = currentScore; // Actualizar marcador
+            currentScore += 10;
+            scoreDisplay.textContent = currentScore;
             feedbackArea.textContent = "¡Correcto! ✔️";
-            feedbackArea.className = 'correct'; // Aplicar clase CSS para color verde
-            selectedButton.classList.add('correct'); // Marcar botón seleccionado como correcto
+            feedbackArea.className = 'correct';
+            selectedButton.classList.add('correct');
         } else {
-            // Respuesta Incorrecta
             feedbackArea.textContent = `Incorrecto. La respuesta era: ${correctAnswer} ❌`;
-            feedbackArea.className = 'incorrect'; // Aplicar clase CSS para color rojo
-            selectedButton.classList.add('incorrect'); // Marcar botón seleccionado como incorrecto
-
-            // Opcional: Resaltar también la respuesta correcta
-             Array.from(optionsContainer.children).forEach(button => {
+            feedbackArea.className = 'incorrect';
+            selectedButton.classList.add('incorrect');
+            Array.from(optionsContainer.children).forEach(button => {
                 if (button.textContent === correctAnswer) {
-                    button.classList.add('correct'); // Mostrar cuál era la correcta
+                    button.classList.add('correct');
                 }
             });
         }
 
-        // Esperar un poco y cargar la siguiente pregunta
-        setTimeout(loadNextQuestion, 1500); // Espera 1.5 segundos
+        questionsAnswered++;
+
+        if (questionsAnswered >= TOTAL_QUESTIONS_PER_GAME) {
+            setTimeout(endGame, 1500);
+        } else {
+            setTimeout(loadNextQuestion, 1500);
+        }
     }
 
+    function endGame() {
+        console.log("Juego terminado. Puntuación final:", currentScore);
+        gameAreaSection.style.display = 'none';
+        gameOverSection.style.display = 'block';
+        finalScoreDisplay.textContent = currentScore;
+        saveHighScore(currentUsername, currentScore);
+        loadHighScores();
+        highScoreMessage.textContent = "¡Partida completada!";
+    }
 
-    /**
-     * Carga y muestra las puntuaciones altas desde localStorage.
-     */
+    function saveHighScore(name, score) {
+        if (!name || score === undefined) return;
+        const highScores = JSON.parse(localStorage.getItem('ipSprintHighScores')) || [];
+        const newScore = { name, score };
+        highScores.push(newScore);
+        highScores.sort((a, b) => b.score - a.score);
+        highScores.splice(MAX_HIGH_SCORES); // Mantener solo los N mejores
+        localStorage.setItem('ipSprintHighScores', JSON.stringify(highScores));
+        console.log("Puntuaciones guardadas:", highScores);
+    }
+
     function loadHighScores() {
         const highScores = JSON.parse(localStorage.getItem('ipSprintHighScores')) || [];
         scoreList.innerHTML = '';
@@ -248,8 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
             scoreList.innerHTML = '<li>Aún no hay puntuaciones. ¡Sé el primero!</li>';
             return;
         }
-        highScores.sort((a, b) => b.score - a.score);
-        const topScores = highScores.slice(0, 5);
+        highScores.sort((a, b) => b.score - a.score); // Asegurar orden al mostrar
+        const topScores = highScores.slice(0, MAX_HIGH_SCORES); // Mostrar hasta N
         topScores.forEach(scoreItem => {
             const li = document.createElement('li');
             li.textContent = `${scoreItem.name}: `;
@@ -260,17 +212,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /**
-     * Inicia una nueva partida.
-     */
-     function startGame() {
+    function startGame() {
         console.log(`Iniciando juego para ${currentUsername} en nivel ${currentLevel}`);
         currentScore = 0;
+        questionsAnswered = 0; // Resetear contador
         scoreDisplay.textContent = currentScore;
         levelDisplay.textContent = currentLevel;
         userSetupSection.style.display = 'none';
-        gameOverSection.style.display = 'none';
-        gameAreaSection.style.display = 'block';
+        gameOverSection.style.display = 'none'; // Ocultar Game Over
+        gameAreaSection.style.display = 'block'; // Mostrar Área de Juego
         loadNextQuestion();
     }
 
@@ -289,12 +239,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- TODO ---
-    // Añadir event listener para el botón "Jugar de Nuevo"
-    // Implementar la lógica de fin de juego (cuándo llamar a gameOverSection)
-    // Implementar el guardado de puntuaciones en localStorage
-    // Implementar la lógica para los niveles Associate y Professional
-    // Añadir más tipos de preguntas inversas al Nivel Entry
+    playAgainButton.addEventListener('click', startGame); // Hacer que el botón llame a startGame
 
+    // --- TODO ---
+    // Añadir más tipos de preguntas (inversas Entry, niveles Associate/Pro)
+    // Implementar lógica de cambio de nivel
+    // Mejorar mensaje de high score en endGame
+    // Refinar generación de IP si es necesario
 
 }); // Fin del DOMContentLoaded
