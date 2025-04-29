@@ -109,7 +109,7 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
     padding: 8px 12px;
     border-radius: 4px;
     margin-top: 10px; /* Espacio debajo del icono/estrellas */
-    max-width: 90%; /* Evita que sea demasiado ancho en pantallas grandes */
+    max-width: 75%; /* Evita que sea demasiado ancho en pantallas grandes */
     margin-left: auto;
     margin-right: auto;
     text-align: left; /* Alinea el texto dentro del cuadro */
