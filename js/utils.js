@@ -1,107 +1,230 @@
 // js/utils.js
-
-/** Funciones de utilidad generales y específicas de IP, y generadores de tablas HTML */
+// ==================================================
+// Módulo de Utilidades para IP Sprint
+// Contiene funciones de ayuda generales, funciones
+// específicas para manipulación de IPs y funciones
+// para generar tablas HTML usadas en las explicaciones.
+// ==================================================
 
 // --- Utilidades Generales ---
 
 /**
  * Genera un entero aleatorio entre min (incluido) y max (incluido).
- * @param {number} min - Límite inferior.
- * @param {number} max - Límite superior.
- * @returns {number} Un entero aleatorio.
+ * Útil para seleccionar elementos aleatorios de arrays o generar números.
+ * @param {number} min - El límite inferior del rango.
+ * @param {number} max - El límite superior del rango.
+ * @returns {number} Un número entero aleatorio dentro del rango especificado.
  */
 export function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
+    min = Math.ceil(min);   // Asegura que min sea un entero (redondea hacia arriba).
+    max = Math.floor(max); // Asegura que max sea un entero (redondea hacia abajo).
+    // Genera un número aleatorio entre 0 (incluido) y 1 (excluido),
+    // lo escala al tamaño del rango (max - min + 1),
+    // lo redondea hacia abajo para obtener un índice entero,
+    // y finalmente suma min para ajustar al rango deseado.
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 /**
- * Baraja los elementos de un array en su lugar (Algoritmo Fisher-Yates).
- * @param {Array<any>} array - El array a barajar.
+ * Baraja (reordena aleatoriamente) los elementos de un array existente.
+ * Modifica el array original directamente (no devuelve uno nuevo).
+ * Utiliza el algoritmo Fisher-Yates (también conocido como Knuth Shuffle).
+ * @param {Array<any>} array - El array que se desea barajar.
  */
 export function shuffleArray(array) {
+    // Recorre el array desde el último elemento hacia el primero.
     for (let i = array.length - 1; i > 0; i--) {
+        // Elige un índice aleatorio 'j' entre 0 y el índice actual 'i' (inclusive).
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]]; // Intercambio de elementos
+        // Intercambia el elemento en la posición actual 'i' con el elemento en la posición aleatoria 'j'.
+        [array[i], array[j]] = [array[j], array[i]]; // Sintaxis de desestructuración para intercambio.
     }
+    // No se devuelve nada porque el array original fue modificado.
 }
 
 // --- Utilidades de Direccionamiento IP ---
 
 /**
- * Genera una dirección IPv4 aleatoria como string (puede ser pública o privada).
- * @returns {string} Una IP aleatoria.
+ * Genera una dirección IPv4 aleatoria como string (ej. "192.168.1.10").
+ * Intenta generar IPs que sean válidas para la mayoría de las preguntas,
+ * evitando rangos especiales como Loopback, APIPA, Multicast, etc.
+ * @returns {string} Una dirección IP aleatoria (generalmente Clase A, B o C, pública o privada).
  */
 export function generateRandomIp() {
-    const oct1 = getRandomInt(1, 254);
-    const oct2 = getRandomInt(0, 255);
-    const oct3 = getRandomInt(0, 255);
+    let oct1;
+    // Genera el primer octeto asegurándose de que no sea 0, 127 (Loopback),
+    // 169 (inicio de APIPA) o mayor o igual a 224 (Multicast/Experimental).
+    do {
+        oct1 = getRandomInt(1, 223);
+    } while (oct1 === 127 || oct1 === 169);
+
+    let oct2 = getRandomInt(0, 255); // Segundo octeto puede ser cualquiera.
+    // Caso especial: si el primero fue 169, el segundo no puede ser 254 (APIPA).
+    if (oct1 === 169 && oct2 === 254) {
+        oct2 = getRandomInt(0, 253); // Elige otro valor para el segundo octeto.
+    }
+
+    const oct3 = getRandomInt(0, 255); // Tercer octeto puede ser cualquiera.
+    // Último octeto: evita .0 (dirección de red) y .255 (broadcast)
+    // para obtener generalmente direcciones de host válidas.
     const oct4 = getRandomInt(1, 254);
+
+    // Une los octetos con puntos para formar la IP string.
     return `${oct1}.${oct2}.${oct3}.${oct4}`;
 }
 
+
 /**
- * Genera una IP privada aleatoria de cualquiera de los 3 rangos RFC 1918.
- * @returns {string} Una IP privada aleatoria.
+ * Genera una dirección IP privada aleatoria, seleccionando uno de los
+ * tres rangos definidos en RFC 1918 (10.x.x.x, 172.16-31.x.x, 192.168.x.x).
+ * @returns {string} Una dirección IP privada aleatoria.
  */
 export function generateRandomPrivateIp() {
-    const type = getRandomInt(1, 3); // Elegir rango 1, 2 o 3
+    // Elige aleatoriamente uno de los 3 tipos de rangos privados.
+    const type = getRandomInt(1, 3);
     let ip = '';
-    if (type === 1) { // 10.0.0.0/8
+    if (type === 1) { // Rango 10.0.0.0/8
         ip = `10.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`;
-    } else if (type === 2) { // 172.16.0.0/12
+    } else if (type === 2) { // Rango 172.16.0.0/12
+        // El segundo octeto debe estar entre 16 y 31.
         ip = `172.${getRandomInt(16, 31)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`;
-    } else { // 192.168.0.0/16
+    } else { // Rango 192.168.0.0/16
         ip = `192.168.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`;
     }
+    // Evita .0 y .255 en el último octeto como en generateRandomIp.
     return ip;
 }
 
 /**
- * Obtiene información clave (Clase, Tipo, Máscara Default) sobre una IP.
- * @param {string} ipString - La IP en formato string "x.x.x.x".
- * @returns {object} Objeto con { class, type, defaultMask } o valores 'N/A' en error.
+ * Obtiene información clave sobre una dirección IP dada.
+ * Determina su Clase (A, B, C, D, E), Tipo (Pública, Privada, Loopback, APIPA, etc.)
+ * y su Máscara de Subred por Defecto (si aplica).
+ * @param {string} ipString - La dirección IP en formato string "x.x.x.x".
+ * @returns {object} Un objeto con las propiedades { class, type, defaultMask }.
+ * Devuelve 'N/A' para propiedades si la IP es inválida o no aplica.
  */
 export function getIpInfo(ipString) {
     try {
-        if (!ipString) throw new Error("IP string vacía");
+        // Validación robusta de la entrada
+        if (!ipString || typeof ipString !== 'string') {
+             // console.warn(`getIpInfo: IP string inválida o no proporcionada: ${ipString}`);
+             return { class: 'N/A', type: 'N/A', defaultMask: 'N/A' };
+        }
+        // Divide la IP en octetos y los convierte a números.
         const octets = ipString.split('.').map(Number);
-        if (octets.length !== 4 || octets.some(isNaN)) throw new Error("Formato IP inválido");
-
-        const firstOctet = octets[0];
-        let ipClass = '';
-        let ipType = 'Pública';
-        let defaultMask = 'N/A';
-
-        // Determinar Clase y Máscara Default
-        if (firstOctet >= 1 && firstOctet <= 126) { ipClass = 'A'; defaultMask = '255.0.0.0'; }
-        else if (firstOctet >= 128 && firstOctet <= 191) { ipClass = 'B'; defaultMask = '255.255.0.0'; }
-        else if (firstOctet >= 192 && firstOctet <= 223) { ipClass = 'C'; defaultMask = '255.255.255.0'; }
-        else if (firstOctet >= 224 && firstOctet <= 239) { ipClass = 'D'; ipType = 'N/A'; } // Multicast
-        else if (firstOctet >= 240 && firstOctet <= 255) { ipClass = 'E'; ipType = 'N/A'; } // Experimental
-        else if (firstOctet === 127) { ipClass = 'A'; ipType = 'Loopback'; defaultMask = '255.0.0.0'; } // Loopback
-
-        // Determinar Tipo (Privada?)
-        if (firstOctet === 10 ||
-           (firstOctet === 172 && octets[1] >= 16 && octets[1] <= 31) ||
-           (firstOctet === 192 && octets[1] === 168)) {
-            if (ipType !== 'Loopback') ipType = 'Privada';
+        // Verifica si son 4 octetos numéricos válidos entre 0 y 255.
+        if (octets.length !== 4 || octets.some(isNaN) || octets.some(o => o < 0 || o > 255)) {
+             // console.warn(`getIpInfo: Formato IP inválido detectado: ${ipString}`);
+             return { class: 'N/A', type: 'N/A', defaultMask: 'N/A' };
         }
 
+        const firstOctet = octets[0];
+        let ipClass = 'N/A';        // Valor por defecto si no coincide con ninguna clase.
+        let ipType = 'Pública';     // Asume pública por defecto, se corregirá si es especial/privada.
+        let defaultMask = 'N/A';    // Máscara por defecto N/A a menos que sea A, B o C.
+
+        // --- Determinar Clase y Máscara Default basado en el primer octeto ---
+        if (firstOctet >= 1 && firstOctet <= 126) { ipClass = 'A'; defaultMask = '255.0.0.0'; }
+        else if (firstOctet === 127) { ipClass = 'A'; ipType = 'Loopback'; defaultMask = '255.0.0.0'; } // Caso especial: Loopback
+        else if (firstOctet >= 128 && firstOctet <= 191) { ipClass = 'B'; defaultMask = '255.255.0.0'; }
+        else if (firstOctet >= 192 && firstOctet <= 223) { ipClass = 'C'; defaultMask = '255.255.255.0'; }
+        else if (firstOctet >= 224 && firstOctet <= 239) { ipClass = 'D'; ipType = 'Multicast'; defaultMask = 'N/A'; } // Clase D (Multicast)
+        else if (firstOctet >= 240 && firstOctet <= 255) { ipClass = 'E'; ipType = 'Experimental'; defaultMask = 'N/A'; } // Clase E (Experimental)
+        // else if (firstOctet === 0) { // Podríamos añadir lógica para 0.x.x.x si fuera relevante }
+
+        // --- Determinar Tipo (Privada, APIPA?) ---
+        // Solo si no se clasificó previamente como Loopback, Multicast o Experimental.
+        if (ipType === 'Pública') {
+            // Comprueba si la IP cae dentro de alguno de los rangos privados RFC 1918.
+            if (firstOctet === 10 ||
+               (firstOctet === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+               (firstOctet === 192 && octets[1] === 168)) {
+                ipType = 'Privada';
+            // Comprueba si es una dirección APIPA (169.254.x.x).
+            } else if (firstOctet === 169 && octets[1] === 254) {
+                ipType = 'APIPA';
+                // APIPA técnicamente cae en el rango de Clase B, pero su uso y máscara son específicos.
+                // Asignamos Clase B pero mantenemos la máscara como N/A para evitar confusión.
+                ipClass = 'B';
+                defaultMask = 'N/A'; // Opcionalmente: '255.255.0.0'
+            }
+        }
+
+        // Devuelve el objeto con la información determinada.
         return { class: ipClass, type: ipType, defaultMask: defaultMask };
     } catch (error) {
-        // console.error("Error en getIpInfo:", error); // Podrías quitar este log en producción
+        // Captura cualquier error inesperado durante el proceso.
+        console.error("Error en getIpInfo:", error, "IP:", ipString);
+        // Devuelve N/A en todas las propiedades en caso de error.
         return { class: 'N/A', type: 'N/A', defaultMask: 'N/A' };
     }
 }
 
+/**
+ * Obtiene las porciones de red y host de una IP dada una máscara de subred.
+ * Esta versión asume máscaras de clase estándar (solo octetos 255 o 0).
+ * @param {string} ipString - La dirección IP en formato "x.x.x.x".
+ * @param {string} maskString - La máscara de subred en formato "x.x.x.x".
+ * @returns {object|null} Un objeto con { networkPortion: string, hostPortion: string }
+ * o null si la IP/máscara es inválida o la máscara no es estándar (A, B, C).
+ */
+export function getIpPortions(ipString, maskString) {
+    try {
+        // Validaciones iniciales de las entradas.
+        if (!ipString || !maskString) throw new Error("IP o Máscara no proporcionada");
+        const ipOctets = ipString.split('.').map(Number);
+        const maskOctets = maskString.split('.').map(Number);
+
+        // Verifica formato válido de IP y máscara, y que la máscara sea estándar (solo 0s y 255s).
+        if (ipOctets.length !== 4 || maskOctets.length !== 4 ||
+            ipOctets.some(isNaN) || maskOctets.some(isNaN) ||
+            ipOctets.some(o => o < 0 || o > 255) ||
+            maskOctets.some(o => o !== 0 && o !== 255)) { // Clave: solo permite 0 o 255 en la máscara
+            // console.warn(`getIpPortions: Formato IP o Máscara inválido/no estándar: IP=${ipString}, Mask=${maskString}`);
+            return null; // Retorna null si no cumple las condiciones.
+        }
+
+        let networkParts = []; // Array para guardar los octetos de la porción de red.
+        let hostParts = [];    // Array para guardar los octetos de la porción de host.
+        let isHostPart = false; // Indicador para saber si ya hemos pasado a la porción de host.
+
+        // Recorre los 4 octetos.
+        for (let i = 0; i < 4; i++) {
+            // Si el octeto de la máscara es 255 Y aún no hemos entrado en la parte de host...
+            if (maskOctets[i] === 255 && !isHostPart) {
+                // ...este octeto de la IP pertenece a la red.
+                networkParts.push(ipOctets[i].toString());
+            } else {
+                // Si el octeto de la máscara es 0, o si ya habíamos encontrado un 0 antes...
+                isHostPart = true; // Marca que ya estamos (o seguimos) en la porción de host.
+                // ...este octeto de la IP pertenece al host.
+                hostParts.push(ipOctets[i].toString());
+            }
+        }
+
+        // Une los octetos de cada parte con puntos.
+        const networkPortion = networkParts.join('.');
+        const hostPortion = hostParts.join('.');
+
+        // Devuelve el objeto con ambas porciones.
+        return { networkPortion, hostPortion };
+
+    } catch (error) {
+        console.error("Error en getIpPortions:", error);
+        return null; // Devuelve null si ocurre algún error.
+    }
+}
+
+
 // --- Generadores de Tablas HTML para Explicaciones ---
+// Estas funciones crean el código HTML para las tablas que se muestran
+// en el área de feedback cuando el usuario responde incorrectamente.
 
 /**
- * Genera HTML para la tabla de rangos de clases IP.
- * @param {string | null} highlightClass - La clase a resaltar (ej. 'A', 'B') o null.
- * @returns {string} El string HTML de la tabla.
+ * Genera el código HTML para una tabla que muestra los rangos de las clases IP.
+ * Puede resaltar una fila específica.
+ * @param {string | null} highlightClass - La clase a resaltar (ej. 'A', 'B') o null para no resaltar ninguna.
+ * @returns {string} El string HTML completo de la tabla.
  */
 export function generateClassRangeTableHTML(highlightClass = null) {
     const ranges = [
@@ -112,15 +235,16 @@ export function generateClassRangeTableHTML(highlightClass = null) {
         { class: 'E', range: '240 - 255', note: '(Experimental)' }
     ];
     let tableHTML = '<p>La clase se determina por el <strong>primer octeto</strong>:</p>';
-    tableHTML += '<table class="explanation-table">';
+    tableHTML += '<table class="explanation-table">'; // Usa clase CSS para estilo
     tableHTML += '<thead><tr><th>Clase</th><th>Rango</th><th>Nota</th></tr></thead>';
     tableHTML += '<tbody>';
     ranges.forEach(item => {
+        // Añade la clase 'highlight-row' a la fila <tr> si coincide con highlightClass
         const highlight = (item.class === highlightClass) ? ' class="highlight-row"' : '';
         tableHTML += `<tr${highlight}><td>${item.class}</td><td>${item.range}</td><td>${item.note || ''}</td></tr>`;
     });
     tableHTML += '</tbody></table>';
-    // Añadir nota específica para Loopback si se resalta Clase A
+    // Añade nota especial para Loopback si se resaltó la Clase A
     if (highlightClass === 'A') {
          tableHTML += '<p style="font-size:0.8em; text-align:center; margin-top:5px;">(Nota: El rango 127.x.x.x es para Loopback)</p>';
     }
@@ -128,9 +252,10 @@ export function generateClassRangeTableHTML(highlightClass = null) {
 }
 
 /**
- * Genera HTML para tabla Clase / Rango / Máscara Default.
- * @param {string | null} highlightClass - La clase a resaltar o null.
- * @returns {string} El string HTML de la tabla.
+ * Genera el código HTML para una tabla que muestra la relación Clase-Máscara por Defecto.
+ * Puede resaltar una fila específica.
+ * @param {string | null} highlightClass - La clase a resaltar (A, B, C) o null.
+ * @returns {string} El string HTML completo de la tabla.
  */
 export function generateClassMaskTableHTML(highlightClass = null) {
     const data = [
@@ -151,9 +276,11 @@ export function generateClassMaskTableHTML(highlightClass = null) {
 }
 
 /**
- * Genera HTML para tabla de Rangos Privados RFC 1918.
+ * Genera el código HTML para una tabla que muestra los rangos privados RFC 1918.
+ * Puede resaltar la fila correspondiente a una IP dada si esta es privada.
+ * También indica si la IP dada es Pública o de otro tipo especial.
  * @param {string | null} highlightIp - La IP a comprobar para resaltar su rango, o null.
- * @returns {string} El string HTML de la tabla.
+ * @returns {string} El string HTML completo de la tabla y la nota adicional.
  */
 export function generatePrivateRangeTableHTML(highlightIp = null) {
     const ranges = [
@@ -161,9 +288,13 @@ export function generatePrivateRangeTableHTML(highlightIp = null) {
         { cidr: '172.16.0.0/12', range: '172.16.0.0 - 172.31.255.255' },
         { cidr: '192.168.0.0/16', range: '192.168.0.0 - 192.168.255.255' }
     ];
-    let highlightCIDR = null;
+    let highlightCIDR = null; // CIDR del rango a resaltar
+    let ipType = 'N/A';       // Tipo de la IP para la nota final
+
     if (highlightIp) {
-        const info = getIpInfo(highlightIp);
+        const info = getIpInfo(highlightIp); // Obtiene información de la IP
+        ipType = info.type; // Guarda el tipo determinado
+        // Si es privada, determina a qué bloque CIDR pertenece para resaltarlo
         if (info.type === 'Privada') {
             const octets = highlightIp.split('.').map(Number);
             if(octets[0] === 10) { highlightCIDR = '10.0.0.0/8'; }
@@ -171,6 +302,8 @@ export function generatePrivateRangeTableHTML(highlightIp = null) {
             else if(octets[0] === 192 && octets[1] === 168) { highlightCIDR = '192.168.0.0/16'; }
         }
     }
+
+    // Construye el HTML de la tabla
     let tableHTML = '<p>Los rangos de IP privadas (RFC 1918) son:</p>';
     tableHTML += '<table class="explanation-table">';
     tableHTML += '<thead><tr><th>Bloque (CIDR)</th><th>Rango de Direcciones</th></tr></thead>';
@@ -180,10 +313,17 @@ export function generatePrivateRangeTableHTML(highlightIp = null) {
         tableHTML += `<tr${highlight}><td>${item.cidr}</td><td>${item.range}</td></tr>`;
     });
     tableHTML += '</tbody></table>';
-    if (highlightCIDR) {
-        tableHTML += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">(La IP ${highlightIp} pertenece al rango resaltado).</p>`;
-    } else if (highlightIp) {
-        tableHTML += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">(La IP ${highlightIp} es pública).</p>`;
+
+    // Añade una nota final indicando el tipo de la IP que se pasó como argumento
+    if (highlightIp) {
+        if (ipType === 'Privada' && highlightCIDR) {
+            tableHTML += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">(La IP ${highlightIp} es <strong>Privada</strong> y pertenece al rango resaltado).</p>`;
+        } else if (ipType === 'Pública') {
+             tableHTML += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">(La IP ${highlightIp} es <strong>Pública</strong>).</p>`;
+        } else if (ipType !== 'N/A'){ // Muestra otros tipos (Loopback, APIPA, Multicast, Experimental)
+             tableHTML += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">(La IP ${highlightIp} es de tipo <strong>${ipType}</strong>).</p>`;
+        }
+        // Si ipType es 'N/A' (porque la IP era inválida), no se añade nota adicional.
     }
     return tableHTML;
 }
