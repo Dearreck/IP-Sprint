@@ -32,9 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
          console.error("#play-again-button no encontrado");
     }
-    // Fin del listener
 
-    // Listener para el botón "Reiniciar / Salir" en juego activo
+    // Listener para los botones de control durante el juego
     if (ui.restartRoundButton) {
         ui.restartRoundButton.addEventListener('click', game.handleRestartRound);
     } else { console.error("#restart-round-button no encontrado"); }
@@ -42,22 +41,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ui.exitToMenuButton) {
         ui.exitToMenuButton.addEventListener('click', game.handleExitToMenu);
     } else { console.error("#exit-to-menu-button no encontrado"); }
-    // Fin del listener
 
-    // Listener para el icono de información de desbloqueo ---
+    // --- Listener para el icono de información de desbloqueo ---
     const infoIcon = document.querySelector('#unlock-progress .info-icon');
     const unlockInfoText = document.getElementById('unlock-info-text');
 
     if (infoIcon && unlockInfoText) {
         infoIcon.addEventListener('click', () => {
             // Cambia la visibilidad del texto explicativo
-            const isVisible = unlockInfoText.style.display === 'block';
-            unlockInfoText.style.display = isVisible ? 'none' : 'block';
+            const isVisible = unlockInfoText.style.display === 'inline-block'; // Comprobar si es inline-block
+            // --- MODIFICADO: Usar 'inline-block' en lugar de 'block' ---
+            unlockInfoText.style.display = isVisible ? 'none' : 'inline-block';
+            // --- Fin Modificación ---
         });
     } else {
-        // No es un error crítico si no se encuentran, podría no mostrarse esa sección aún
-        // console.warn("No se encontró el icono de info o el texto explicativo (puede ser normal si la sección está oculta).");
+        // console.warn("No se encontró el icono de info o el texto explicativo...");
     }
-    // Fin del listener
+    // --- Fin del listener ---
 
 }); // Fin DOMContentLoaded
