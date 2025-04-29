@@ -16,7 +16,6 @@ export function getUserData(username) {
     const allUserData = getAllUserData();
     const defaultData = { unlockedLevels: ['Entry'], entryPerfectStreak: 0, associatePerfectStreak: 0 };
     if (allUserData[username]) {
-        // Merge defaults to ensure all keys exist
         return { ...defaultData, ...allUserData[username] };
     } else {
         return defaultData;
@@ -35,40 +34,78 @@ export function saveUserData(username, userData) {
     }
 }
 
-/** Guarda la puntuación alta, manteniendo solo las N mejores y una por usuario */
-export function saveHighScore(name, score) {
-    if (!name || score === undefined) return;
+/**
+ * Guarda/Actualiza la puntuación más alta de un usuario para un nivel y modo específicos.
+ * @param {string} name - Nombre del usuario.
+ * @param {number} score - Puntuación obtenida.
+ * @param {string} level - Nivel jugado.
+ * @param {string} mode - Modo jugado ('standard', 'mastery').
+ */
+export function saveHighScore(name, score, level, mode) { // Añadido parámetro mode
+    if (!name || score === undefined || !level || !mode) return;
     try {
-        const highScores = JSON.parse(localStorage.getItem(HIGH_SCORES_KEY)) || [];
-        const newScore = { name, score };
-        highScores.push(newScore);
-        highScores.sort((a, b) => b.score - a.score); // Ordenar descendente
+        // Carga la estructura completa de puntuaciones: { username: { levelMode: score, ... }, ... }
+        const allHighScores = JSON.parse(localStorage.getItem(HIGH_SCORES_KEY)) || {};
 
-        // Filtrar para obtener la mejor puntuación por usuario único
-        const uniqueUserScores = [];
-        const userNames = new Set();
-        for (const scoreEntry of highScores) {
-            if (!userNames.has(scoreEntry.name)) {
-                uniqueUserScores.push(scoreEntry);
-                userNames.add(scoreEntry.name);
-            }
+        // Crea la entrada para el usuario si no existe
+        if (!allHighScores[name]) {
+            allHighScores[name] = {};
         }
 
-        // Mantener solo las N mejores puntuaciones únicas
-        const finalScores = uniqueUserScores.slice(0, MAX_HIGH_SCORES);
-        localStorage.setItem(HIGH_SCORES_KEY, JSON.stringify(finalScores));
+        // Crea la clave combinada para nivel y modo
+        // Para Entry, diferencia entre standard y mastery. Para otros, usa 'standard' por defecto.
+        const levelModeKey = (level === 'Entry') ? `${level}-${mode}` : `${level}-standard`;
+
+        // Actualiza la puntuación solo si es mayor que la existente para ese nivel/modo
+        if (!allHighScores[name][levelModeKey] || score > allHighScores[name][levelModeKey]) {
+            allHighScores[name][levelModeKey] = score;
+        }
+
+        // Guarda la estructura completa actualizada
+        localStorage.setItem(HIGH_SCORES_KEY, JSON.stringify(allHighScores));
+
     } catch (error) {
         console.error("Error en saveHighScore:", error);
     }
 }
 
-/** Carga las N mejores puntuaciones altas para mostrar */
+/**
+ * Carga las puntuaciones altas por usuario y nivel/modo.
+ * Devuelve un array de objetos de usuario ordenado por la puntuación más alta alcanzada en cualquier nivel.
+ * @returns {Array<object>} Array [{ name: string, scores: { levelMode: score, ... } }, ...]
+ */
 export function loadHighScores() {
     try {
-        const highScores = JSON.parse(localStorage.getItem(HIGH_SCORES_KEY)) || [];
-        // Ordenar por si acaso no estuvieran ordenadas en storage
-        highScores.sort((a, b) => b.score - a.score);
-        return highScores.slice(0, MAX_HIGH_SCORES); // Devuelve solo las N mejores
+        const allHighScores = JSON.parse(localStorage.getItem(HIGH_SCORES_KEY)) || {};
+        const scoresArray = [];
+
+        // Convertir el objeto en un array de usuarios con sus puntuaciones
+        for (const name in allHighScores) {
+            if (allHighScores.hasOwnProperty(name)) {
+                // Calcular la puntuación máxima de este usuario para ordenar
+                let maxScore = 0;
+                for (const levelModeKey in allHighScores[name]) {
+                    if (allHighScores[name][levelModeKey] > maxScore) {
+                        maxScore = allHighScores[name][levelModeKey];
+                    }
+                }
+                scoresArray.push({
+                    name: name,
+                    scores: allHighScores[name], // Objeto con { levelMode: score, ... }
+                    maxScore: maxScore // Guardar para ordenar
+                });
+            }
+        }
+
+        // Ordenar usuarios por su puntuación máxima descendente
+        scoresArray.sort((a, b) => b.maxScore - a.maxScore);
+
+        // Limitar al número máximo de usuarios a mostrar y quitar maxScore temporal
+        return scoresArray.slice(0, MAX_HIGH_SCORES).map(user => ({
+            name: user.name,
+            scores: user.scores
+        }));
+
     } catch (error) {
         console.error("Error en loadHighScores:", error);
         return []; // Devuelve array vacío en caso de error
