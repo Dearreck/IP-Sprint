@@ -42,18 +42,4 @@ document.addEventListener('DOMContentLoaded', () => {
         ui.exitToMenuButton.addEventListener('click', game.handleExitToMenu);
     } else { console.error("#exit-to-menu-button no encontrado"); }
 
-    // --- Listener para el icono de información de desbloqueo ---
-    const infoIcon = document.querySelector('#unlock-progress .info-icon');
-    const unlockInfoText = document.getElementById('unlock-info-text');
-
-    if (infoIcon && unlockInfoText) {
-        infoIcon.addEventListener('click', () => {
-            const isVisible = unlockInfoText.style.display === 'block'; 
-            unlockInfoText.style.display = isVisible ? 'none' : 'block';
-        });
-    } else {
-        // console.warn("No se encontró el icono de info o el texto explicativo...");
-    }
-    // --- Fin del listener ---
-
 }); // Fin DOMContentLoaded
