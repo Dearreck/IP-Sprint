@@ -22,6 +22,30 @@ let roundResults = [];
 let questionTimerInterval = null;
 let timeLeft = 0;
 
+// --- Funciones Auxiliares ---
+
+/**
+ * Obtiene la duración del temporizador para el nivel y modo actuales.
+ * Consulta el objeto TIMER_DURATION_BY_LEVEL en config.js.
+ * @returns {number|null} Duración en segundos o null si no aplica timer.
+ */
+function getTimerDurationForCurrentLevel() {
+    try {
+        const levelConfig = config.TIMER_DURATION_BY_LEVEL[currentLevel];
+        if (levelConfig) {
+            // Devuelve la duración para el modo actual o para 'standard' si no hay específica
+            // Si ninguna existe, devuelve null (indicando que no hay timer para esta combinación)
+            return levelConfig[currentGameMode] ?? levelConfig['standard'] ?? null;
+        }
+        // Si el nivel no está en la config, intentar devolver el default general
+        return config.TIMER_DURATION_BY_LEVEL['default'] ?? null;
+    } catch (error) {
+        console.error("Error obteniendo duración del timer:", error);
+        // Devuelve un fallback seguro en caso de error.
+        return config.TIMER_DURATION_BY_LEVEL['default'] ?? 15;
+    }
+}
+
 // --- Funciones Principales ---
 export function handleUserLogin(username) {
     currentUsername = username;
@@ -67,9 +91,20 @@ function loadNextQuestion() {
         const questionDataResult = getNextQuestion(currentLevel);
         if (questionDataResult && questionDataResult.question && questionDataResult.options && Array.isArray(questionDataResult.options) && questionDataResult.correctAnswer !== undefined && questionDataResult.explanation !== undefined) {
             currentQuestionData = questionDataResult; correctAnswer = currentQuestionData.correctAnswer;
-            const timerCondition = (currentLevel === 'Entry' && currentGameMode === 'mastery') || (currentLevel === 'Associate') || (currentLevel === 'Professional');
-            ui.showTimerDisplay(timerCondition);
-            if (timerCondition) { timeLeft = config.QUESTION_TIMER_DURATION; ui.updateTimerDisplay(timeLeft); questionTimerInterval = setInterval(updateTimer, 1000); }
+
+            // --- INICIAR TIMER (SI APLICA Y CON DURACIÓN CORRECTA) ---
+            const duration = getTimerDurationForCurrentLevel(); // Obtener duración para nivel/modo actual
+
+            if (duration !== null && duration > 0) { // Si hay una duración definida y es mayor a 0
+                ui.showTimerDisplay(true); // Mostrar el timer
+                timeLeft = duration;       // Establecer la duración correcta
+                ui.updateTimerDisplay(timeLeft); // Mostrar tiempo inicial
+                questionTimerInterval = setInterval(updateTimer, 1000); // Iniciar intervalo
+            } else {
+                ui.showTimerDisplay(false); // Ocultar si no aplica timer (ej. Entry Standard)
+            }
+            // --- Fin Lógica Timer ---
+
             ui.displayQuestion(currentQuestionData.question, currentQuestionData.options, handleAnswerClick);
         } else {
             if (!questionDataResult && (currentLevel === 'Associate' || currentLevel === 'Professional')) { throw new Error(`No hay preguntas disponibles para el nivel ${currentLevel} todavía.`); }
@@ -117,9 +152,8 @@ function loadNextQuestion() {
     let isCorrect = (selectedAnswer === correctAnswer); roundResults.push(isCorrect);
     const isMasteryStyle = (currentLevel === 'Entry' && currentGameMode === 'mastery');
     if (isCorrect) {
-        // --- Puntuación Simple ---
-        currentScore += config.POINTS_PER_QUESTION; // Usa la constante fija
-        // --- Fin Puntuación Simple ---
+        // Puntuación Simple (10 puntos siempre)
+        currentScore += config.POINTS_PER_QUESTION;
         ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
         ui.displayFeedback(isCorrect, isMasteryStyle, currentQuestionData, proceedToNextStep);
         if (selectedButton) selectedButton.classList.add(isMasteryStyle ? 'mastery' : 'correct');
@@ -134,18 +168,15 @@ function loadNextQuestion() {
 
  function endGame() {
     clearInterval(questionTimerInterval);
-    // --- Cálculo de Porcentaje y Ronda Perfecta con Puntuación Fija ---
-    const maxScore = config.PERFECT_SCORE; // Usa la constante fija
+    const maxScore = config.PERFECT_SCORE; // Puntuación simple
     const scorePercentage = maxScore > 0 ? (currentScore / maxScore) * 100 : 0;
-    const isPerfect = currentScore === maxScore; // Verifica si se alcanzó la puntuación perfecta
-    // --- Fin Cálculo ---
+    const isPerfect = currentScore === maxScore;
     const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK;
     let message = `¡Partida completada! Puntuación: ${currentScore} / ${maxScore} (${scorePercentage.toFixed(0)}%)`;
 
     try {
         currentUserData = storage.getUserData(currentUsername);
-
-        // --- Lógica de Racha/Desbloqueo (sin cambios aquí, ya usa isPerfect y meetsAssociateThreshold) ---
+        // Lógica de Racha/Desbloqueo
         if (currentLevel === 'Entry') {
             if (isPerfect) { // Desbloqueo Associate requiere 100%
                 currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1;
@@ -161,16 +192,12 @@ function loadNextQuestion() {
                 else { message = `¡Buena ronda en Associate (+${config.MIN_SCORE_PERCENT_FOR_STREAK}%)!`; }
              } else { if (currentUserData.associatePerfectStreak > 0) { message += " (Racha 90% reiniciada)"; } currentUserData.associatePerfectStreak = 0; }
         }
-        // --- Fin Lógica Racha ---
-
         storage.saveUserData(currentUsername, currentUserData);
-        storage.saveHighScore(currentUsername, currentScore, currentLevel, currentGameMode); // Guardar score con nivel/modo
+        storage.saveHighScore(currentUsername, currentScore, currentLevel, currentGameMode);
         const highScores = storage.loadHighScores();
         ui.displayHighScores(highScores);
-
         ui.displayGameOver(currentScore, message, currentUserData);
         currentQuestionData = null;
-
     } catch (error) {
         console.error("Error en endGame:", error);
         ui.displayGameOver(currentScore, `Error al finalizar la partida: ${error.message}`, currentUserData);
@@ -185,4 +212,3 @@ export function handlePlayAgain() {
     ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
 }
 export function initializeGame() { const initialHighScores = storage.loadHighScores(); ui.displayHighScores(initialHighScores); ui.showSection(ui.userSetupSection); }
-
