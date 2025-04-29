@@ -7,60 +7,44 @@
 
 // --- Importaciones de Módulos ---
 // Importar constantes de configuración necesarias
-// ASEGURARSE DE QUE EL NOMBRE AQUÍ COINCIDA EXACTAMENTE CON EL EXPORT EN config.js
 import { TOTAL_QUESTIONS_PER_GAME, MIN_SCORE_PERCENT_FOR_STREAK } from './config.js';
 // Importar funciones del juego necesarias para añadir listeners
-// Asegúrate de que la ruta a game.js sea correcta si está en otra carpeta
 import { handleAnswerClick, handlePlayAgain } from './game.js';
 
 // --- Selección de Elementos del DOM ---
-// Se declaran aquí para tener un acceso centralizado y evitar repeticiones.
-
-// Secciones principales
 export const userSetupSection = document.getElementById('user-setup');
 export const levelSelectSection = document.getElementById('level-select');
 export const gameAreaSection = document.getElementById('game-area');
 export const gameOverSection = document.getElementById('game-over');
 export const unlockProgressSection = document.getElementById('unlock-progress-section');
 export const highScoresSection = document.getElementById('high-scores-section');
-
-// Elementos del formulario de usuario
 export const usernameForm = document.getElementById('username-form');
 export const usernameInput = document.getElementById('username');
-
-// Elementos de selección de nivel y progreso
 export const levelButtonsContainer = document.getElementById('level-buttons-container');
 export const unlockProgressDiv = document.getElementById('unlock-progress');
 export const progressStarsSpan = document.getElementById('progress-stars');
-export const unlockProgressTitle = unlockProgressDiv ? unlockProgressDiv.querySelector('h4') : null; // Título dinámico
-export const unlockInfoTextDiv = document.getElementById('unlock-info-text'); // Texto explicativo clicable
-
-// Elementos del área de juego
+export const unlockProgressTitle = unlockProgressDiv ? unlockProgressDiv.querySelector('h4') : null;
+export const unlockInfoTextDiv = document.getElementById('unlock-info-text');
 export const usernameDisplay = document.getElementById('username-display');
 export const levelDisplay = document.getElementById('level-display');
 export const scoreDisplay = document.getElementById('score-display');
-export const roundProgressStarsDiv = document.getElementById('round-progress-stars'); // Estrellas de progreso de ronda
-export const questionText = document.getElementById('question-text'); // Donde se muestra la pregunta
-export const optionsContainer = document.getElementById('options-container'); // Contenedor para botones de respuesta
-export const feedbackArea = document.getElementById('feedback-area'); // Área para mostrar "Correcto/Incorrecto" y explicaciones
-export const timerDisplayDiv = document.getElementById('timer-display'); // Contenedor del timer
-export const timeLeftSpan = document.getElementById('time-left'); // Span que muestra los segundos restantes
-export const restartRoundButton = document.getElementById('restart-round-button'); // Botón para reiniciar ronda
-export const exitToMenuButton = document.getElementById('exit-to-menu-button'); // Botón para salir al menú
-
-// Elementos de la pantalla Game Over
-export const finalScoreDisplay = document.getElementById('final-score'); // Puntuación final
-export const highScoreMessage = document.getElementById('high-score-message'); // Mensaje (ej. nuevo récord, nivel desbloqueado)
-export const playAgainButton = document.getElementById('play-again-button'); // Botón para volver a jugar/menú
-
-// Elementos de la lista de puntuaciones altas
-export const scoreList = document.getElementById('score-list'); // La lista <ul> donde van las puntuaciones
+export const roundProgressStarsDiv = document.getElementById('round-progress-stars');
+export const questionText = document.getElementById('question-text');
+export const optionsContainer = document.getElementById('options-container');
+export const feedbackArea = document.getElementById('feedback-area');
+export const finalScoreDisplay = document.getElementById('final-score');
+export const highScoreMessage = document.getElementById('high-score-message');
+export const playAgainButton = document.getElementById('play-again-button');
+export const scoreList = document.getElementById('score-list');
+export const timerDisplayDiv = document.getElementById('timer-display');
+export const timeLeftSpan = document.getElementById('time-left');
+export const restartRoundButton = document.getElementById('restart-round-button');
+export const exitToMenuButton = document.getElementById('exit-to-menu-button');
 
 // --- Funciones de Manipulación de la UI ---
 
 /**
  * Muestra una sección específica del juego y oculta las demás.
- * También maneja la visibilidad condicional de las secciones de progreso y puntuaciones.
  * @param {HTMLElement} sectionToShow - El elemento de la sección que se debe mostrar.
  */
 export function showSection(sectionToShow) {
@@ -71,14 +55,14 @@ export function showSection(sectionToShow) {
     ];
 
     sections.forEach(section => {
-        if (section) { // Verificar que el elemento existe en el DOM
+        if (section) {
             let shouldDisplay = false;
             if (section === sectionToShow) {
                 shouldDisplay = true;
             } else if (section === unlockProgressSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection)) {
-                shouldDisplay = true; // Mostrar progreso en menú y game over
+                shouldDisplay = true;
             } else if (section === highScoresSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection)) {
-                shouldDisplay = true; // Mostrar scores en menú y game over
+                shouldDisplay = true;
             }
 
             section.style.display = shouldDisplay ? 'block' : 'none';
@@ -88,7 +72,6 @@ export function showSection(sectionToShow) {
         }
     });
 
-     // Caso especial: Ocultar progreso y scores durante el juego activo
      if(sectionToShow === gameAreaSection) {
          if(unlockProgressSection) unlockProgressSection.style.display = 'none';
          if(highScoresSection) highScoresSection.style.display = 'none';
@@ -97,7 +80,7 @@ export function showSection(sectionToShow) {
 }
 
 /**
- * Actualiza la información del jugador (nombre, nivel, puntos) en la UI del área de juego.
+ * Actualiza la información del jugador en la UI del área de juego.
  * @param {string} username - Nombre del usuario.
  * @param {string} level - Nivel actual.
  * @param {number} score - Puntuación actual.
@@ -110,8 +93,7 @@ export function updatePlayerInfo(username, level, score) {
 }
 
 /**
- * Genera y muestra los botones de selección de nivel basados en los niveles desbloqueados.
- * Asigna el manejador de eventos a cada botón.
+ * Genera y muestra los botones de selección de nivel.
  * @param {Array<string>} unlockedLevels - Array con los nombres de los niveles desbloqueados.
  * @param {object} currentUserData - Datos completos del usuario (para progreso).
  * @param {function} levelSelectHandler - La función a llamar cuando se hace clic en un botón de nivel.
@@ -131,7 +113,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
             entryBtn.textContent = `Entry ★`;
             entryBtn.addEventListener('click', () => levelSelectHandler('Entry', 'standard'));
             levelButtonsContainer.appendChild(entryBtn);
-            // console.log("Botón Entry ★ añadido."); // DEBUG
         }
 
         if (unlockedLevels.includes('Associate')) {
@@ -139,7 +120,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
             entryTimerBtn.textContent = `Entry 👑`;
             entryTimerBtn.addEventListener('click', () => levelSelectHandler('Entry', 'mastery'));
             levelButtonsContainer.appendChild(entryTimerBtn);
-            // console.log("Botón Entry 👑 añadido."); // DEBUG
         }
 
         unlockedLevels.forEach(level => {
@@ -148,7 +128,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
                 button.textContent = `${level}`;
                 button.addEventListener('click', () => levelSelectHandler(level, 'standard'));
                 levelButtonsContainer.appendChild(button);
-                // console.log(`Botón ${level} añadido.`); // DEBUG
             }
         });
     } catch (error) {
@@ -172,7 +151,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
 
 /**
  * Actualiza la UI de progreso de DESBLOQUEO de nivel (estrellas e información).
- * Muestra el progreso hacia el siguiente nivel no desbloqueado.
  * @param {object} currentUserData - Datos del usuario con niveles y rachas.
  */
 export function updateUnlockProgressUI(currentUserData) {
@@ -195,11 +173,14 @@ export function updateUnlockProgressUI(currentUserData) {
 
         if (!unlocked.includes('Associate')) {
             targetLevel = 'Associate'; currentStreak = entryStreak; progressTitleText = "Progreso para Nivel Associate:";
+            // Texto para desbloquear Associate (requiere 100%)
             unlockExplanationText = `Completa 3 rondas <strong>perfectas (100%)</strong> seguidas en <strong>Entry</strong> para desbloquear Associate. ¡La racha se reinicia si fallas una ronda!`;
             showProgress = true;
         } else if (!unlocked.includes('Professional')) {
             targetLevel = 'Professional'; currentStreak = associateStreak; progressTitleText = "Progreso para Nivel Professional:";
-            unlockExplanationText = `Completa 3 rondas seguidas con un <strong>puntaje mínimo de ${config.MIN_SCORE_PERCENT_FOR_STREAK}%</strong> cada una en <strong>Associate</strong> para desbloquear Professional. ¡La racha se reinicia si no alcanzas el ${config.MIN_SCORE_PERCENT_FOR_STREAK}% en una ronda!`;
+            // --- CORREGIDO: Usar la constante importada directamente ---
+            unlockExplanationText = `Completa 3 rondas seguidas con un <strong>puntaje mínimo de ${MIN_SCORE_PERCENT_FOR_STREAK}%</strong> cada una en <strong>Associate</strong> para desbloquear Professional. ¡La racha se reinicia si no alcanzas el ${MIN_SCORE_PERCENT_FOR_STREAK}% en una ronda!`;
+            // --- FIN CORRECCIÓN ---
             showProgress = true;
         } else {
             targetLevel = 'None'; progressTitleText = "¡Todos los niveles desbloqueados!"; unlockExplanationText = "¡Has alcanzado el máximo nivel!"; showProgress = false;
@@ -237,7 +218,6 @@ export function updateUnlockProgressUI(currentUserData) {
 
 /**
  * Actualiza las estrellas de progreso DENTRO de la ronda actual.
- * Muestra el resultado (correcto/incorrecto/pendiente) de cada pregunta.
  * @param {Array<boolean>} roundResults - Array con los resultados (true/false) de la ronda.
  * @param {boolean} isMasteryMode - Indica si se debe usar el estilo de corona (para Entry 👑).
  */
@@ -296,10 +276,9 @@ export function displayQuestion(questionHTML, optionsArray, answerClickHandler) 
 
 /**
  * Muestra el feedback (correcto/incorrecto) después de una respuesta.
- * Incluye la explicación y el botón "Siguiente" si la respuesta fue incorrecta.
  * @param {boolean} isCorrect - Indica si la respuesta fue correcta.
  * @param {boolean} isMasteryMode - Indica si se debe usar el estilo mastery (para Entry 👑).
- * @param {object} questionData - Objeto con los datos de la pregunta actual (incluye correctAnswer y explanation).
+ * @param {object} questionData - Objeto con los datos de la pregunta actual.
  * @param {function} nextStepHandler - Función a llamar al hacer clic en "Siguiente".
  */
 export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStepHandler) {
@@ -364,7 +343,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
  * Actualiza la pantalla de Game Over con la puntuación final y mensajes.
  * @param {number} score - Puntuación final de la ronda.
  * @param {string} message - Mensaje de resultado (ej. nivel desbloqueado, racha).
- * @param {object} currentUserData - Datos actualizados del usuario (para texto del botón y progreso).
+ * @param {object} currentUserData - Datos actualizados del usuario.
  */
 export function displayGameOver(score, message, currentUserData) {
     // console.log("displayGameOver llamada."); // DEBUG
