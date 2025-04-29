@@ -226,7 +226,7 @@ button:active {                            /* Estilo al hacer clic */
     padding: 8px 12px;                     /* Relleno interno */
     border-radius: 4px;                    /* Bordes redondeados */
     margin-top: 10px;                      /* Espacio debajo del icono/estrellas */
-    max-width: 90%;                        /* Ancho máximo */
+    max-width: 70%;                        /* Ancho máximo */
     margin-left: auto;                     /* Centrado horizontal */
     margin-right: auto;                    /* Centrado horizontal */
     text-align: left;                      /* Texto alineado a la izquierda dentro del cuadro */
