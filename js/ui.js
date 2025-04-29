@@ -24,7 +24,7 @@ export const levelButtonsContainer = document.getElementById('level-buttons-cont
 export const unlockProgressDiv = document.getElementById('unlock-progress');
 export const progressStarsSpan = document.getElementById('progress-stars');
 export const unlockProgressTitle = unlockProgressDiv ? unlockProgressDiv.querySelector('h4') : null;
-export const unlockInfoTextDiv = document.getElementById('unlock-info-text');
+
 export const usernameDisplay = document.getElementById('username-display');
 export const levelDisplay = document.getElementById('level-display');
 export const scoreDisplay = document.getElementById('score-display');
@@ -156,7 +156,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
 export function updateUnlockProgressUI(currentUserData) {
     // console.log("updateUnlockProgressUI iniciado con datos:", currentUserData); // DEBUG
     try {
-        if (!currentUserData || !unlockProgressSection || !unlockProgressDiv || !progressStarsSpan || !unlockProgressTitle || !unlockInfoTextDiv) {
+        if (!currentUserData || !unlockProgressSection || !unlockProgressDiv || !progressStarsSpan || !unlockProgressTitle) {
              // console.warn("Faltan elementos para updateUnlockProgressUI, ocultando sección."); // DEBUG
              if(unlockProgressSection) unlockProgressSection.style.display = 'none';
              return;
@@ -168,27 +168,21 @@ export function updateUnlockProgressUI(currentUserData) {
         let targetLevel = null;
         let currentStreak = 0;
         let progressTitleText = "";
-        let unlockExplanationText = "";
         let showProgress = false;
 
         if (!unlocked.includes('Associate')) {
             targetLevel = 'Associate'; currentStreak = entryStreak; progressTitleText = "Progreso para Nivel Associate:";
-            // Texto para desbloquear Associate (requiere 100%)
-            unlockExplanationText = `Completa 3 rondas <strong>perfectas (100%)</strong> seguidas en <strong>Entry</strong> para desbloquear Associate. ¡La racha se reinicia si fallas una ronda!`;
             showProgress = true;
         } else if (!unlocked.includes('Professional')) {
             targetLevel = 'Professional'; currentStreak = associateStreak; progressTitleText = "Progreso para Nivel Professional:";
-            // --- CORREGIDO: Usar la constante importada directamente ---
-            unlockExplanationText = `Completa 3 rondas seguidas con un <strong>puntaje mínimo de ${MIN_SCORE_PERCENT_FOR_STREAK}%</strong> cada una en <strong>Associate</strong> para desbloquear Professional. ¡La racha se reinicia si no alcanzas el ${MIN_SCORE_PERCENT_FOR_STREAK}% en una ronda!`;
-            // --- FIN CORRECCIÓN ---
             showProgress = true;
         } else {
-            targetLevel = 'None'; progressTitleText = "¡Todos los niveles desbloqueados!"; unlockExplanationText = "¡Has alcanzado el máximo nivel!"; showProgress = false;
+            targetLevel = 'None'; progressTitleText = "¡Todos los niveles desbloqueados!";
+            showProgress = false;
         }
         // console.log(`Progreso: Target=${targetLevel}, Streak=${currentStreak}, Show=${showProgress}`); // DEBUG
 
         unlockProgressTitle.textContent = progressTitleText;
-        unlockInfoTextDiv.innerHTML = unlockExplanationText;
 
         if (showProgress) {
             let stars = ''; for (let i = 0; i < 3; i++) { stars += (i < currentStreak) ? '★' : '☆'; }
@@ -203,7 +197,6 @@ export function updateUnlockProgressUI(currentUserData) {
                  if(progressStarsSpan) progressStarsSpan.style.display = 'none';
                  const infoIcon = unlockProgressDiv.querySelector('.info-icon');
                  if(infoIcon) infoIcon.style.display = 'none';
-                 if(unlockInfoTextDiv) unlockInfoTextDiv.style.display = 'none';
                  unlockProgressSection.style.display = 'block';
              } else {
                  if(unlockProgressSection) unlockProgressSection.style.display = 'none';
