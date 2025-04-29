@@ -4,315 +4,115 @@
 
 /* --- Estilos Generales --- */
 body {
-    font-family: 'Montserrat', sans-serif; /* Fuente principal para el texto */
-    line-height: 1.6;                      /* Espaciado entre líneas para legibilidad */
-    margin: 0;                             /* Elimina márgenes por defecto del navegador */
-    padding: 0;                            /* Elimina rellenos por defecto del navegador */
-    background-color: #f4f7f6;             /* Color de fondo gris claro para la página */
-    color: #333;                           /* Color de texto principal oscuro */
-    display: flex;                         /* Usa Flexbox para el layout del body */
-    flex-direction: column;                /* Apila los elementos (header, main, footer) verticalmente */
-    min-height: 100vh;                     /* Asegura que el body ocupe al menos toda la altura de la ventana */
-    font-weight: 400;                      /* Peso de fuente normal por defecto */
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.6; margin: 0; padding: 0;
+    background-color: #f4f7f6; color: #333;
+    display: flex; flex-direction: column; min-height: 100vh;
+    font-weight: 400;
 }
 
 main {
-    flex-grow: 1;                          /* Permite que el 'main' crezca para empujar el footer hacia abajo */
-    max-width: 800px;                      /* Ancho máximo del contenido principal */
-    margin: 20px auto;                     /* Margen vertical y centrado horizontal automático */
-    padding: 20px;                         /* Relleno interno para separar contenido del borde */
-    background-color: #ffffff;             /* Fondo blanco para el área de contenido principal */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra suave para dar profundidad */
-    border-radius: 8px;                    /* Bordes redondeados */
-    display: flex;                         /* Usa Flexbox para el layout interno de 'main' */
-    flex-direction: column;                /* Apila las secciones (setup, juego, scores) verticalmente */
-    justify-content: center;               /* Centra el contenido verticalmente dentro de 'main' (si hay espacio extra) */
+    flex-grow: 1; max-width: 800px; margin: 20px auto;
+    padding: 20px; background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); border-radius: 8px;
+    display: flex; flex-direction: column; justify-content: center;
 }
 
 h1, h2 {
-    font-family: 'Comfortaa', sans-serif;  /* Fuente diferente y más decorativa para títulos */
-    color: #0056b3;                        /* Color azul oscuro para títulos */
-    text-align: center;                    /* Centra el texto de los títulos */
-    font-weight: 700;                      /* Peso de fuente más grueso (negrita) */
+    font-family: 'Comfortaa', sans-serif; color: #0056b3;
+    text-align: center; font-weight: 700;
 }
 
-a {
-    color: #0056b3;                        /* Color azul para enlaces */
-    text-decoration: none;                 /* Quita el subrayado por defecto */
-}
-a:hover {
-    text-decoration: underline;            /* Añade subrayado al pasar el mouse sobre el enlace */
-}
+a { color: #0056b3; text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-hr {
-    border: 0;                             /* Elimina el borde por defecto del <hr> */
-    height: 1px;                           /* Altura de la línea horizontal */
-    background-color: #e0e0e0;             /* Color gris claro para la línea */
-    margin: 20px 0;                        /* Margen vertical para separar contenido */
-}
+hr { border: 0; height: 1px; background-color: #e0e0e0; margin: 20px 0; }
 
-/* --- Estilos de Cabecera (Header) y Pie de Página (Footer) --- */
-header {
-    background-color: #007bff;             /* Fondo azul principal */
-    color: #ffffff;                        /* Texto blanco */
-    padding: 15px 0;                       /* Relleno vertical */
-    text-align: center;                    /* Centra el contenido */
-}
-header h1 {
-    margin: 0;                             /* Elimina margen del h1 dentro del header */
-    color: #ffffff;                        /* Asegura texto blanco para el título principal */
-    font-size: 2em;                        /* Tamaño grande para el título principal */
-    font-family: 'Comfortaa', sans-serif;  /* Fuente decorativa */
-    font-weight: 700;                      /* Negrita */
-}
+/* --- Estilos Header y Footer --- */
+header { background-color: #007bff; color: #ffffff; padding: 15px 0; text-align: center; }
+header h1 { margin: 0; color: #ffffff; font-size: 2em; font-family: 'Comfortaa', sans-serif; font-weight: 700; }
 
-footer {
-    background-color: #343a40;             /* Fondo gris oscuro */
-    color: #f8f9fa;                        /* Texto gris muy claro */
-    text-align: center;                    /* Centra el texto */
-    padding: 15px 0;                       /* Relleno vertical */
-    margin-top: auto;                      /* Empuja el footer al final si 'main' no llena la página */
-    font-size: 0.9em;                      /* Tamaño de fuente ligeramente más pequeño */
-}
-footer p {
-    margin: 5px 0;                         /* Margen pequeño entre párrafos del footer */
-}
-footer a {
-    color: #adb5bd;                        /* Color gris claro para enlaces en el footer */
-}
-footer a:hover {
-    color: #ffffff;                        /* Enlaces blancos al pasar el mouse */
-}
-footer img {
-    vertical-align: middle;                /* Alinea íconos con el texto */
-    margin-right: 5px;                     /* Espacio a la derecha del ícono */
-    height: 1em;                           /* Altura del ícono relativa al texto */
-    width: auto;                           /* Ancho automático para mantener proporción */
-}
+footer { background-color: #343a40; color: #f8f9fa; text-align: center; padding: 15px 0; margin-top: auto; font-size: 0.9em; }
+footer p { margin: 5px 0; } footer a { color: #adb5bd; } footer a:hover { color: #ffffff; }
+footer img { vertical-align: middle; margin-right: 5px; height: 1em; width: auto; }
 
-/* --- Estilos Generales para Secciones del Juego --- */
+/* --- Estilos Generales para Secciones --- */
 .game-section {
-    margin-bottom: 30px;                   /* Espacio debajo de cada sección principal */
-    padding: 20px;                         /* Relleno interno */
-    border: 1px solid #e0e0e0;             /* Borde gris claro */
-    border-radius: 5px;                    /* Bordes redondeados */
-    background-color: #fdfdfd;             /* Fondo casi blanco, ligeramente diferente al 'main' */
+    margin-bottom: 30px;
+    /* Reducido padding vertical */
+    padding: 10px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    background-color: #fdfdfd;
 }
 
-/* --- Estilos para Controles Durante el Juego (Reiniciar/Salir) --- */
-.game-controls {
-    text-align: right;                     /* Alinea los botones a la derecha */
-    margin-bottom: 10px;                   /* Espacio debajo de los botones */
-}
-.game-controls button {
-    background-color: #6c757d;             /* Fondo gris neutral */
-    color: white;                          /* Texto blanco */
-    padding: 4px 10px;                     /* Relleno más pequeño para botones discretos */
-    font-size: 0.8em;                      /* Tamaño de fuente más pequeño */
-    margin-left: 8px;                      /* Espacio entre botones si hay más de uno */
-    box-shadow: none;                      /* Sin sombra para ser menos prominentes */
-    font-weight: normal;                   /* Peso de fuente normal */
-    border: none;                          /* Sin borde */
-    border-radius: 4px;                    /* Bordes redondeados sutiles */
-    cursor: pointer;                       /* Cursor de mano al pasar encima */
-    transition: background-color 0.2s ease; /* Transición suave del color de fondo */
-}
-.game-controls button:hover {
-    background-color: #5a6268;             /* Gris más oscuro al pasar el mouse */
-}
-.game-controls button i {                  /* Estilo para íconos dentro de estos botones */
-    margin-right: 4px;                     /* Espacio entre el ícono y el texto */
-}
+/* --- Controles Durante Juego --- */
+.game-controls { text-align: right; margin-bottom: 10px; }
+.game-controls button { background-color: #6c757d; color: white; padding: 4px 10px; font-size: 0.8em; margin-left: 8px; box-shadow: none; font-weight: normal; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; }
+.game-controls button:hover { background-color: #5a6268; }
+.game-controls button i { margin-right: 4px; }
 
-/* --- Estilos Formulario de Configuración de Usuario --- */
-#user-setup h2 {
-    margin-top: 0;                         /* Elimina margen superior del título en esta sección */
-}
-#username-form {
-    display: flex;                         /* Usa Flexbox */
-    flex-direction: column;                /* Apila etiqueta, input y botón verticalmente */
-    align-items: center;                   /* Centra los elementos horizontalmente */
-    gap: 15px;                             /* Espacio entre los elementos del formulario */
-}
-#username-form label {
-    font-weight: bold;                     /* Etiqueta en negrita */
-}
-#username-form input[type="text"] {
-    padding: 10px;                         /* Relleno interno del campo de texto */
-    border: 1px solid #ccc;                /* Borde gris */
-    border-radius: 4px;                    /* Bordes redondeados */
-    width: 80%;                            /* Ancho relativo al contenedor */
-    max-width: 300px;                      /* Ancho máximo */
-    box-sizing: border-box;                /* Incluye padding y borde en el ancho total */
-    font-family: 'Montserrat', sans-serif;  /* Usa la fuente principal */
-}
+/* --- Formulario User Setup --- */
+#user-setup h2 { margin-top: 0; }
+#username-form { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+#username-form label { font-weight: bold; }
+#username-form input[type="text"] { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 80%; max-width: 300px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
 
-/* --- Estilos Generales para Botones Principales --- */
-button {
-    font-family: 'Montserrat', sans-serif;  /* Fuente principal */
-    background-color: #007bff;             /* Color de fondo azul */
-    color: white;                          /* Texto blanco */
-    border: none;                          /* Sin borde */
-    padding: 12px 25px;                    /* Relleno generoso */
-    border-radius: 5px;                    /* Bordes redondeados */
-    cursor: pointer;                       /* Cursor de mano */
-    font-size: 1em;                        /* Tamaño de fuente base */
-    transition: background-color 0.3s ease, transform 0.1s ease; /* Transiciones suaves */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
-    font-weight: 700;                      /* Texto en negrita */
-}
-button:hover {
-    background-color: #0056b3;             /* Azul más oscuro al pasar el mouse */
-}
-button:active {                            /* Estilo al hacer clic */
-    transform: translateY(1px);            /* Efecto de presionar (mover 1px hacia abajo) */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Sombra reducida al presionar */
-}
+/* --- Botones Principales --- */
+button { font-family: 'Montserrat', sans-serif; background-color: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 1em; transition: background-color 0.3s ease, transform 0.1s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); font-weight: 700; }
+button:hover { background-color: #0056b3; }
+button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
 
-/* --- Estilos Selección de Nivel --- */
-#level-select h2 {
-    margin-bottom: 25px;                   /* Espacio debajo del título */
-}
-#level-buttons-container {
-    display: flex;                         /* Usa Flexbox */
-    flex-direction: column;                /* Apila los botones de nivel verticalmente */
-    align-items: center;                   /* Centra los botones horizontalmente */
-    gap: 15px;                             /* Espacio entre los botones */
-}
-#level-buttons-container button {
-    width: 70%;                            /* Ancho relativo */
-    max-width: 300px;                      /* Ancho máximo */
-    padding: 15px;                         /* Relleno más grande para botones de nivel */
-    font-size: 1.1em;                      /* Texto ligeramente más grande */
-}
+/* --- Selección Nivel --- */
+#level-select h2 { margin-bottom: 25px; }
+#level-buttons-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+#level-buttons-container button { width: 70%; max-width: 300px; padding: 15px; font-size: 1.1em; }
 
-/* --- Estilos Progreso de Desbloqueo --- */
-#unlock-progress-section {
-     background-color: #f8f9fa;            /* Fondo ligeramente diferente para destacar */
-}
-/* --- MODIFICADO: Limitar ancho del contenedor de progreso --- */
+/* --- Progreso Desbloqueo --- */
+#unlock-progress-section { background-color: #f8f9fa; }
+/* --- MODIFICADO: Reducir MÁS el ancho máximo del contenedor --- */
 #unlock-progress {
-    padding: 10px;                         /* Relleno interno */
-    text-align: center;                    /* Centra el contenido */
-    max-width: 80%;                        /* Reducido desde 90% (puedes ajustar este valor) */
-    margin-left: auto;                     /* Centra horizontalmente */
-    margin-right: auto;                    /* Centra horizontalmente */
+    /* Reducido padding vertical */
+    padding: 5px 10px;
+    text-align: center;
+    max-width: 70%; /* Reducido desde 80% (Ajusta si es necesario) */
+    margin-left: auto;
+    margin-right: auto;
 }
 /* --- Fin Modificación --- */
-#unlock-progress h4 {                      /* Título "Progreso para..." */
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #495057;                        /* Color de texto gris oscuro */
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;                      /* Negrita */
-}
-#progress-stars {                          /* Estrellas de progreso (★★★☆☆☆) */
-    font-size: 1.5em;                      /* Tamaño de las estrellas */
-    color: #ffc107;                        /* Color amarillo/dorado */
-    letter-spacing: 5px;                   /* Espacio entre estrellas */
-    margin-right: 5px;                     /* Espacio antes del icono de info */
-    vertical-align: middle;                /* Alinea verticalmente con el icono */
-}
-.info-icon {                               /* Icono de información (i) */
-    color: #6c757d;                        /* Color gris */
-    cursor: pointer;                       /* Cursor de mano para indicar clicabilidad */
-    font-size: 1.1em;                      /* Tamaño del icono */
-    vertical-align: middle;                /* Alinea con las estrellas */
-    margin-left: 5px;                      /* Espacio después de las estrellas */
-    transition: color 0.2s ease;           /* Transición suave de color */
-}
-.info-icon:hover {
-    color: #007bff;                        /* Cambia a azul al pasar el mouse */
-}
-/* --- MODIFICADO: Ajustar ancho máximo de la explicación --- */
+#unlock-progress h4 { margin-top: 0; margin-bottom: 10px; color: #495057; font-family: 'Montserrat', sans-serif; font-weight: 700; }
+#progress-stars { font-size: 1.5em; color: #ffc107; letter-spacing: 5px; margin-right: 5px; vertical-align: middle; }
+.info-icon { color: #6c757d; cursor: pointer; font-size: 1.1em; vertical-align: middle; margin-left: 5px; transition: color 0.2s ease; }
+.info-icon:hover { color: #007bff; }
 .unlock-explanation {
-    font-size: 0.85em;                     /* Texto pequeño */
-    color: #495057;                        /* Color gris oscuro */
-    background-color: #e9ecef;             /* Fondo gris muy claro */
-    padding: 8px 12px;                     /* Relleno interno */
-    border-radius: 4px;                    /* Bordes redondeados */
-    margin-top: 10px;                      /* Espacio debajo del icono/estrellas */
-    max-width: 100%;                       /* Cambiado de 90% a 100% para usar el ancho del padre */
-    margin-left: auto;                     /* Centrado horizontal */
-    margin-right: auto;                    /* Centrado horizontal */
-    text-align: left;                      /* Texto alineado a la izquierda dentro del cuadro */
-    border: 1px solid #ced4da;             /* Borde gris sutil */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Sombra muy ligera */
-    max-height: 4.5em;                     /* Limita la altura */
-    overflow-y: auto;                      /* Scroll vertical si excede altura */
-}
-/* --- Fin Modificación --- */
-
-
-/* --- Estilos del Área de Juego Principal --- */
-#game-info {                               /* Contenedor general de info */
-    text-align: center;
-    margin-bottom: 15px;
-    color: #555;
-    font-size: 0.9em;
-}
-#game-info #main-game-info {               /* Contenedor Nivel, Usuario, Puntos */
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px 15px;
-    margin-bottom: 8px;
-}
-#game-info #main-game-info span {
-    white-space: nowrap;
-}
-#game-info i {                             /* Iconos en info */
-    margin-right: 5px;
-    color: #007bff;
-    font-size: 0.95em;
-    vertical-align: baseline;
-    transition: color 0.3s ease, transform 0.3s ease;
-    display: inline-block;
-}
-#game-info i:hover {
-    color: #0056b3;
-    transform: scale(1.15) rotate(-5deg);
-    cursor: default;
+    font-size: 0.85em; color: #495057; background-color: #e9ecef;
+    /* Reducido padding vertical */
+    padding: 5px 10px;
+    border-radius: 4px;
+    /* Reducido margen superior */
+    margin-top: 5px;
+    max-width: 100%; /* Correcto: usa el 100% del nuevo ancho del padre */
+    margin-left: auto; margin-right: auto;
+    text-align: left; border: 1px solid #ced4da;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    max-height: 4.5em; overflow-y: auto;
 }
 
-/* Estilos para Progreso de Ronda (Estrellas durante el juego) */
-#round-progress-stars {
-    text-align: center;
-    line-height: 1;
-    margin-top: 8px;
-    font-size: 1.1em;
-}
+/* --- Área de Juego --- */
+#game-info { text-align: center; margin-bottom: 15px; color: #555; font-size: 0.9em; }
+#game-info #main-game-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 15px; margin-bottom: 8px; }
+#game-info #main-game-info span { white-space: nowrap; }
+#game-info i { margin-right: 5px; color: #007bff; font-size: 0.95em; vertical-align: baseline; transition: color 0.3s ease, transform 0.3s ease; display: inline-block; }
+#game-info i:hover { color: #0056b3; transform: scale(1.15) rotate(-5deg); cursor: default; }
+#round-progress-stars { text-align: center; line-height: 1; margin-top: 8px; font-size: 1.1em; }
 #round-progress-stars .star-correct { color: #28a745; margin: 0 1px; }
 #round-progress-stars .star-incorrect { color: #dc3545; margin: 0 1px; }
 #round-progress-stars .star-pending { color: #adb5bd; margin: 0 1px; }
 #round-progress-stars .star-mastery { color: #6f42c1; margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-
-/* Contenedor y Texto de la Pregunta */
-#question-container {
-    width: 80%;
-    margin: 25px auto;
-    text-align: center;
-    font-size: 1.4em;
-    font-weight: bold;
-    color: #333;
-    min-height: 50px;
-}
-
-/* Contenedor de los Botones de Opción */
-#options-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    margin-top: 20px;
-}
-/* Estilo Base para Botones de Opción */
-.option-button {
-    width: 80%;
-    max-width: 400px;
-    background-color: #6c757d;
-}
+#question-container { width: 80%; margin: 25px auto; text-align: center; font-size: 1.4em; font-weight: bold; color: #333; min-height: 50px; }
+#options-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
+.option-button { width: 80%; max-width: 400px; background-color: #6c757d; }
 .option-button:hover { background-color: #5a6268; }
 .option-button.correct { background-color: #28a745; color: white; }
 .option-button.correct:hover { background-color: #218838; }
@@ -324,38 +124,23 @@ button:active {                            /* Estilo al hacer clic */
 .option-button.correct.mastery:hover { background-color: #5a32a3; }
 .options-disabled .option-button { pointer-events: none; opacity: 0.7; }
 
-/* --- Estilos para Timer y Área de Feedback --- */
+/* --- Timer y Feedback --- */
 #timer-display { color: #007bff; font-size: 0.9em; margin-top: 10px; }
 #timer-display.low-time { color: #dc3545; font-weight: bold; }
-
-#feedback-area {
-    margin-top: 20px; text-align: center; font-weight: bold; min-height: 5em;
-    padding: 15px; border-radius: 4px; position: relative; display: flex;
-    flex-direction: column; justify-content: space-between; align-items: center;
-}
+#feedback-area { margin-top: 20px; text-align: center; font-weight: bold; min-height: 5em; padding: 15px; border-radius: 4px; position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; }
 #feedback-area.correct { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
 #feedback-area.incorrect { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
 #feedback-area.mastery { color: #4d1a7f; background-color: #e9d8f3; border: 1px solid #d3b6e3; }
-
 #feedback-text-content { margin-bottom: 10px; flex-grow: 1; text-align: left; width: 100%; }
 #feedback-text-content .explanation { font-weight: normal; font-size: 1em; margin-top: 8px; color: #333; display: block; }
-
-/* Estilos para Tablas dentro de las Explicaciones */
 .explanation-table { width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 0.85em; background-color: #fff; }
 .explanation-table th, .explanation-table td { border: 1px solid #ccc; padding: 4px 8px; text-align: center; font-weight: normal; }
 .explanation-table th { background-color: #e9ecef; font-weight: bold; }
 .explanation-table .highlight-row td { background-color: #d4edda; font-weight: bold; }
-
-/* Estilo para el botón "Siguiente" */
-#next-question-button {
-    padding: 5px 15px; font-size: 0.85em; background-color: #28a745;
-    align-self: flex-end; margin-top: auto; color: white; border: none;
-    border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease, transform 0.1s ease;
-}
+#next-question-button { padding: 5px 15px; font-size: 0.85em; background-color: #28a745; align-self: flex-end; margin-top: auto; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease, transform 0.1s ease; }
 #next-question-button:hover { background-color: #218838; }
 
-
-/* --- Estilos Pantalla Game Over --- */
+/* --- Game Over --- */
 #game-over { text-align: center; }
 #game-over h2 { color: #dc3545; }
 #final-score { font-size: 1.8em; color: #0056b3; }
@@ -363,7 +148,7 @@ button:active {                            /* Estilo al hacer clic */
 #play-again-button { margin-top: 20px; background-color: #28a745; }
 #play-again-button:hover { background-color: #218838; }
 
-/* --- Estilos Lista de Puntuaciones Altas --- */
+/* --- High Scores --- */
 #high-scores-section h2 { margin-bottom: 15px; }
 #score-list { list-style: none; padding: 0; margin: 0; text-align: left; }
 .score-entry { padding: 12px 0; border-bottom: 1px dashed #e0e0e0; }
@@ -373,29 +158,36 @@ button:active {                            /* Estilo al hacer clic */
 .level-score-item { white-space: nowrap; }
 .level-score-item strong { color: #0056b3; font-weight: bold; }
 
-/* --- Estilos Responsivos (para pantallas pequeñas) --- */
+/* --- Responsiveness --- */
 @media (max-width: 600px) {
-    main { margin: 10px; padding: 15px; }
+    main {
+        margin: 10px;
+        padding: 10px 15px;
+    }
     header h1 { font-size: 1.6em; }
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 10px 15px; }
-    #question-container { font-size: 1.2em; width: 90%; } /* Ajustado ancho en móvil */
+    #question-container { font-size: 1.2em; width: 90%; }
     #game-info #main-game-info { gap: 5px 10px; }
     #game-info i { font-size: 1em; }
     #level-buttons-container button { width: 90%; padding: 12px; font-size: 1em; }
     #unlock-progress h4 { font-size: 0.9em; }
     /* --- MODIFICADO: Ajustar ancho del contenedor de progreso en móvil --- */
     #unlock-progress {
-        max-width: 95%; /* Mantenerlo más ancho en móvil */
+        max-width: 90%; /* Mantenemos 90% en móvil, o el valor que prefieras */
+        padding: 5px;
     }
     /* --- Fin Modificación --- */
     #progress-stars { font-size: 1.5em; }
     .info-icon { font-size: 1em; }
-    .unlock-explanation { font-size: 0.8em; padding: 6px 10px; max-width: 100%; max-height: 5em; } /* Ajustada altura máx y ancho máx en móvil */
+    .unlock-explanation {
+        font-size: 0.8em;
+        padding: 4px 8px;
+        max-width: 100%; /* Correcto */
+        max-height: 5em;
+    }
     .game-controls { text-align: center; margin-bottom: 15px; }
     .game-controls button { margin: 5px 5px; }
-
-    /* Ajustes para la tabla de scores en móvil */
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
 }
