@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
          console.error("#play-again-button no encontrado");
     }
+    // Fin del listener
 
     // Listener para el botón "Reiniciar / Salir" en juego activo
     if (ui.restartRoundButton) {
@@ -41,5 +42,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ui.exitToMenuButton) {
         ui.exitToMenuButton.addEventListener('click', game.handleExitToMenu);
     } else { console.error("#exit-to-menu-button no encontrado"); }
+    // Fin del listener
+
+    // Listener para el icono de información de desbloqueo ---
+    const infoIcon = document.querySelector('#unlock-progress .info-icon');
+    const unlockInfoText = document.getElementById('unlock-info-text');
+
+    if (infoIcon && unlockInfoText) {
+        infoIcon.addEventListener('click', () => {
+            // Cambia la visibilidad del texto explicativo
+            const isVisible = unlockInfoText.style.display === 'block';
+            unlockInfoText.style.display = isVisible ? 'none' : 'block';
+        });
+    } else {
+        // No es un error crítico si no se encuentran, podría no mostrarse esa sección aún
+        // console.warn("No se encontró el icono de info o el texto explicativo (puede ser normal si la sección está oculta).");
+    }
+    // Fin del listener
 
 }); // Fin DOMContentLoaded
