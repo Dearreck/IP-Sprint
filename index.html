@@ -26,7 +26,8 @@
 
     <main>
 
-        <section id="user-setup" class="game-section active"> <h2>¡Bienvenidos!</h2>
+        <section id="user-setup" class="game-section active">
+            <h2>¡Bienvenidos!</h2>
             <form id="username-form">
                 <label for="username">Ingresa tu nombre de usuario:</label>
                 <input type="text" id="username" name="username" required minlength="2" maxlength="20" placeholder="TuNombreDeJugador">
@@ -34,7 +35,8 @@
             </form>
         </section>
 
-        <section id="level-select" class="game-section" style="display: none;"> <h2>Elige un Nivel</h2>
+        <section id="level-select" class="game-section" style="display: none;">
+            <h2>Elige un Nivel</h2>
              <div id="level-buttons-container">
                  <p>Cargando niveles...</p>
              </div>
@@ -50,17 +52,17 @@
                 </button>
             </div>
 
-             <div id="game-info">
-                 <div id="main-game-info">
-                     <span><i class="fas fa-layer-group"></i> Nivel: <span id="level-display"></span></span>
-                     <span><i class="fas fa-user"></i> Usuario: <span id="username-display"></span></span>
-                     <span><i class="fas fa-star"></i> Puntos: <span id="score-display">0</span></span>
-                 </div>
-                 <div id="round-progress-stars" style="margin-top: 8px; font-size: 1.1em;"></div>
-                 <div id="timer-display" style="margin-top: 8px; font-weight: bold; display: none;">
-                     ⏳ Tiempo: <span id="time-left">--</span>s
-                 </div>
-             </div>
+            <div id="game-info">
+                <div id="main-game-info">
+                    <span><i class="fas fa-layer-group"></i> Nivel: <span id="level-display"></span></span>
+                    <span><i class="fas fa-user"></i> Usuario: <span id="username-display"></span></span>
+                    <span><i class="fas fa-star"></i> Puntos: <span id="score-display">0</span></span>
+                </div>
+                <div id="round-progress-stars" style="margin-top: 8px; font-size: 1.1em;"></div>
+                <div id="timer-display" style="margin-top: 8px; font-weight: bold; display: none;">
+                    ⏳ Tiempo: <span id="time-left">--</span>s
+                </div>
+            </div>
             <hr>
             <div id="question-container">
                 <p id="question-text">Cargando pregunta...</p>
@@ -73,14 +75,21 @@
         <section id="game-over" class="game-section" style="display: none;">
             <h2>¡Juego Terminado!</h2>
             <p>Tu puntuación final: <strong id="final-score">0</strong></p>
-            <p id="high-score-message"></p> <button id="play-again-button">Elegir Nivel</button>
+            <p id="high-score-message"></p>
+            <button id="play-again-button">Elegir Nivel</button>
         </section>
 
-        <section id="unlock-progress-section" class="game-section" style="display: none;"> <div id="unlock-progress" style="text-align: center;"> <h4>Progreso para Nivel Associate:</h4>
-                 <span id="progress-stars" style="font-size: 1.5em; color: #ffc107;">☆☆☆</span> <i class="fas fa-circle-info info-icon"
-                    title="Completa 3 rondas perfectas (100%) seguidas en el nivel Entry para desbloquear Associate. ¡La racha se reinicia si fallas una ronda!"></i> </div>
+        <section id="unlock-progress-section" class="game-section" style="display: none;">
+             <div id="unlock-progress" style="text-align: center;">
+                 <h4>Progreso para Nivel Associate:</h4>
+                 <span id="progress-stars" style="font-size: 1.5em; color: #ffc107;">☆☆☆</span>
+                 <i class="fas fa-circle-info info-icon"></i> <div id="unlock-info-text" class="unlock-explanation" style="display: none;">
+                     Completa 3 rondas perfectas (100%) seguidas en el nivel anterior para desbloquear el siguiente. ¡La racha se reinicia si fallas una ronda!
+                 </div>
+             </div>
         </section>
-        <section id="high-scores-section" class="game-section" style="display: none;"> <h2>Mejores Puntuaciones (Local)</h2>
+        <section id="high-scores-section" class="game-section" style="display: none;">
+            <h2>Mejores Puntuaciones (Local)</h2>
             <ul id="score-list">
                 <li>Cargando...</li>
             </ul>
