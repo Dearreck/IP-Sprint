@@ -210,36 +210,6 @@ button:active {
     margin-right: 5px;
     vertical-align: middle;
 }
-.info-icon {
-    color: #6c757d;
-    cursor: pointer;
-    font-size: 1.1em;
-    vertical-align: middle;
-    margin-left: 5px;
-    transition: color 0.2s ease;
-}
-.info-icon:hover {
-    color: #007bff;
-}
-/* Cuadro de texto explicativo: ancho limitado y centrado */
-.unlock-explanation {
-    font-size: 0.85em;
-    color: #495057;
-    background-color: #e9ecef;
-    padding: 5px 10px; /* Padding reducido */
-    border-radius: 4px;
-    margin-top: 5px; /* Margen superior reducido */
-    max-width: 80%; /* Limita el ancho del cuadro (ajustar si es necesario) */
-    margin-left: auto; /* Centra el cuadro horizontalmente */
-    margin-right: auto; /* Centra el cuadro horizontalmente */
-    text-align: left; /* Alinea el texto interno a la izquierda */
-    border: 1px solid #ced4da;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    max-height: 4.5em; /* Limita altura */
-    overflow-y: auto; /* Scroll si excede altura */
-    /* display: none; es controlado por JS */
-}
-
 
 /* --- Área de Juego --- */
 #game-info { text-align: center; margin-bottom: 15px; color: #555; font-size: 0.9em; }
