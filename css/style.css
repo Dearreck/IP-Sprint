@@ -18,7 +18,6 @@ main {
     display: flex;              /* Activa Flexbox para <main> */
     flex-direction: column;     /* Apila las secciones verticalmente */
     justify-content: center;    /* Centra el contenido verticalmente */
-    /* align-items: center; */ /* Añadir esto para centrar horizontalmente el contenido *dentro* de main */
 }
 h1, h2 {
     font-family: 'Comfortaa', sans-serif; color: #0056b3;
@@ -45,31 +44,17 @@ footer img { vertical-align: middle; margin-right: 5px; height: 1em; width: auto
 
 /* --- Estilos para Controles Durante el Juego --- */
 .game-controls {
-    text-align: right; /* Alinea botones a la derecha */
-    margin-bottom: 10px; /* Espacio debajo */
+    text-align: right;
+    margin-bottom: 10px;
 }
-
 .game-controls button {
-    background-color: #6c757d; /* Gris neutral */
-    color: white;
-    padding: 4px 10px;   /* Más pequeños */
-    font-size: 0.8em;    /* Más pequeños */
-    margin-left: 8px;   /* Espacio entre ellos */
-    box-shadow: none;    /* Menos prominentes */
-    font-weight: normal; /* Texto normal */
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    background-color: #6c757d; color: white; padding: 4px 10px;
+    font-size: 0.8em; margin-left: 8px; box-shadow: none;
+    font-weight: normal; border: none; border-radius: 4px;
+    cursor: pointer; transition: background-color 0.2s ease;
 }
-
-.game-controls button:hover {
-    background-color: #5a6268; /* Gris oscuro */
-}
-
-.game-controls button i {
-    margin-right: 4px; /* Espacio entre icono y texto */
-}
+.game-controls button:hover { background-color: #5a6268; }
+.game-controls button i { margin-right: 4px; }
 
 /* --- User Setup Form Styles --- */
 #user-setup h2 { margin-top: 0; }
@@ -101,59 +86,61 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
     text-align: center;
 }
 #unlock-progress h4 { margin-top: 0; margin-bottom: 10px; color: #495057; font-family: 'Montserrat', sans-serif; font-weight: 700; }
-#progress-stars { font-size: 2em; color: #ffc107; letter-spacing: 5px; margin-right: 10px; }
-.info-icon { color: #6c757d; cursor: help; font-size: 1.1em; vertical-align: middle; }
+#progress-stars { font-size: 1.5em; /* Ajustado para mejor alineación con icono */ color: #ffc107; letter-spacing: 5px; margin-right: 5px; /* Reducido espacio antes del icono */ vertical-align: middle; }
+
+/* --- MODIFICADO: Estilo del icono de información --- */
+.info-icon {
+    color: #6c757d;
+    cursor: pointer; /* Cambiado de 'help' a 'pointer' para indicar clicabilidad */
+    font-size: 1.1em;
+    vertical-align: middle;
+    margin-left: 5px; /* Espacio después de las estrellas */
+    transition: color 0.2s ease; /* Transición suave */
+}
+.info-icon:hover {
+    color: #007bff; /* Cambiar color al pasar el mouse (desktop) */
+}
+
+/* --- NUEVO: Estilos para el texto explicativo --- */
+.unlock-explanation {
+    font-size: 0.85em;
+    color: #495057;
+    background-color: #e9ecef; /* Fondo gris claro */
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 10px; /* Espacio debajo del icono/estrellas */
+    max-width: 90%; /* Evita que sea demasiado ancho en pantallas grandes */
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left; /* Alinea el texto dentro del cuadro */
+    border: 1px solid #ced4da; /* Borde sutil */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Sombra ligera */
+}
+/* --- Fin de Modificaciones --- */
+
 
 /* --- Game Area Styles --- */
 #game-info {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #555;
-    font-size: 0.9em;
+    text-align: center; margin-bottom: 15px; color: #555; font-size: 0.9em;
 }
-
-/* --- MODIFICADO: Usar Flexbox para la info principal del juego --- */
 #game-info #main-game-info {
-    display: flex;            /* Activa Flexbox */
-    flex-wrap: wrap;          /* Permite que los elementos se envuelvan si no caben */
-    justify-content: center; /* Centra los elementos horizontalmente */
-    gap: 10px 15px;           /* Espacio vertical (10px) y horizontal (15px) entre elementos */
-    margin-bottom: 8px;      /* Espacio antes de las estrellas de progreso de ronda */
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 10px 15px; margin-bottom: 8px;
 }
-
-#game-info #main-game-info span {
-    /* No necesita display: block; */
-    white-space: nowrap;    /* Evita que el texto dentro de un span se parta */
-}
-
+#game-info #main-game-info span { white-space: nowrap; }
 #game-info i {
-    margin-right: 5px;
-    color: #007bff;
-    font-size: 0.95em;
-    vertical-align: baseline;
-    transition: color 0.3s ease, transform 0.3s ease;
-    display: inline-block;
+    margin-right: 5px; color: #007bff; font-size: 0.95em; vertical-align: baseline;
+    transition: color 0.3s ease, transform 0.3s ease; display: inline-block;
 }
-#game-info i:hover {
-    color: #0056b3;
-    transform: scale(1.15) rotate(-5deg);
-    cursor: default;
-}
-/* --- Fin de Modificación --- */
-
+#game-info i:hover { color: #0056b3; transform: scale(1.15) rotate(-5deg); cursor: default; }
 
 /* Estilos para Progreso de Ronda (Estrellas durante el juego) */
 #round-progress-stars { text-align: center; line-height: 1; margin-top: 8px; font-size: 1.1em; }
-/* Estrella Correcta (Llena, Verde) */
 #round-progress-stars .star-correct { color: #28a745; margin: 0 1px; }
-/* Estrella Incorrecta (Llena, Roja) */
 #round-progress-stars .star-incorrect { color: #dc3545; margin: 0 1px; }
-/* Estrella Pendiente (Vacía, Gris) */
 #round-progress-stars .star-pending { color: #adb5bd; margin: 0 1px; }
-/* Estrella/Corona correcta en modo Realeza */
 #round-progress-stars .star-mastery { color: #6f42c1; margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-
 
 #question-container { margin: 25px 0; text-align: center; font-size: 1.4em; font-weight: bold; color: #333; min-height: 50px; }
 #options-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
@@ -163,98 +150,44 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
 .option-button.correct:hover { background-color: #218838; }
 .option-button.incorrect { background-color: #dc3545; color: white; }
 .option-button.incorrect:hover { background-color: #c82333; }
-/* Estilo para botón correcto en modo Mastery */
 .option-button.mastery { background-color: #6f42c1; color: white; border-color: #6f42c1; }
 .option-button.mastery:hover { background-color: #5a32a3; border-color: #5a32a3; }
-/* Sobreescribir verde si también está mastery (por si acaso) */
 .option-button.correct.mastery { background-color: #6f42c1; }
 .option-button.correct.mastery:hover { background-color: #5a32a3; }
-
 .options-disabled .option-button { pointer-events: none; opacity: 0.7; }
 
 /* --- Estilos para Timer y Feedback --- */
-#timer-display {
-    color: #007bff;
-    font-size: 0.9em;
-    margin-top: 10px;
-}
-#timer-display.low-time {
-    color: #dc3545;
-    font-weight: bold;
-}
+#timer-display { color: #007bff; font-size: 0.9em; margin-top: 10px; }
+#timer-display.low-time { color: #dc3545; font-weight: bold; }
 
 #feedback-area {
-    margin-top: 20px;
-    text-align: center;
-    font-weight: bold;
-    min-height: 5em;
-    padding: 15px;
-    border-radius: 4px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
+    margin-top: 20px; text-align: center; font-weight: bold; min-height: 5em;
+    padding: 15px; border-radius: 4px; position: relative; display: flex;
+    flex-direction: column; justify-content: space-between; align-items: center;
 }
 #feedback-area.correct { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
 #feedback-area.incorrect { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
 #feedback-area.mastery { color: #4d1a7f; background-color: #e9d8f3; border: 1px solid #d3b6e3; }
 
-#feedback-text-content {
-     margin-bottom: 10px;
-     flex-grow: 1;
-     text-align: left;
-     width: 100%;
-}
+#feedback-text-content { margin-bottom: 10px; flex-grow: 1; text-align: left; width: 100%; }
 #feedback-text-content .explanation {
-    font-weight: normal;
-    font-size: 1em; /* Resetear para que la tabla controle el suyo */
-    margin-top: 8px;
-    color: #333;
-    display: block;
+    font-weight: normal; font-size: 1em; margin-top: 8px; color: #333; display: block;
 }
-
-/* Estilos para Tabla en Explicaciones */
 .explanation-table {
-    width: 95%;
-    margin: 10px auto;
-    border-collapse: collapse;
-    font-size: 0.85em;
-    background-color: #fff;
+    width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 0.85em; background-color: #fff;
 }
-.explanation-table th,
-.explanation-table td {
-    border: 1px solid #ccc;
-    padding: 4px 8px;
-    text-align: center;
-    font-weight: normal;
+.explanation-table th, .explanation-table td {
+    border: 1px solid #ccc; padding: 4px 8px; text-align: center; font-weight: normal;
 }
-.explanation-table th {
-    background-color: #e9ecef;
-    font-weight: bold;
-}
-.explanation-table .highlight-row td {
-    background-color: #d4edda; /* Fondo verde pálido */
-    font-weight: bold;
-}
+.explanation-table th { background-color: #e9ecef; font-weight: bold; }
+.explanation-table .highlight-row td { background-color: #d4edda; font-weight: bold; }
 
-/* Estilo para el botón "Siguiente" */
 #next-question-button {
-    padding: 5px 15px;
-    font-size: 0.85em;
-    background-color: #28a745;
-    align-self: flex-end; /* Alinea el botón a la derecha dentro del flex container */
-    margin-top: auto; /* Empuja hacia abajo si hay espacio */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.1s ease;
+    padding: 5px 15px; font-size: 0.85em; background-color: #28a745;
+    align-self: flex-end; margin-top: auto; color: white; border: none;
+    border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease, transform 0.1s ease;
 }
-#next-question-button:hover {
-    background-color: #218838;
-}
-
+#next-question-button:hover { background-color: #218838; }
 
 /* --- Game Over Styles --- */
 #game-over { text-align: center; }
@@ -279,27 +212,18 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
     .option-button { width: 95%; padding: 10px 15px; }
     #question-container { font-size: 1.2em; }
 
-    /* --- MODIFICADO: Ajustes para la info del juego en móvil --- */
-    #game-info #main-game-info {
-        gap: 5px 10px; /* Reducir espacio en móvil */
-        /* No forzar display: block en los spans */
-    }
-    #game-info #main-game-info span {
-         /* Asegurar que no haya display: block aquí */
-         /* font-size: 0.9em; /* Opcional: reducir fuente si es necesario */
-    }
-    /* --- Fin de Modificación --- */
+    #game-info #main-game-info { gap: 5px 10px; }
+    #game-info #main-game-info span { /* font-size: 0.9em; */ }
+    #game-info i { font-size: 1em; }
 
-    #game-info i { font-size: 1em; } /* Ajustar si es necesario */
     #level-buttons-container button { width: 90%; padding: 12px; font-size: 1em; }
     #unlock-progress h4 { font-size: 0.9em; }
-    #progress-stars { font-size: 1.8em; }
+    #progress-stars { font-size: 1.5em; } /* Ajustado */
     .info-icon { font-size: 1em; }
-    .game-controls {
-        text-align: center; /* Centrar botones de control en móvil */
-        margin-bottom: 15px;
-    }
-    .game-controls button {
-        margin: 5px 5px; /* Espacio vertical y horizontal */
-    }
+    /* --- NUEVO: Ajuste para el texto explicativo en móvil --- */
+    .unlock-explanation { font-size: 0.8em; padding: 6px 10px; }
+
+    .game-controls { text-align: center; margin-bottom: 15px; }
+    .game-controls button { margin: 5px 5px; }
 }
+
