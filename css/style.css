@@ -290,13 +290,7 @@ button:active {
         /* No limitamos el ancho del contenedor padre en móvil */
     }
     #progress-stars { font-size: 1.5em; }
-    .info-icon { font-size: 1em; }
-    .unlock-explanation {
-        font-size: 0.8em;
-        padding: 4px 8px;
-        max-width: 95%; /* Ancho máximo de la explicación en móvil */
-        max-height: 5em;
-    }
+
     .game-controls { text-align: center; margin-bottom: 15px; }
     .game-controls button { margin: 5px 5px; }
     .score-username { font-size: 1.1em; }
