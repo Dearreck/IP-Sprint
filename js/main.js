@@ -48,11 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (infoIcon && unlockInfoText) {
         infoIcon.addEventListener('click', () => {
-            // Cambia la visibilidad del texto explicativo
-            const isVisible = unlockInfoText.style.display === 'inline-block'; // Comprobar si es inline-block
-            // --- MODIFICADO: Usar 'inline-block' en lugar de 'block' ---
-            unlockInfoText.style.display = isVisible ? 'none' : 'inline-block';
-            // --- Fin Modificación ---
+            const isVisible = unlockInfoText.style.display === 'block'; 
+            unlockInfoText.style.display = isVisible ? 'none' : 'block';
         });
     } else {
         // console.warn("No se encontró el icono de info o el texto explicativo...");
