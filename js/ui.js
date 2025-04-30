@@ -7,10 +7,11 @@
 
 // --- Importaciones de Módulos ---
 // Importar constantes de configuración necesarias
-import { TOTAL_QUESTIONS_PER_GAME, MIN_SCORE_PERCENT_FOR_STREAK } from './config.js';
+// --- CORREGIDO: Importar todo el módulo config ---
+import * as config from './config.js';
+// --- Fin Corrección ---
 // Importar funciones del juego necesarias para añadir listeners
-// NOTA: handlePlayAgain no parece usarse directamente aquí, se llama desde game.js
-import { handleAnswerClick /*, handlePlayAgain */ } from './game.js';
+import { handleAnswerClick } from './game.js';
 // Importar la función de traducción
 import { getTranslation } from './i18n.js';
 
@@ -60,7 +61,6 @@ export const scoreList = document.getElementById('score-list'); // La lista <ul>
 
 /**
  * Muestra una sección específica del juego y oculta las demás.
- * También maneja la visibilidad condicional de las secciones de progreso y puntuaciones.
  * @param {HTMLElement} sectionToShow - El elemento de la sección que se debe mostrar.
  */
 export function showSection(sectionToShow) {
@@ -128,7 +128,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
         // Botón Entry (Standard ★)
         if (unlockedLevels.includes('Entry')) {
             const entryBtn = document.createElement('button');
-            // Usar getTranslation para el texto del botón
             entryBtn.textContent = getTranslation('level_entry_standard');
             entryBtn.addEventListener('click', () => levelSelectHandler('Entry', 'standard'));
             levelButtonsContainer.appendChild(entryBtn);
@@ -136,7 +135,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
         // Botón Entry (Mastery 👑) - Solo si Associate está desbloqueado
         if (unlockedLevels.includes('Associate')) {
             const entryTimerBtn = document.createElement('button');
-            // Usar getTranslation para el texto del botón
             entryTimerBtn.textContent = getTranslation('level_entry_mastery');
             entryTimerBtn.addEventListener('click', () => levelSelectHandler('Entry', 'mastery'));
             levelButtonsContainer.appendChild(entryTimerBtn);
@@ -145,7 +143,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
         unlockedLevels.forEach(level => {
             if (level !== 'Entry') { // Entry ya se manejó arriba
                 const button = document.createElement('button');
-                // Usar getTranslation para el texto (asumiendo claves como level_associate)
                 button.textContent = getTranslation(`level_${level.toLowerCase()}`);
                 button.addEventListener('click', () => levelSelectHandler(level, 'standard'));
                 levelButtonsContainer.appendChild(button);
@@ -153,9 +150,8 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
         });
     } catch (error) {
         console.error("Error generando botones de nivel:", error);
-        // TODO: Añadir clave 'error_loading_levels' a JSONs
         levelButtonsContainer.innerHTML = `<p>${getTranslation('error_loading_levels', { error: error.message })}</p>`;
-        return; // No continuar si falló la generación de botones
+        return;
     }
 
     try {
@@ -163,7 +159,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
         updateUnlockProgressUI(currentUserData);
     } catch (error) {
         console.error("Error en updateUnlockProgressUI desde displayLevelSelection:", error);
-        // No es crítico si esto falla, continuar para mostrar la sección
     }
 
     // Mostrar esta sección
@@ -196,17 +191,17 @@ export function updateUnlockProgressUI(currentUserData) {
         if (!unlocked.includes('Associate')) {
             targetLevel = 'Associate';
             currentStreak = entryStreak;
-            progressTitleKey = "progress_title_associate"; // Clave para "Progreso para Nivel Associate:"
+            progressTitleKey = "progress_title_associate";
             showProgress = true;
         } else if (!unlocked.includes('Professional')) {
             targetLevel = 'Professional';
             currentStreak = associateStreak;
-            progressTitleKey = "progress_title_professional"; // Clave para "Progreso para Nivel Professional:"
+            progressTitleKey = "progress_title_professional";
             showProgress = true;
         } else {
             // Todos los niveles desbloqueados
             targetLevel = 'None';
-            progressTitleKey = "progress_title_all_unlocked"; // Clave para "¡Todos los niveles desbloqueados!"
+            progressTitleKey = "progress_title_all_unlocked";
             showProgress = false; // No mostrar estrellas
         }
 
@@ -216,26 +211,19 @@ export function updateUnlockProgressUI(currentUserData) {
         // Mostrar u ocultar la sección de progreso y actualizar estrellas
         if (showProgress) {
             let stars = '';
-            // Generar las estrellas (llenas o vacías) según la racha
-            for (let i = 0; i < 3; i++) {
-                stars += (i < currentStreak) ? '★' : '☆';
-            }
-            progressStarsSpan.textContent = stars; // Mostrar las estrellas
-            // Asegurarse que los elementos que sí existen se muestren
+            for (let i = 0; i < 3; i++) { stars += (i < currentStreak) ? '★' : '☆'; }
+            progressStarsSpan.textContent = stars;
             if(progressStarsSpan) progressStarsSpan.style.display = 'inline';
-            unlockProgressDiv.style.display = 'block'; // Mostrar contenedor interno (título, estrellas)
-            unlockProgressSection.style.display = 'block'; // Asegurar que la sección completa sea visible
+            unlockProgressDiv.style.display = 'block';
+            unlockProgressSection.style.display = 'block';
         } else {
-            // Si no hay progreso que mostrar (todos desbloqueados), ocultar estrellas
             unlockProgressDiv.style.display = 'none';
-            // Mostrar solo el título si todos están desbloqueados
              if (targetLevel === 'None' && unlockProgressTitle) {
-                 unlockProgressTitle.textContent = getTranslation(progressTitleKey); // Traducir también aquí
-                 unlockProgressDiv.style.display = 'block'; // Mostrar el div padre
-                 if(progressStarsSpan) progressStarsSpan.style.display = 'none'; // Ocultar estrellas específicamente
-                 unlockProgressSection.style.display = 'block'; // Asegurar sección visible
+                 unlockProgressTitle.textContent = getTranslation(progressTitleKey);
+                 unlockProgressDiv.style.display = 'block';
+                 if(progressStarsSpan) progressStarsSpan.style.display = 'none';
+                 unlockProgressSection.style.display = 'block';
              } else {
-                 // Ocultar toda la sección si no hay progreso Y no es el caso de "todos desbloqueados"
                  if(unlockProgressSection) unlockProgressSection.style.display = 'none';
              }
         }
@@ -248,31 +236,21 @@ export function updateUnlockProgressUI(currentUserData) {
 
 /**
  * Actualiza las estrellas de progreso DENTRO de la ronda actual.
- * Muestra el resultado (correcto/incorrecto/pendiente) de cada pregunta.
  * @param {Array<boolean>} roundResults - Array con los resultados (true/false) de la ronda.
- * @param {boolean} isMasteryMode - Indica si se debe usar el estilo de corona (para Entry 👑).
+ * @param {boolean} isMasteryMode - Indica si se debe usar el estilo de corona.
  */
 export function updateRoundProgressUI(roundResults, isMasteryMode) {
     try {
-        if (!roundProgressStarsDiv) return; // Salir si el elemento no existe
-        let starsHTML = ''; // String para construir el HTML de las estrellas
-        // Iterar hasta el número total de preguntas por juego
-        for (let i = 0; i < TOTAL_QUESTIONS_PER_GAME; i++) {
-            if (i < roundResults.length) { // Si ya se respondió esta pregunta
-                if (roundResults[i] === true) { // Respuesta Correcta
-                    // Usar corona si es modo mastery, estrella verde si no
-                    starsHTML += isMasteryMode ? '<i class="fas fa-crown star-mastery"></i>' : '<i class="fas fa-star star-correct"></i>';
-                } else { // Respuesta Incorrecta
-                    starsHTML += '<i class="fas fa-star star-incorrect"></i>'; // Estrella roja
-                }
-            } else { // Pregunta Pendiente
-                starsHTML += '<i class="far fa-star star-pending"></i>'; // Estrella vacía gris
-            }
+        if (!roundProgressStarsDiv) return;
+        let starsHTML = '';
+        for (let i = 0; i < config.TOTAL_QUESTIONS_PER_GAME; i++) { // Usar config
+            if (i < roundResults.length) {
+                if (roundResults[i] === true) { starsHTML += isMasteryMode ? '<i class="fas fa-crown star-mastery"></i>' : '<i class="fas fa-star star-correct"></i>'; }
+                else { starsHTML += '<i class="fas fa-star star-incorrect"></i>'; }
+            } else { starsHTML += '<i class="far fa-star star-pending"></i>'; }
         }
-        roundProgressStarsDiv.innerHTML = starsHTML; // Actualizar el contenido del div
-    } catch(error) {
-        console.error("Error en updateRoundProgressUI:", error);
-    }
+        roundProgressStarsDiv.innerHTML = starsHTML;
+    } catch(error) { console.error("Error en updateRoundProgressUI:", error); }
 }
 
 /**
@@ -283,185 +261,96 @@ export function updateRoundProgressUI(roundResults, isMasteryMode) {
  */
 export function displayQuestion(questionData, answerClickHandler) {
     try {
-        // Verificar elementos DOM esenciales
-        if(!questionText || !optionsContainer || !feedbackArea) {
-            console.error("Error: Faltan elementos DOM en displayQuestion.");
-            return;
-        }
-        // Traducir y mostrar la pregunta
+        if(!questionText || !optionsContainer || !feedbackArea) { console.error("Error: Faltan elementos DOM en displayQuestion."); return; }
         questionText.innerHTML = getTranslation(questionData.question.key, questionData.question.replacements);
+        optionsContainer.innerHTML = ''; feedbackArea.innerHTML = ''; feedbackArea.className = '';
+        if (!questionData.options || !Array.isArray(questionData.options)) { throw new Error("optionsArray inválido o no es un array."); }
 
-        // Limpiar áreas
-        optionsContainer.innerHTML = '';
-        feedbackArea.innerHTML = '';
-        feedbackArea.className = '';
-
-        // Validar opciones
-        if (!questionData.options || !Array.isArray(questionData.options)) {
-            throw new Error("optionsArray inválido o no es un array.");
-        }
-
-        // Crear botones de opción
         questionData.options.forEach((optionData) => {
             const button = document.createElement('button');
             button.classList.add('option-button');
             let buttonText = '';
-            let originalValue = ''; // Valor sin traducir para comparación
+            let originalValue = '';
 
-            // --- Lógica REVISADA v4 para determinar texto y valor original ---
+            // Lógica para determinar texto y valor original
             if (typeof optionData === 'string') {
-                // Es un valor técnico (IP, máscara, porción) o una clave i18n simple
                 const translated = getTranslation(optionData);
-                // Si la traducción es diferente de la clave Y no es vacía, usa la traducción.
-                // Si no, usa el valor original (que puede ser una IP, máscara, etc.).
                 buttonText = (translated && translated !== optionData) ? translated : optionData;
-                originalValue = optionData; // Siempre guarda el valor original (clave o valor técnico)
+                originalValue = optionData;
             } else if (typeof optionData === 'object') {
-                // Es un objeto combinado, construir texto y valor original
-                if (optionData.classKey && optionData.typeKey) {
-                    buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.typeKey)}`;
-                    originalValue = `${optionData.classKey},${optionData.typeKey}`;
-                } else if (optionData.classKey && optionData.maskValue) {
-                    // La máscara en sí no se traduce, pero la etiqueta sí
-                    buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation('option_mask', { mask: optionData.maskValue })}`;
-                    originalValue = `${optionData.classKey},${optionData.maskValue}`;
-                } else if (optionData.classKey && optionData.portionKey) {
-                     // La porción en sí no se traduce, pero la etiqueta sí
-                     buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.portionKey, { portion: optionData.portionValue || getTranslation('option_none') })}`;
-                     originalValue = `${optionData.classKey},${optionData.portionKey},${optionData.portionValue || 'None'}`;
-                }
-                 else {
-                    // Fallback si la estructura del objeto no es reconocida
-                    buttonText = JSON.stringify(optionData);
-                    originalValue = buttonText;
-                    console.warn("Formato de objeto de opción desconocido:", optionData);
-                }
-            } else {
-                 // Fallback para tipos inesperados
-                 buttonText = 'Opción Inválida';
-                 originalValue = 'invalid';
-                 console.warn("Tipo de dato de opción inesperado:", optionData);
-            }
-            // --- FIN Lógica REVISADA v4 ---
+                if (optionData.classKey && optionData.typeKey) { buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.typeKey)}`; originalValue = `${optionData.classKey},${optionData.typeKey}`; }
+                else if (optionData.classKey && optionData.maskValue) { buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation('option_mask', { mask: optionData.maskValue })}`; originalValue = `${optionData.classKey},${optionData.maskValue}`; }
+                else if (optionData.classKey && optionData.portionKey) { buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.portionKey, { portion: optionData.portionValue || getTranslation('option_none') })}`; originalValue = `${optionData.classKey},${optionData.portionKey},${optionData.portionValue || 'None'}`; }
+                else { buttonText = JSON.stringify(optionData); originalValue = buttonText; console.warn("Formato de objeto de opción desconocido:", optionData); }
+            } else { buttonText = 'Opción Inválida'; originalValue = 'invalid'; console.warn("Tipo de dato de opción inesperado:", optionData); }
 
             button.textContent = buttonText;
-            // Guardar el valor original (clave o valor técnico) en el botón
             button.setAttribute('data-original-value', originalValue);
 
-            // Añadir listener
-            if (typeof answerClickHandler === 'function') {
-                button.addEventListener('click', answerClickHandler);
-            } else {
-                console.error("answerClickHandler no es una función en displayQuestion");
-            }
+            if (typeof answerClickHandler === 'function') { button.addEventListener('click', answerClickHandler); }
+            else { console.error("answerClickHandler no es una función en displayQuestion"); }
             optionsContainer.appendChild(button);
         });
 
-        optionsContainer.classList.remove('options-disabled'); // Habilitar clics
+        optionsContainer.classList.remove('options-disabled');
     } catch (error) {
         console.error("Error en displayQuestion:", error);
-        // TODO: Añadir clave 'error_displaying_question'
         if(questionText) questionText.textContent = getTranslation('error_displaying_question');
         if(optionsContainer) optionsContainer.innerHTML = "";
     }
 }
 
-
 /**
  * Muestra el feedback (correcto/incorrecto) después de una respuesta.
- * Traduce la respuesta correcta antes de mostrarla y usa el valor original para resaltar.
  * @param {boolean} isCorrect - Indica si la respuesta fue correcta.
  * @param {boolean} isMasteryMode - Indica si se debe usar el estilo mastery.
  * @param {object} questionData - Objeto con los datos de la pregunta actual.
  * @param {function} nextStepHandler - Función a llamar al hacer clic en "Siguiente".
  */
 export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStepHandler) {
-    // Verificar elementos y datos
-    if (!feedbackArea || !questionData || questionData.correctAnswer === undefined) {
-        console.error("Error: Falta feedbackArea o questionData/correctAnswer en displayFeedback.");
-        return;
-    }
-
+    if (!feedbackArea || !questionData || questionData.correctAnswer === undefined) { console.error("Error: Falta feedbackArea o questionData/correctAnswer en displayFeedback."); return; }
     let feedbackHTML = '';
-    const correctButtonClass = isMasteryMode ? 'mastery' : 'correct'; // Clase CSS para botón correcto
+    const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
 
-    // --- Traducir la respuesta correcta para mostrarla al usuario ---
+    // Traducir la respuesta correcta para mostrarla
     let translatedCorrectAnswer = '';
-    const ca = questionData.correctAnswer; // Alias para la respuesta correcta (string u objeto)
-
-    // --- Lógica REVISADA v4 para traducir respuesta correcta ---
-    if (typeof ca === 'string') {
-        const translated = getTranslation(ca);
-        translatedCorrectAnswer = (translated && translated !== ca) ? translated : ca;
-    } else if (typeof ca === 'object') {
-        if (ca.classKey && ca.typeKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`; }
-        else if (ca.classKey && ca.maskValue) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`; }
-        else if (ca.classKey && ca.portionKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`; }
-        else { translatedCorrectAnswer = JSON.stringify(ca); } // Fallback
-    } else { translatedCorrectAnswer = 'N/A'; }
-    // --- FIN Lógica REVISADA v4 ---
-
+    const ca = questionData.correctAnswer;
+    if (typeof ca === 'string') { const translated = getTranslation(ca); translatedCorrectAnswer = (translated && translated !== ca) ? translated : ca; }
+    else if (typeof ca === 'object') { if (ca.classKey && ca.typeKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`; } else if (ca.classKey && ca.maskValue) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`; } else if (ca.classKey && ca.portionKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`; } else { translatedCorrectAnswer = JSON.stringify(ca); } }
+    else { translatedCorrectAnswer = 'N/A'; }
 
     if (isCorrect) {
-        // Mensaje de Correcto
         feedbackHTML = `<div id="feedback-text-content">${getTranslation('feedback_correct')}</div>`;
         feedbackArea.className = isMasteryMode ? 'mastery' : 'correct';
     } else {
-        // Mensaje de Incorrecto (usando la respuesta correcta traducida)
         const incorrectMsg = getTranslation('feedback_incorrect', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` });
-        // Obtener explicación (puede ser string HTML o objeto i18n)
         let explanationHTML = '';
-        if (typeof questionData.explanation === 'string') {
-            explanationHTML = questionData.explanation; // Ya es HTML (generado por utils)
-        } else if (typeof questionData.explanation === 'object' && questionData.explanation.key) {
-            // Es objeto i18n, traducir texto y añadir tabla si existe
-            explanationHTML = getTranslation(questionData.explanation.key, questionData.explanation.replacements || {});
-            if (questionData.explanation.table) {
-                explanationHTML += `<br>${questionData.explanation.table}`;
-            }
-        } else if (typeof questionData.explanation === 'object' && questionData.explanation.table) {
-             // Si solo tiene tabla (caso de generatePortionExplanationHTML)
-             explanationHTML = questionData.explanation.table;
-        }
+        if (typeof questionData.explanation === 'string') { explanationHTML = questionData.explanation; }
+        else if (typeof questionData.explanation === 'object' && questionData.explanation.key) { explanationHTML = getTranslation(questionData.explanation.key, questionData.explanation.replacements || {}); if (questionData.explanation.table) { explanationHTML += `<br>${questionData.explanation.table}`; } }
+        else if (typeof questionData.explanation === 'object' && questionData.explanation.table) { explanationHTML = questionData.explanation.table; }
 
-
-        // Construir HTML del feedback incorrecto
-        feedbackHTML = `
-            <div id="feedback-text-content">
-                <span>${incorrectMsg}</span>
-                <span class="explanation">${explanationHTML || ''}</span>
-            </div>
-        `;
+        feedbackHTML = `<div id="feedback-text-content"><span>${incorrectMsg}</span><span class="explanation">${explanationHTML || ''}</span></div>`;
         feedbackArea.className = 'incorrect';
 
-        // Resaltar el botón correcto comparando el valor original
+        // Resaltar botón correcto
         try {
             if(optionsContainer) {
-                // Reconstruir el valor original esperado de la respuesta correcta
                 let correctOriginalValueStr = '';
                 if (typeof ca === 'string') { correctOriginalValueStr = ca; }
                 else if (typeof ca === 'object' && ca.classKey && ca.typeKey) { correctOriginalValueStr = `${ca.classKey},${ca.typeKey}`; }
                 else if (typeof ca === 'object' && ca.classKey && ca.maskValue) { correctOriginalValueStr = `${ca.classKey},${ca.maskValue}`; }
                 else if (typeof ca === 'object' && ca.classKey && ca.portionKey) { correctOriginalValueStr = `${ca.classKey},${ca.portionKey},${ca.portionValue || 'None'}`; }
                 else { correctOriginalValueStr = JSON.stringify(ca); }
-
-                // Iterar botones y comparar su 'data-original-value'
-                Array.from(optionsContainer.children).forEach(button => {
-                    if (button.getAttribute('data-original-value') === correctOriginalValueStr) {
-                        button.classList.add(correctButtonClass); // Resaltar el correcto
-                    }
-                });
+                Array.from(optionsContainer.children).forEach(button => { if (button.getAttribute('data-original-value') === correctOriginalValueStr) { button.classList.add(correctButtonClass); } });
             }
         } catch (highlightError) { console.error("Error resaltando botón correcto:", highlightError); }
 
-        // Añadir botón "Siguiente" / "Ver Resultado" traducido
-        const buttonTextKey = (questionData.questionsAnswered + 1 >= questionData.totalQuestions) ? 'final_result_button' : 'next_button';
+        const buttonTextKey = (questionData.questionsAnswered + 1 >= config.TOTAL_QUESTIONS_PER_GAME) ? 'final_result_button' : 'next_button';
         feedbackHTML += `<button id="next-question-button">${getTranslation(buttonTextKey)}</button>`;
     }
 
-    feedbackArea.innerHTML = feedbackHTML; // Mostrar feedback
+    feedbackArea.innerHTML = feedbackHTML;
 
-    // Añadir listener al botón "Siguiente" si se creó (caso incorrecto)
     if (!isCorrect) {
         const newNextButton = document.getElementById('next-question-button');
         if (newNextButton) { if (typeof nextStepHandler === 'function') { newNextButton.addEventListener('click', nextStepHandler); } else { console.error("nextStepHandler no es una función en displayFeedback"); } }
@@ -471,13 +360,13 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 
 
 /**
- * Actualiza la pantalla de Game Over con la puntuación final y mensajes traducidos.
+ * Actualiza la pantalla de Game Over. Construye el mensaje final traducido.
  * @param {number} score - Puntuación final de la ronda.
- * @param {object} currentUserData - Datos actualizados del usuario (con rachas y niveles).
- * @param {string} playedLevel - El nivel que se acaba de jugar ('Entry', 'Associate').
+ * @param {object} currentUserData - Datos actualizados del usuario.
+ * @param {string} playedLevel - El nivel que se acaba de jugar.
  */
 export function displayGameOver(score, currentUserData, playedLevel) {
-    if(finalScoreDisplay) finalScoreDisplay.textContent = score; // Score numérico
+    if(finalScoreDisplay) finalScoreDisplay.textContent = score;
 
     // --- Construir Mensaje Final Traducido ---
     const maxScore = config.PERFECT_SCORE;
@@ -498,13 +387,23 @@ export function displayGameOver(score, currentUserData, playedLevel) {
             if (currentUserData.unlockedLevels.includes('Associate') && currentUserData.entryPerfectStreak === 0) { extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') }); }
             else if (!currentUserData.unlockedLevels.includes('Associate')) { extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_entry'), streak: currentUserData.entryPerfectStreak }); }
             else { extraMessage = getTranslation('game_over_good_round_entry'); }
-        } else { if (currentUserData.entryPerfectStreak === 0 && storage.getUserData(currentUserData.username || '')?.entryPerfectStreak > 0) { extraMessage = getTranslation('game_over_streak_reset_100'); } }
+        } else {
+            // Comprobar si la racha se acaba de resetear (comparando con datos previos si fuera necesario, o asumiendo que si no es perfecta y había racha, se resetea)
+            // Esta lógica simplificada asume que si no fue perfecta y había racha, se reseteó.
+            if (storage.getUserData(currentUserData.username || '')?.entryPerfectStreak > 0) {
+                 extraMessage = getTranslation('game_over_streak_reset_100');
+            }
+        }
     } else if (playedLevel === 'Associate') {
         if (meetsAssociateThreshold) {
             if (currentUserData.unlockedLevels.includes('Professional') && currentUserData.associatePerfectStreak === 0) { extraMessage = getTranslation('game_over_level_unlocked_pro'); }
             else if (!currentUserData.unlockedLevels.includes('Professional')) { extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_associate'), streak: currentUserData.associatePerfectStreak }); }
             else { extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK }); }
-        } else { if (currentUserData.associatePerfectStreak === 0 && storage.getUserData(currentUserData.username || '')?.associatePerfectStreak > 0) { extraMessage = getTranslation('game_over_streak_reset_90'); } }
+        } else {
+             if (storage.getUserData(currentUserData.username || '')?.associatePerfectStreak > 0) {
+                 extraMessage = getTranslation('game_over_streak_reset_90');
+             }
+        }
     }
 
     const finalMessage = extraMessage ? `${baseMessage} ${extraMessage}` : baseMessage;
@@ -527,7 +426,7 @@ export function displayGameOver(score, currentUserData, playedLevel) {
 }
 
 /**
- * Actualiza la lista de High Scores en la UI con el formato agrupado por usuario y traducido.
+ * Actualiza la lista de High Scores en la UI.
  * @param {Array<object>} scoresData - Array de objetos [{ name: string, scores: { levelMode: score, ... } }, ...]
  */
 export function displayHighScores(scoresData) {
