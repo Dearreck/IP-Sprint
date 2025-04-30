@@ -308,7 +308,7 @@ export function displayQuestion(questionData, answerClickHandler) {
             let buttonText = '';
             let originalValue = ''; // Valor sin traducir para comparación
 
-            // --- CORREGIDO: Lógica para determinar texto y valor original ---
+            // --- Lógica para determinar texto y valor original ---
             if (typeof optionData === 'string') {
                 // Es un valor técnico (IP, máscara, porción) o una clave i18n simple
                 buttonText = getTranslation(optionData) || optionData; // Intenta traducir, si no, usa el valor
@@ -332,7 +332,7 @@ export function displayQuestion(questionData, answerClickHandler) {
                 originalValue = buttonText;
                 console.warn("Formato de opción desconocido:", optionData);
             }
-            // --- FIN CORRECCIÓN ---
+            // --- Fin lógica ---
 
             button.textContent = buttonText;
             // Guardar el valor original (clave o valor técnico) en el botón
@@ -559,3 +559,4 @@ export function showTimerDisplay(show) {
          timerDisplayDiv.style.display = show ? 'block' : 'none';
      }
 }
+
