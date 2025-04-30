@@ -20,5 +20,23 @@
   "user_label": "User:",
   "points_label": "Points:",
   "timer_label": "Time:",
-  "loading_question": "Loading question..."
+  "loading_question": "Loading question...",
+
+  "level_entry": "Entry",
+  "level_associate": "Associate",
+  "level_professional": "Professional",
+  "level_entry_standard": "Entry ★",
+  "level_entry_mastery": "Entry 👑",
+
+  "progress_title_associate": "Progress for Associate Level:",
+  "progress_title_professional": "Progress for Professional Level:",
+  "progress_title_all_unlocked": "All levels unlocked!",
+
+  "feedback_correct": "Correct! ✔️",
+  "feedback_incorrect": "Incorrect. The correct answer was: <strong>{correctAnswer}</strong> ❌",
+  "feedback_timeout": "Time's Up! ⌛ The correct answer was: <strong>{correctAnswer}</strong>",
+  "next_button": "Next &gt;&gt;",
+  "final_result_button": "See Final Result &gt;&gt;",
+
+  "play_again_level_button": "Play Again ({levelName})"
 }
