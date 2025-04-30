@@ -1,9 +1,7 @@
 // js/game.js
 // ==================================================
 // Lógica Principal del Juego IP Sprint
-// Maneja el estado del juego, el flujo entre pantallas,
-// las interacciones del usuario, la puntuación,
-// el desbloqueo de niveles y el temporizador.
+// ... (resto del código inicial igual que en v2) ...
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -29,9 +27,11 @@ let timeLeft = 0;
 let isFeedbackActive = false;
 let lastAnswerCorrect = null;
 let lastMasteryMode = false;
+// --- NUEVO: Variable para guardar la opción incorrecta seleccionada ---
+let lastSelectedOriginalValue = null;
+// --- FIN NUEVO ---
 
 // --- Funciones Auxiliares ---
-
 /**
  * Obtiene la duración del temporizador para el nivel y modo actuales.
  * @returns {number|null} Duración en segundos o null si no aplica timer.
@@ -94,6 +94,7 @@ export function startGame() {
     isFeedbackActive = false;
     lastAnswerCorrect = null;
     lastMasteryMode = false;
+    lastSelectedOriginalValue = null; // <-- Resetear aquí también
     ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
     ui.showSection(ui.gameAreaSection);
     ui.updateRoundProgressUI(roundResults, currentGameMode === 'mastery');
@@ -108,6 +109,7 @@ function loadNextQuestion() {
     isFeedbackActive = false;
     lastAnswerCorrect = null;
     lastMasteryMode = false;
+    lastSelectedOriginalValue = null; // <-- Resetear aquí también
 
     if (ui.feedbackArea) { ui.feedbackArea.innerHTML = ''; ui.feedbackArea.className = ''; }
     if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
@@ -130,6 +132,7 @@ function loadNextQuestion() {
             } else {
                 ui.showTimerDisplay(false);
             }
+            // Pasamos handleAnswerClick como callback para los botones
             ui.displayQuestion(currentQuestionData, handleAnswerClick);
 
         } else {
@@ -165,21 +168,25 @@ function loadNextQuestion() {
         isFeedbackActive = true;
         lastAnswerCorrect = false;
         lastMasteryMode = isMasteryStyle;
+        lastSelectedOriginalValue = null; // Timeout significa que no seleccionó nada
 
         const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
         ui.displayFeedback(false, isMasteryStyle, timeoutFeedbackData, proceedToNextStep);
 
+        // Modificar texto para timeout
         if (ui.feedbackArea) {
             const feedbackContent = ui.feedbackArea.querySelector('#feedback-text-content span:first-child');
             let translatedCorrectAnswer = '';
             const ca = currentQuestionData?.correctAnswer;
-            if (typeof ca === 'string') { translatedCorrectAnswer = getTranslation(ca) || ca; }
-            else if (typeof ca === 'object') {
-                 if (ca.classKey && ca.typeKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`;
-                 else if (ca.classKey && ca.maskValue) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`;
-                 else if (ca.classKey && ca.portionKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`;
-                 else translatedCorrectAnswer = JSON.stringify(ca);
-            } else { translatedCorrectAnswer = 'N/A'; }
+            // ... (lógica para traducir ca igual que antes) ...
+             if (typeof ca === 'string') { translatedCorrectAnswer = getTranslation(ca) || ca; }
+             else if (typeof ca === 'object') {
+                  if (ca.classKey && ca.typeKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`;
+                  else if (ca.classKey && ca.maskValue) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`;
+                  else if (ca.classKey && ca.portionKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`;
+                  else translatedCorrectAnswer = JSON.stringify(ca);
+             } else { translatedCorrectAnswer = 'N/A'; }
+
             const timeoutMsg = getTranslation('feedback_timeout', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` });
             if (feedbackContent) { feedbackContent.innerHTML = timeoutMsg; }
             else { const timeoutSpan = document.createElement('span'); timeoutSpan.innerHTML = timeoutMsg; ui.feedbackArea.prepend(timeoutSpan); }
@@ -220,6 +227,7 @@ function loadNextQuestion() {
     let isCorrect = false;
     const correctAnswerOriginal = currentQuestionData.correctAnswer;
     let correctOriginalValueStr = '';
+    // ... (lógica para construir correctOriginalValueStr igual que antes) ...
     if (typeof correctAnswerOriginal === 'string') {
         correctOriginalValueStr = correctAnswerOriginal;
     } else if (typeof correctAnswerOriginal === 'object' && correctAnswerOriginal.classKey && correctAnswerOriginal.typeKey) {
@@ -239,6 +247,9 @@ function loadNextQuestion() {
     isFeedbackActive = true;
     lastAnswerCorrect = isCorrect;
     lastMasteryMode = isMasteryStyle;
+    // --- NUEVO: Guardar la opción seleccionada si fue incorrecta ---
+    lastSelectedOriginalValue = isCorrect ? null : selectedOriginalValue;
+    // --- FIN NUEVO ---
 
     if (isCorrect) {
         currentScore += config.POINTS_PER_QUESTION;
@@ -249,7 +260,7 @@ function loadNextQuestion() {
     } else {
         const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
         ui.displayFeedback(isCorrect, isMasteryStyle, feedbackData, proceedToNextStep);
-        if (selectedButton) selectedButton.classList.add('incorrect');
+        if (selectedButton) selectedButton.classList.add('incorrect'); // Marcar la seleccionada como incorrecta
     }
     ui.updateRoundProgressUI(roundResults, isMasteryStyle);
 }
@@ -262,6 +273,7 @@ function loadNextQuestion() {
     isFeedbackActive = false;
     lastAnswerCorrect = null;
     lastMasteryMode = false;
+    lastSelectedOriginalValue = null; // <-- Resetear aquí también
 
     const maxScore = config.PERFECT_SCORE;
     const scorePercentage = maxScore > 0 ? (currentScore / maxScore) * 100 : 0;
@@ -270,28 +282,28 @@ function loadNextQuestion() {
 
     try {
         currentUserData = storage.getUserData(currentUsername);
-
-        if (currentLevel === 'Entry') {
-            if (isPerfect) {
-                currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1;
-                if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) {
-                    currentUserData.unlockedLevels.push('Associate');
-                    currentUserData.entryPerfectStreak = 0;
-                }
-            } else {
-                currentUserData.entryPerfectStreak = 0;
-            }
-        } else if (currentLevel === 'Associate') {
-             if (meetsAssociateThreshold) {
-                currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1;
-                if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) {
-                    currentUserData.unlockedLevels.push('Professional');
-                    currentUserData.associatePerfectStreak = 0;
-                }
+        // ... (lógica de racha y desbloqueo igual que antes) ...
+         if (currentLevel === 'Entry') {
+             if (isPerfect) {
+                 currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1;
+                 if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) {
+                     currentUserData.unlockedLevels.push('Associate');
+                     currentUserData.entryPerfectStreak = 0;
+                 }
              } else {
-                 currentUserData.associatePerfectStreak = 0;
+                 currentUserData.entryPerfectStreak = 0;
              }
-        }
+         } else if (currentLevel === 'Associate') {
+              if (meetsAssociateThreshold) {
+                 currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1;
+                 if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) {
+                     currentUserData.unlockedLevels.push('Professional');
+                     currentUserData.associatePerfectStreak = 0;
+                 }
+              } else {
+                  currentUserData.associatePerfectStreak = 0;
+              }
+         }
 
         storage.saveUserData(currentUsername, currentUserData);
         storage.saveHighScore(currentUsername, currentScore, currentLevel, currentGameMode);
@@ -322,6 +334,7 @@ export function handleExitToMenu() {
      isFeedbackActive = false;
      lastAnswerCorrect = null;
      lastMasteryMode = false;
+     lastSelectedOriginalValue = null; // <-- Resetear aquí también
      handlePlayAgain();
 }
 
@@ -366,51 +379,52 @@ export function refreshActiveGameUI() {
 
     // Comprobar si el feedback estaba activo
     if (isFeedbackActive && lastAnswerCorrect !== null && currentQuestionData) {
-        // --- MODIFICADO: Primero, volver a mostrar la pregunta (traducida) ---
+        // Primero, volver a mostrar la pregunta (traducida)
+        // Pasamos handleAnswerClick aunque los botones estarán deshabilitados
         ui.displayQuestion(currentQuestionData, handleAnswerClick);
-        // --- Asegurar que las opciones queden deshabilitadas ---
+        // Asegurar que las opciones queden deshabilitadas
         if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled');
 
-        // --- Luego, volver a mostrar el feedback (traducido) ---
+        // Luego, volver a mostrar el feedback (traducido)
         const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
         // La llamada a displayFeedback usará el idioma actual cargado en i18n
+        // y ahora debería generar la explicación dinámicamente (ver cambios en ui.js)
         ui.displayFeedback(lastAnswerCorrect, lastMasteryMode, feedbackData, proceedToNextStep);
 
-        // --- Re-resaltar botones si fue incorrecto ---
-        if (!lastAnswerCorrect) {
-             try {
-                const correctOriginalValue = currentQuestionData.correctAnswer;
-                let correctOriginalValueStr = '';
-                // Reconstruir correctOriginalValueStr (igual que en handleAnswerClick)
-                if (typeof correctOriginalValue === 'string') {
-                    correctOriginalValueStr = correctOriginalValue;
-                } else if (typeof correctOriginalValue === 'object' && correctOriginalValue.classKey && correctOriginalValue.typeKey) {
-                    correctOriginalValueStr = `${correctOriginalValue.classKey},${correctOriginalValue.typeKey}`;
-                } else if (typeof correctOriginalValue === 'object' && correctOriginalValue.classKey && correctOriginalValue.maskValue) {
-                    correctOriginalValueStr = `${correctOriginalValue.classKey},${correctOriginalValue.maskValue}`;
-                } else if (typeof correctOriginalValue === 'object' && correctOriginalValue.classKey && correctOriginalValue.portionKey) {
-                    correctOriginalValueStr = `${correctOriginalValue.classKey},${correctOriginalValue.portionKey},${correctOriginalValue.portionValue || 'None'}`;
-                } else {
-                    correctOriginalValueStr = JSON.stringify(correctOriginalValue);
-                }
+        // --- Re-resaltar botones (Correcto e Incorrecto Seleccionado) ---
+         try {
+            const correctOriginalValue = currentQuestionData.correctAnswer;
+            let correctOriginalValueStr = '';
+            // ... (lógica para construir correctOriginalValueStr igual que antes) ...
+            if (typeof correctOriginalValue === 'string') { correctOriginalValueStr = correctOriginalValue; }
+            else if (typeof correctOriginalValue === 'object' && correctOriginalValue.classKey && correctOriginalValue.typeKey) { correctOriginalValueStr = `${correctOriginalValue.classKey},${correctOriginalValue.typeKey}`; }
+            else if (typeof correctOriginalValue === 'object' && correctOriginalValue.classKey && correctOriginalValue.maskValue) { correctOriginalValueStr = `${correctOriginalValue.classKey},${correctOriginalValue.maskValue}`; }
+            else if (typeof correctOriginalValue === 'object' && correctOriginalValue.classKey && correctOriginalValue.portionKey) { correctOriginalValueStr = `${correctOriginalValue.classKey},${correctOriginalValue.portionKey},${correctOriginalValue.portionValue || 'None'}`; }
+            else { correctOriginalValueStr = JSON.stringify(correctOriginalValue); }
 
-                if (ui.optionsContainer) {
-                     Array.from(ui.optionsContainer.children).forEach(button => {
-                         const btnValue = button.getAttribute('data-original-value');
-                         button.classList.remove('correct', 'incorrect', 'mastery'); // Limpiar clases
-                         if (btnValue === correctOriginalValueStr) {
-                             button.classList.add(lastMasteryMode ? 'mastery' : 'correct');
-                         }
-                         // TODO: Considerar resaltar el botón incorrecto seleccionado si se guarda esa info
-                     });
-                     // La clase 'options-disabled' ya se añadió arriba
-                 }
-             } catch(e){ console.error("Error resaltando botones al refrescar feedback", e); }
-        }
+
+            if (ui.optionsContainer) {
+                 Array.from(ui.optionsContainer.children).forEach(button => {
+                     const btnValue = button.getAttribute('data-original-value');
+                     button.classList.remove('correct', 'incorrect', 'mastery'); // Limpiar clases
+
+                     // Marcar la correcta
+                     if (btnValue === correctOriginalValueStr) {
+                         button.classList.add(lastMasteryMode ? 'mastery' : 'correct');
+                     }
+                     // --- NUEVO: Marcar la incorrecta que se seleccionó ---
+                     if (!lastAnswerCorrect && btnValue === lastSelectedOriginalValue) {
+                         button.classList.add('incorrect');
+                     }
+                     // --- FIN NUEVO ---
+                 });
+                 // La clase 'options-disabled' ya se añadió arriba
+             }
+         } catch(e){ console.error("Error resaltando botones al refrescar feedback", e); }
         // --- Fin re-resaltado ---
 
     } else if (currentQuestionData) {
-        // --- Si el feedback no estaba activo, volver a mostrar la pregunta ---
+        // Si el feedback no estaba activo, volver a mostrar la pregunta
         ui.displayQuestion(currentQuestionData, handleAnswerClick);
         if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
 
@@ -422,7 +436,7 @@ export function refreshActiveGameUI() {
         console.warn("Refrescando UI en estado inesperado (sin pregunta ni feedback activo).");
     }
 
-    // --- Siempre refrescar elementos comunes del área de juego ---
+    // Siempre refrescar elementos comunes del área de juego
     ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
     ui.updateRoundProgressUI(roundResults, currentGameMode === 'mastery');
     if (questionTimerInterval) {
@@ -433,7 +447,6 @@ export function refreshActiveGameUI() {
     } else {
         ui.showTimerDisplay(false);
     }
-    // --- Fin refresco elementos comunes ---
 }
 
 /**
