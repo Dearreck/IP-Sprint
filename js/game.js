@@ -7,18 +7,24 @@
 // ==================================================
 
 // --- Importaciones de Módulos ---
-import * as config from './config.js';         // Constantes de configuración
-import * as storage from './storage.js';       // Funciones para localStorage
-import * as ui from './ui.js';             // Funciones y elementos de UI
-import { getNextQuestion } from './questions.js'; // Función para obtener la siguiente pregunta
+// Importar constantes y configuraciones definidas en otros archivos.
+import * as config from './config.js';         // Constantes (ej. preguntas por ronda, puntos, claves localStorage, duración timer)
+import * as storage from './storage.js';       // Funciones para interactuar con localStorage (guardar/cargar datos)
+import * as ui from './ui.js';             // Funciones y selectores de elementos para manipular la interfaz de usuario (DOM)
+import { getNextQuestion } from './questions.js'; // Función que genera los datos de la siguiente pregunta según el nivel
 import { getTranslation } from './i18n.js';    // Función para obtener textos traducidos
 
 // --- Variables de Estado del Juego ---
-let currentUsername = '';          // Nombre del usuario actual
-let currentUserData = {};          // Datos persistentes del usuario (niveles, rachas)
-let currentScore = 0;              // Puntuación de la ronda actual
-let currentLevel = '';             // Nivel actual ('Entry', 'Associate', etc.)
-let currentGameMode = 'standard';  // Modo ('standard', 'mastery')
+// Estas variables guardan la información sobre el estado actual del juego
+// mientras el usuario está jugando una sesión. Se reinician o actualizan
+// según sea necesario.
+
+let currentUsername = '';          // Nombre del usuario que está jugando actualmente.
+let currentUserData = {};          // Objeto que contiene los datos persistentes del usuario cargados de localStorage
+                                   // (ej. { unlockedLevels: [...], entryPerfectStreak: #, associatePerfectStreak: # }).
+let currentScore = 0;              // Puntuación acumulada durante la ronda/partida actual.
+let currentLevel = '';             // Nivel que se está jugando en la ronda actual (ej. 'Entry', 'Associate').
+let currentGameMode = 'standard';  // Modo de juego ('standard' o 'mastery'). Determina reglas como el timer.
 let currentQuestionData = null;    // Objeto con datos de la pregunta actual (claves i18n incluidas)
 let questionsAnswered = 0;         // Contador de preguntas respondidas en la ronda
 let roundResults = [];             // Array [true/false] de resultados de la ronda
@@ -34,6 +40,7 @@ let timeLeft = 0;                  // Segundos restantes
  */
 function getTimerDurationForCurrentLevel() {
     try {
+        // Busca la configuración de tiempo para el nivel actual
         const levelConfig = config.TIMER_DURATION_BY_LEVEL[currentLevel];
         if (levelConfig) {
             // Devuelve duración para modo actual o 'standard' como fallback, o null
@@ -67,6 +74,7 @@ export function handleUserLogin(username) {
         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
     } catch (error) {
         console.error("Error durante handleUserLogin:", error);
+        // TODO: Añadir clave 'error_loading_user_data' a JSONs
         alert(getTranslation('error_loading_user_data', { message: error.message }));
         ui.showSection(ui.userSetupSection); // Volver al inicio si hay error
     }
@@ -271,7 +279,7 @@ function loadNextQuestion() {
 
 /**
  * Finaliza la partida/ronda actual. Calcula resultados, actualiza rachas/desbloqueos,
- * guarda datos, y muestra la pantalla de Game Over con mensajes traducidos.
+ * guarda datos, y llama a ui.displayGameOver para mostrar la pantalla final.
  */
  function endGame() {
     clearInterval(questionTimerInterval); // Asegura detener timer
@@ -280,35 +288,20 @@ function loadNextQuestion() {
     const isPerfect = currentScore === maxScore; // Verifica si es 100%
     const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK; // Verifica si cumple 90%
 
-    // --- Construcción del Mensaje Final con i18n (CORREGIDO) ---
-    // Obtener la parte base del mensaje traducida
-    let baseMessage = getTranslation('game_over_base_message', {
-        score: currentScore,
-        maxScore: maxScore,
-        percentage: scorePercentage.toFixed(0)
-    });
-    let extraMessage = ''; // Mensaje adicional sobre racha o desbloqueo
-
     try {
         currentUserData = storage.getUserData(currentUsername); // Recarga datos frescos
 
-        // --- Lógica de Racha y Desbloqueo de Niveles (Usa getTranslation) ---
+        // --- Lógica de Racha y Desbloqueo de Niveles ---
+        // Actualiza las rachas en currentUserData pero la construcción del mensaje se hace en ui.js
         if (currentLevel === 'Entry') {
             if (isPerfect) { // Desbloqueo Associate requiere 100%
                 currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1;
                 if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) {
                     currentUserData.unlockedLevels.push('Associate');
-                    currentUserData.entryPerfectStreak = 0;
-                    extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') });
-                } else if (!currentUserData.unlockedLevels.includes('Associate')) {
-                    extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_entry'), streak: currentUserData.entryPerfectStreak });
-                } else {
-                    extraMessage = getTranslation('game_over_good_round_entry');
+                    currentUserData.entryPerfectStreak = 0; // Resetea racha al desbloquear
                 }
             } else {
-                if (currentUserData.entryPerfectStreak > 0) {
-                    extraMessage = getTranslation('game_over_streak_reset_100');
-                }
+                // Si no fue perfecta, resetea racha
                 currentUserData.entryPerfectStreak = 0;
             }
         } else if (currentLevel === 'Associate') {
@@ -316,37 +309,32 @@ function loadNextQuestion() {
                 currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1;
                 if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) {
                     currentUserData.unlockedLevels.push('Professional');
-                    currentUserData.associatePerfectStreak = 0;
-                    extraMessage = getTranslation('game_over_level_unlocked_pro');
-                } else if (!currentUserData.unlockedLevels.includes('Professional')) {
-                    extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_associate'), streak: currentUserData.associatePerfectStreak });
-                } else {
-                    extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK });
+                    currentUserData.associatePerfectStreak = 0; // Resetea racha Associate
                 }
              } else {
-                  if (currentUserData.associatePerfectStreak > 0) {
-                      extraMessage = getTranslation('game_over_streak_reset_90');
-                  }
+                 // Si no alcanzó 90%, resetea racha
                  currentUserData.associatePerfectStreak = 0;
              }
         }
         // --- Fin Lógica Racha ---
 
-        // Combinar mensaje base con el extra (añadiendo un espacio si hay extra)
-        const finalMessage = extraMessage ? `${baseMessage} ${extraMessage}` : baseMessage;
-
-        // Guardar datos y mostrar UI
+        // Guardar datos actualizados del usuario y la puntuación alta
         storage.saveUserData(currentUsername, currentUserData);
         storage.saveHighScore(currentUsername, currentScore, currentLevel, currentGameMode);
+        // Cargar y mostrar puntuaciones actualizadas
         const highScores = storage.loadHighScores();
         ui.displayHighScores(highScores);
-        ui.displayGameOver(currentScore, finalMessage, currentUserData); // Pasar el mensaje final ya construido y traducido
+
+        // --- Llamar a ui.displayGameOver pasando los datos necesarios ---
+        // ui.displayGameOver se encargará de construir el mensaje traducido
+        ui.displayGameOver(currentScore, currentUserData, currentLevel); // Pasamos el nivel jugado
         currentQuestionData = null; // Limpiar datos de la última pregunta
 
     } catch (error) {
         console.error("Error en endGame:", error);
         // TODO: Añadir clave 'error_end_game' a JSONs
-        ui.displayGameOver(currentScore, getTranslation('error_end_game', { message: error.message }), currentUserData);
+        // Mostrar error genérico si falla el proceso final
+        ui.displayGameOver(currentScore, { error: getTranslation('error_end_game', { message: error.message }) }, currentLevel);
     }
 }
 
