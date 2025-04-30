@@ -34,18 +34,19 @@ function generateClassAndNetworkPortionQuestion() { try { let ip, info, portions
 function generateClassAndHostPortionQuestion() { try { let ip, info, portions, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); if (info.class === 'A' || info.class === 'B' || info.class === 'C') { portions = getIpPortions(ip, info.defaultMask); } else { portions = null; } attempts++; } while (!portions && attempts < 100); if (!portions) { ip = '172.16.10.20'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask); if (!portions) throw new Error("Fallback IP falló"); } const question = `Dada la IP: <strong>${ip}</strong><br>¿Cuál es su Clase y Porción de Host (usando máscara default)?`; const correctClass = info.class; const correctHostPortion = portions.hostPortion; if (!correctHostPortion && correctHostPortion !== "") throw new Error(`No se pudo obtener hostPortion para ${ip}`); const correctAnswerText = `Clase ${correctClass}, Host ${correctHostPortion || 'Ninguna'}`; let options = new Set([correctAnswerText]); const possibleClasses = ['A', 'B', 'C'].filter(c => c !== correctClass); let randomIpForPortion, randomInfoForPortion, incorrectHostPortion = null, portionAttempts = 0; do { randomIpForPortion = generateRandomIp(); randomInfoForPortion = getIpInfo(randomIpForPortion); if (randomInfoForPortion.defaultMask !== 'N/A') { incorrectHostPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.hostPortion; } portionAttempts++; } while ((!incorrectHostPortion || incorrectHostPortion === correctHostPortion) && portionAttempts < 50); if (incorrectHostPortion && incorrectHostPortion !== correctHostPortion) { options.add(`Clase ${correctClass}, Host ${incorrectHostPortion}`); } else { if (correctClass !== 'C') options.add(`Clase ${correctClass}, Host ${getRandomInt(1,254)}`); else options.add(`Clase ${correctClass}, Host ${getRandomInt(0,255)}.${getRandomInt(1,254)}`); } if (possibleClasses.length > 0) { options.add(`Clase ${possibleClasses[0]}, Host ${correctHostPortion || 'Ninguna'}`); } if (possibleClasses.length > 0 && incorrectHostPortion && incorrectHostPortion !== correctHostPortion) { options.add(`Clase ${possibleClasses[0]}, Host ${incorrectHostPortion}`); } while (options.size < 4) { const randomClass = ['A', 'B', 'C'][getRandomInt(0, 2)]; let randomPortion = ''; if (randomClass === 'A') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; else if (randomClass === 'B') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; else randomPortion = `${getRandomInt(1, 254)}`; const potentialOption = `Clase ${randomClass}, Host ${randomPortion}`; if (potentialOption !== correctAnswerText) { options.add(potentialOption); } } let optionsArray = Array.from(options); if (!optionsArray.includes(correctAnswerText)) { optionsArray.pop(); optionsArray.push(correctAnswerText); } optionsArray = optionsArray.slice(0, 4); shuffleArray(optionsArray); const explanation = generatePortionExplanationHTML(ip, info.defaultMask, correctClass, portions.networkPortion, correctHostPortion); return { question, options: optionsArray, correctAnswer: correctAnswerText, explanation }; } catch (error) { console.error("Error en generateClassAndHostPortionQuestion:", error); return null; } }
 
 /**
- * NUEVA FUNCIÓN: Genera preguntas sobre los bloques privados RFC 1918.
- * Puede preguntar por el CIDR de un rango o por el rango de un CIDR.
+ * Genera preguntas sobre los bloques privados RFC 1918 (CIDR, Rango, Clase).
  * @returns {object|null} Objeto de pregunta o null si hay error.
  */
 function generateRfc1918Question() {
     try {
+        // Define los bloques privados con información adicional de clase
         const rfc1918Blocks = [
-            { cidr: '/8', range: '10.0.0.0 - 10.255.255.255', blockStart: '10.0.0.0' },
-            { cidr: '/12', range: '172.16.0.0 - 172.31.255.255', blockStart: '172.16.0.0' },
-            { cidr: '/16', range: '192.168.0.0 - 192.168.255.255', blockStart: '192.168.0.0' }
+            { cidr: '/8', range: '10.0.0.0 - 10.255.255.255', blockStart: '10.0.0.0', class: 'A' },
+            { cidr: '/12', range: '172.16.0.0 - 172.31.255.255', blockStart: '172.16.0.0', class: 'B' },
+            { cidr: '/16', range: '192.168.0.0 - 192.168.255.255', blockStart: '192.168.0.0', class: 'C' }
         ];
-        const otherCidrs = ['/10', '/20', '/24', '/28']; // Opciones incorrectas comunes
+        const otherCidrs = ['/10', '/20', '/24', '/28']; // CIDRs incorrectos
+        const possibleClasses = ['A', 'B', 'C']; // Clases posibles
 
         // Elige aleatoriamente un bloque RFC 1918
         const chosenBlock = rfc1918Blocks[getRandomInt(0, rfc1918Blocks.length - 1)];
@@ -55,43 +56,50 @@ function generateRfc1918Question() {
         let options = [];
         let explanation = '';
 
-        // Decide aleatoriamente si preguntar por CIDR o por Rango
-        if (Math.random() < 0.5) {
+        // Elige aleatoriamente el tipo de pregunta (0: CIDR, 1: Rango, 2: Clase)
+        const questionType = getRandomInt(0, 2);
+
+        if (questionType === 0) {
             // Preguntar por CIDR dado el rango/bloque inicial
             question = `¿Qué notación CIDR corresponde al bloque privado RFC 1918 que comienza en <strong>${chosenBlock.blockStart}</strong>?`;
             correctAnswer = chosenBlock.cidr;
             options = [correctAnswer];
-            // Añadir CIDRs incorrectos
-            let incorrectOptions = otherCidrs.filter(c => c !== correctAnswer); // Filtrar por si acaso
+            let incorrectOptions = otherCidrs.filter(c => c !== correctAnswer);
             shuffleArray(incorrectOptions);
-            options.push(...incorrectOptions.slice(0, 3)); // Añadir 3 incorrectos
-        } else {
+            options.push(...incorrectOptions.slice(0, 3));
+        } else if (questionType === 1) {
             // Preguntar por Rango dado el CIDR
             question = `¿Qué rango de direcciones corresponde al bloque privado RFC 1918 definido como <strong>${chosenBlock.cidr}</strong>?`;
             correctAnswer = chosenBlock.range;
             options = [correctAnswer];
-            // Añadir rangos incorrectos (los otros bloques RFC 1918)
             let incorrectOptions = rfc1918Blocks.filter(b => b.cidr !== chosenBlock.cidr).map(b => b.range);
-            // Añadir un rango público como distractor si es necesario
-            if (incorrectOptions.length < 3) {
-                incorrectOptions.push('8.8.0.0 - 8.8.255.255'); // Rango público ejemplo
-            }
-            options.push(...incorrectOptions.slice(0, 3)); // Añadir 3 incorrectos
+            if (incorrectOptions.length < 3) { incorrectOptions.push('8.8.0.0 - 8.8.255.255'); }
+            options.push(...incorrectOptions.slice(0, 3));
+        } else { // questionType === 2
+            // --- NUEVO: Preguntar por Clase dado el bloque ---
+            // Se puede presentar el bloque por CIDR o por rango inicial
+            const blockIdentifier = Math.random() < 0.5 ? chosenBlock.cidr : chosenBlock.blockStart;
+            question = `El bloque privado RFC 1918 <strong>${blockIdentifier}</strong> pertenece originalmente a la Clase:`;
+            correctAnswer = chosenBlock.class; // La clase asociada al bloque
+            options = [correctAnswer];
+            // Las opciones incorrectas son las otras clases (A, B, C)
+            let incorrectOptions = possibleClasses.filter(c => c !== correctAnswer);
+            options.push(...incorrectOptions); // Añadir las 2 clases incorrectas
         }
 
-        // Barajar las opciones finales
+        // Barajar las opciones finales y asegurar que la correcta esté
         shuffleArray(options);
-        // Asegurar que la respuesta correcta esté (si shuffle la quitó)
-         if (options.length > 4) options = options.slice(0, 4); // Limitar a 4
-         if (!options.includes(correctAnswer)) {
-             options.pop(); // Quitar la última
-             options.push(correctAnswer); // Añadir la correcta
-             shuffleArray(options); // Barajar de nuevo
-         }
+        if (options.length > 4) options = options.slice(0, 4); // Limitar a 4 si se añadieron extras
+        if (!options.includes(correctAnswer)) {
+            options.pop(); options.push(correctAnswer); shuffleArray(options);
+        }
 
-
-        // Generar explicación usando la tabla RFC 1918, resaltando el bloque correcto
-        explanation = generatePrivateRangeTableHTML(chosenBlock.blockStart); // Usa el inicio del bloque para resaltar
+        // Generar explicación usando la tabla RFC 1918 (resalta la fila correcta)
+        // También se podría añadir texto sobre la clase si la pregunta fue sobre clase.
+        explanation = generatePrivateRangeTableHTML(chosenBlock.blockStart);
+        if (questionType === 2) {
+            explanation += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">Este bloque usa direcciones que caen dentro del rango original de la <strong>Clase ${chosenBlock.class}</strong>.</p>`;
+        }
 
         return { question, options, correctAnswer, explanation };
 
@@ -115,7 +123,7 @@ const associateQuestionGenerators = [
     generateClassAndDefaultMaskQuestion,
     generateClassAndNetworkPortionQuestion,
     generateClassAndHostPortionQuestion,
-    generateRfc1918Question, // <-- Nueva función añadida
+    generateRfc1918Question, // Ahora incluye preguntas de Clase
     // TODO: Añadir generadores para los puntos restantes de Associate:
     // generateSpecialAddressQuestion,
     // generateNetworkBroadcastAddressQuestion
