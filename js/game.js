@@ -31,6 +31,12 @@ let roundResults = [];             // Array [true/false] de resultados de la ron
 let questionTimerInterval = null;  // ID del intervalo del temporizador
 let timeLeft = 0;                  // Segundos restantes
 
+// --- NUEVO: Variables para rastrear el estado del feedback ---
+let isFeedbackActive = false;      // Indica si el feedback de la última pregunta está visible.
+let lastAnswerCorrect = null;      // Almacena si la última respuesta fue correcta (true/false).
+let lastMasteryMode = false;       // Almacena si el modo mastery estaba activo en la última respuesta.
+// --- FIN NUEVO ---
+
 // --- Funciones Auxiliares ---
 
 /**
@@ -65,6 +71,7 @@ export function handleUserLogin(username) {
     currentUsername = username;
     try {
         currentUserData = storage.getUserData(username);
+        // Asegurarse de que los datos por defecto se guarden si es un usuario nuevo
         storage.saveUserData(username, currentUserData);
         ui.updatePlayerInfo(currentUsername, '', ''); // Nivel y score se actualizan al iniciar juego
         // Mostrar secciones relevantes en pantalla de selección de nivel
@@ -74,7 +81,6 @@ export function handleUserLogin(username) {
         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
     } catch (error) {
         console.error("Error durante handleUserLogin:", error);
-        // TODO: Añadir clave 'error_loading_user_data' a JSONs
         alert(getTranslation('error_loading_user_data', { message: error.message }));
         ui.showSection(ui.userSetupSection); // Volver al inicio si hay error
     }
@@ -101,6 +107,9 @@ export function startGame() {
     questionsAnswered = 0;
     roundResults = [];
     timeLeft = 0;
+    isFeedbackActive = false; // Asegurar que el feedback no está activo al inicio
+    lastAnswerCorrect = null;
+    lastMasteryMode = false;
     // Actualizar UI e iniciar carga de pregunta
     ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
     ui.showSection(ui.gameAreaSection);
@@ -113,6 +122,12 @@ export function startGame() {
  * Carga los datos de la siguiente pregunta y actualiza la UI.
  */
 function loadNextQuestion() {
+    // --- Resetear estado de feedback al cargar nueva pregunta ---
+    isFeedbackActive = false;
+    lastAnswerCorrect = null;
+    lastMasteryMode = false;
+    // --- Fin Reseteo ---
+
     // Limpieza de UI de la pregunta anterior
     if (ui.feedbackArea) { ui.feedbackArea.innerHTML = ''; ui.feedbackArea.className = ''; }
     if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
@@ -175,6 +190,12 @@ function loadNextQuestion() {
         roundResults.push(false); // Marca como incorrecta
         const isMasteryStyle = (currentLevel === 'Entry' && currentGameMode === 'mastery');
         ui.updateRoundProgressUI(roundResults, isMasteryStyle); // Actualiza estrellas
+
+        // --- Actualizar estado de feedback para timeout ---
+        isFeedbackActive = true;
+        lastAnswerCorrect = false;
+        lastMasteryMode = isMasteryStyle;
+        // --- Fin Actualización ---
 
         // Muestra feedback de tiempo agotado (ui.js traduce la respuesta correcta)
         const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
@@ -259,6 +280,12 @@ function loadNextQuestion() {
     roundResults.push(isCorrect); // Registra resultado
     const isMasteryStyle = (currentLevel === 'Entry' && currentGameMode === 'mastery');
 
+    // --- Actualizar estado de feedback ANTES de llamar a ui.displayFeedback ---
+    isFeedbackActive = true;
+    lastAnswerCorrect = isCorrect;
+    lastMasteryMode = isMasteryStyle;
+    // --- Fin Actualización ---
+
     if (isCorrect) {
         // --- Respuesta Correcta ---
         currentScore += config.POINTS_PER_QUESTION; // Suma puntos (valor fijo)
@@ -283,6 +310,10 @@ function loadNextQuestion() {
  */
  function endGame() {
     clearInterval(questionTimerInterval); // Asegura detener timer
+    isFeedbackActive = false; // Asegura que el feedback no está activo al terminar
+    lastAnswerCorrect = null;
+    lastMasteryMode = false;
+
     const maxScore = config.PERFECT_SCORE; // Usa puntuación perfecta fija
     const scorePercentage = maxScore > 0 ? (currentScore / maxScore) * 100 : 0;
     const isPerfect = currentScore === maxScore; // Verifica si es 100%
@@ -332,7 +363,6 @@ function loadNextQuestion() {
 
     } catch (error) {
         console.error("Error en endGame:", error);
-        // TODO: Añadir clave 'error_end_game' a JSONs
         // Mostrar error genérico si falla el proceso final
         ui.displayGameOver(currentScore, { error: getTranslation('error_end_game', { message: error.message }) }, currentLevel);
     }
@@ -353,6 +383,9 @@ export function handleRestartRound() {
  */
 export function handleExitToMenu() {
      clearInterval(questionTimerInterval); // Detiene el timer si está activo.
+     isFeedbackActive = false; // Asegura que el feedback no está activo al salir
+     lastAnswerCorrect = null;
+     lastMasteryMode = false;
      handlePlayAgain(); // Muestra el menú de niveles.
 }
 
@@ -385,6 +418,105 @@ export function initializeGame() {
     // Muestra la primera pantalla que ve el usuario: el formulario para ingresar nombre.
     ui.showSection(ui.userSetupSection);
 }
+
+// --- NUEVO: Función para refrescar la UI del juego activo ---
+/**
+ * Refresca la UI del área de juego (pregunta o feedback)
+ * después de un cambio de idioma.
+ */
+export function refreshActiveGameUI() {
+    // Asegurarse de tener datos necesarios
+    if (!currentUsername) {
+        console.warn("Intentando refrescar UI sin usuario activo.");
+        return; // No hacer nada si no hay usuario
+    }
+    if (!currentQuestionData && !isFeedbackActive) {
+        console.warn("Intentando refrescar UI sin datos de pregunta ni feedback activo.");
+        // Mostrar estado de carga traducido como fallback si no hay nada
+        if (ui.questionText) ui.questionText.innerHTML = getTranslation('loading_question');
+        if (ui.optionsContainer) ui.optionsContainer.innerHTML = '';
+        if (ui.feedbackArea) ui.feedbackArea.innerHTML = '';
+        return;
+    }
+
+    // Comprobar si el feedback estaba activo
+    if (isFeedbackActive && lastAnswerCorrect !== null && currentQuestionData) {
+        // --- Volver a mostrar el feedback con el resultado guardado ---
+        // proceedToNextStep está disponible en este scope
+        const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
+        ui.displayFeedback(lastAnswerCorrect, lastMasteryMode, feedbackData, proceedToNextStep);
+
+        // --- Re-resaltar botones si fue incorrecto ---
+        if (!lastAnswerCorrect) {
+             try {
+                const correctOriginalValue = currentQuestionData.correctAnswer;
+                let correctOriginalValueStr = '';
+                // Reconstruir correctOriginalValueStr (igual que en handleAnswerClick)
+                if (typeof correctOriginalValue === 'string') {
+                    correctOriginalValueStr = correctOriginalValue;
+                } else if (typeof correctOriginalValue === 'object' && correctOriginalValue.classKey && correctOriginalValue.typeKey) {
+                    correctOriginalValueStr = `${correctOriginalValue.classKey},${correctOriginalValue.typeKey}`;
+                } else if (typeof correctOriginalValue === 'object' && correctOriginalValue.classKey && correctOriginalValue.maskValue) {
+                    correctOriginalValueStr = `${correctOriginalValue.classKey},${correctOriginalValue.maskValue}`;
+                } else if (typeof correctOriginalValue === 'object' && correctOriginalValue.classKey && correctOriginalValue.portionKey) {
+                    correctOriginalValueStr = `${correctOriginalValue.classKey},${correctOriginalValue.portionKey},${correctOriginalValue.portionValue || 'None'}`;
+                } else {
+                    correctOriginalValueStr = JSON.stringify(correctOriginalValue);
+                }
+
+                if (ui.optionsContainer) {
+                     Array.from(ui.optionsContainer.children).forEach(button => {
+                         const btnValue = button.getAttribute('data-original-value');
+                         // Quitar clases previas por si acaso
+                         button.classList.remove('correct', 'incorrect', 'mastery');
+                         // Añadir la clase correcta
+                         if (btnValue === correctOriginalValueStr) {
+                             button.classList.add(lastMasteryMode ? 'mastery' : 'correct');
+                         }
+                         // TODO: Si quisiéramos resaltar también el botón incorrecto que se pulsó,
+                         // necesitaríamos guardar `selectedOriginalValue` en una variable de estado.
+                     });
+                     // Asegurar que las opciones estén deshabilitadas
+                     ui.optionsContainer.classList.add('options-disabled');
+                 }
+             } catch(e){ console.error("Error resaltando botones al refrescar feedback", e); }
+        }
+        // --- Fin re-resaltado ---
+
+    } else if (currentQuestionData) {
+        // --- Si el feedback no estaba activo, volver a mostrar la pregunta ---
+        // handleAnswerClick está disponible en este scope
+        ui.displayQuestion(currentQuestionData, handleAnswerClick);
+        // Asegurar que las opciones no estén deshabilitadas
+        if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
+
+    } else {
+        // Caso raro: feedback no activo Y no hay datos de pregunta. Limpiar.
+        if (ui.questionText) ui.questionText.innerHTML = '';
+        if (ui.optionsContainer) ui.optionsContainer.innerHTML = '';
+        if (ui.feedbackArea) ui.feedbackArea.innerHTML = '';
+        console.warn("Refrescando UI en estado inesperado (sin pregunta ni feedback activo).");
+    }
+
+    // --- Siempre refrescar elementos comunes del área de juego ---
+    // Información del jugador (traduce nombre del nivel)
+    ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
+    // Estrellas de progreso de ronda
+    ui.updateRoundProgressUI(roundResults, currentGameMode === 'mastery');
+    // Estado del temporizador
+    if (questionTimerInterval) { // Si había un timer corriendo (incluso si se pausó por feedback)
+        ui.showTimerDisplay(true);
+        ui.updateTimerDisplay(timeLeft);
+        if (timeLeft <= 5) ui.timerDisplayDiv.classList.add('low-time');
+        else ui.timerDisplayDiv.classList.remove('low-time');
+    } else {
+        // Si no había timer corriendo, asegurarse de que esté oculto
+        ui.showTimerDisplay(false);
+    }
+    // --- Fin refresco elementos comunes ---
+}
+// --- FIN NUEVO ---
+
 
 /**
  * Devuelve el nombre de usuario actual.
