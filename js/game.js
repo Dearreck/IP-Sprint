@@ -106,34 +106,36 @@ export function startGame() {
  * Carga los datos de la siguiente pregunta y actualiza la UI.
  */
 function loadNextQuestion() {
-    // Limpiar UI previa
+    // Limpieza de UI de la pregunta anterior
     if (ui.feedbackArea) { ui.feedbackArea.innerHTML = ''; ui.feedbackArea.className = ''; }
     if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
-    currentQuestionData = null; // Limpiar datos pregunta anterior
-    clearInterval(questionTimerInterval); // Limpiar timer
+    currentQuestionData = null; // Borra datos pregunta anterior
+    clearInterval(questionTimerInterval); // Limpia timer
     ui.showTimerDisplay(false);
-    if (ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time');
+    if (ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time'); // Quita estilo de poco tiempo
 
     try {
-        // Obtener datos de la nueva pregunta
+        // Obtiene los datos de la siguiente pregunta desde questions.js
         const questionDataResult = getNextQuestion(currentLevel);
-        // Validar datos recibidos
+        // Valida los datos recibidos
         if (questionDataResult && questionDataResult.question && questionDataResult.options && Array.isArray(questionDataResult.options) && questionDataResult.correctAnswer !== undefined && questionDataResult.explanation !== undefined) {
-            currentQuestionData = questionDataResult; // Guardar datos nuevos
+            currentQuestionData = questionDataResult; // Guarda datos nuevos
 
-            // Iniciar timer si aplica para este nivel/modo
+            // --- Lógica del Temporizador (Usa getTimerDurationForCurrentLevel) ---
             const duration = getTimerDurationForCurrentLevel();
-            if (duration !== null && duration > 0) {
-                ui.showTimerDisplay(true);
-                timeLeft = duration;
-                ui.updateTimerDisplay(timeLeft);
-                questionTimerInterval = setInterval(updateTimer, 1000);
+            if (duration !== null && duration > 0) { // Si aplica timer...
+                ui.showTimerDisplay(true); // Muestra el display
+                timeLeft = duration;       // Establece la duración correcta
+                ui.updateTimerDisplay(timeLeft); // Muestra el tiempo inicial
+                questionTimerInterval = setInterval(updateTimer, 1000); // Inicia el contador
             } else {
-                ui.showTimerDisplay(false);
+                ui.showTimerDisplay(false); // Oculta si no aplica
             }
+            // --- Fin Lógica Timer ---
 
-            // Mostrar pregunta y opciones (ui.js se encarga de traducir)
+            // Muestra la pregunta y opciones en la UI (ui.js se encarga de traducir)
             ui.displayQuestion(currentQuestionData, handleAnswerClick);
+
         } else {
             // Manejar error si no hay preguntas o datos inválidos
             if (!questionDataResult && (currentLevel === 'Associate' || currentLevel === 'Professional')) {
@@ -145,7 +147,7 @@ function loadNextQuestion() {
             }
         }
     } catch (error) {
-        // Manejo de errores al cargar pregunta
+        // Manejo de Errores General
         console.error("Error en loadNextQuestion:", error);
         // TODO: Añadir clave 'error_loading_question_msg' a JSONs
         if (ui.questionText) ui.questionText.innerHTML = getTranslation('error_loading_question_msg', { message: error.message });
@@ -158,26 +160,26 @@ function loadNextQuestion() {
  * Actualiza el temporizador de la pregunta cada segundo.
  */
  function updateTimer() {
-    timeLeft--;
-    ui.updateTimerDisplay(timeLeft);
+    timeLeft--; // Decrementa el tiempo
+    ui.updateTimerDisplay(timeLeft); // Actualiza UI
 
-    // Si se agota el tiempo
+    // Si se acabó el tiempo
     if (timeLeft <= 0) {
-        clearInterval(questionTimerInterval);
-        if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled'); // Deshabilitar opciones
+        clearInterval(questionTimerInterval); // Detiene timer
+        if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled'); // Deshabilita opciones
 
-        roundResults.push(false); // Marcar como incorrecta
+        roundResults.push(false); // Marca como incorrecta
         const isMasteryStyle = (currentLevel === 'Entry' && currentGameMode === 'mastery');
-        ui.updateRoundProgressUI(roundResults, isMasteryStyle); // Actualizar estrellas
+        ui.updateRoundProgressUI(roundResults, isMasteryStyle); // Actualiza estrellas
 
-        // Mostrar feedback de tiempo agotado (ui.js traduce la respuesta correcta)
+        // Muestra feedback de tiempo agotado (ui.js traduce la respuesta correcta)
         const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
         ui.displayFeedback(false, isMasteryStyle, timeoutFeedbackData, proceedToNextStep);
 
-        // Modificar texto específico para timeout
+        // Modifica el texto específico para timeout (usa traducción)
         if (ui.feedbackArea) {
             const feedbackContent = ui.feedbackArea.querySelector('#feedback-text-content span:first-child');
-            // Traducir respuesta correcta para el mensaje
+            // Traduce la respuesta correcta para el mensaje
             let translatedCorrectAnswer = '';
             const ca = currentQuestionData?.correctAnswer;
             if (typeof ca === 'string') { translatedCorrectAnswer = getTranslation(ca) || ca; }
@@ -187,7 +189,7 @@ function loadNextQuestion() {
                  else if (ca.classKey && ca.portionKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`;
                  else translatedCorrectAnswer = JSON.stringify(ca);
             } else { translatedCorrectAnswer = 'N/A'; }
-            // Usar clave traducida para mensaje de timeout
+            // Usa clave traducida para mensaje de timeout
             const timeoutMsg = getTranslation('feedback_timeout', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` });
             if (feedbackContent) { feedbackContent.innerHTML = timeoutMsg; }
             else { const timeoutSpan = document.createElement('span'); timeoutSpan.innerHTML = timeoutMsg; ui.feedbackArea.prepend(timeoutSpan); }
@@ -200,39 +202,39 @@ function loadNextQuestion() {
  * Función intermedia para avanzar a la siguiente pregunta o terminar el juego.
  */
  function proceedToNextStep() {
-    clearInterval(questionTimerInterval); // Detener timer
-    questionsAnswered++; // Incrementar contador
+    clearInterval(questionTimerInterval); // Asegura detener timer
+    questionsAnswered++; // Incrementa contador
     if (questionsAnswered >= config.TOTAL_QUESTIONS_PER_GAME) {
-        endGame(); // Terminar ronda
+        endGame(); // Termina la ronda
     } else {
-        loadNextQuestion(); // Cargar siguiente
+        loadNextQuestion(); // Carga siguiente
     }
 }
 
 /**
  * Maneja el evento de clic en un botón de opción de respuesta.
- * Compara usando el valor original del botón.
+ * Compara la respuesta usando el valor original guardado en el botón.
  * @param {Event} event - El objeto del evento click.
  */
  export function handleAnswerClick(event) {
-    clearInterval(questionTimerInterval); // Detener timer
-    // Validar estado
+    clearInterval(questionTimerInterval); // Detiene timer
+    // Verifica que haya datos de pregunta cargados
     if (!currentQuestionData || currentQuestionData.correctAnswer === undefined) {
         console.error("handleAnswerClick llamado sin datos de pregunta o respuesta correcta.");
         return;
     }
 
     const selectedButton = event.target;
-    // Obtener valor original del atributo data-*
+    // Obtiene el valor original (sin traducir) guardado en el atributo data
     const selectedOriginalValue = selectedButton.getAttribute('data-original-value');
 
-    if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled'); // Deshabilitar botones
+    if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled'); // Deshabilita botones
 
     // --- Comparación usando Valores Originales ---
     let isCorrect = false;
     const correctAnswerOriginal = currentQuestionData.correctAnswer; // Respuesta correcta original (string u objeto)
 
-    // Reconstruir el string del valor original esperado para comparar
+    // Reconstruye el string del valor original esperado para comparar
     let correctOriginalValueStr = '';
     if (typeof correctAnswerOriginal === 'string') {
         correctOriginalValueStr = correctAnswerOriginal;
@@ -246,29 +248,29 @@ function loadNextQuestion() {
          correctOriginalValueStr = JSON.stringify(correctAnswerOriginal); // Fallback
     }
 
-    // Comparar valor original del botón con el esperado
+    // Compara el valor original del botón con el esperado
     isCorrect = (selectedOriginalValue === correctOriginalValueStr);
     // --- Fin Comparación ---
 
-    roundResults.push(isCorrect); // Registrar resultado
+    roundResults.push(isCorrect); // Registra resultado
     const isMasteryStyle = (currentLevel === 'Entry' && currentGameMode === 'mastery');
 
     if (isCorrect) {
         // --- Respuesta Correcta ---
-        currentScore += config.POINTS_PER_QUESTION; // Sumar puntos (valor fijo)
-        ui.updatePlayerInfo(currentUsername, currentLevel, currentScore); // Actualizar UI
-        // Mostrar feedback (ui.js traduce la respuesta correcta si es necesario)
+        currentScore += config.POINTS_PER_QUESTION; // Suma puntos (valor fijo)
+        ui.updatePlayerInfo(currentUsername, currentLevel, currentScore); // Actualiza UI
+        // Muestra feedback (ui.js traduce la respuesta correcta si es necesario)
         ui.displayFeedback(isCorrect, isMasteryStyle, currentQuestionData, proceedToNextStep);
-        if (selectedButton) selectedButton.classList.add(isMasteryStyle ? 'mastery' : 'correct'); // Resaltar botón
+        if (selectedButton) selectedButton.classList.add(isMasteryStyle ? 'mastery' : 'correct'); // Resalta botón
         setTimeout(proceedToNextStep, 1200); // Avance automático
     } else {
         // --- Respuesta Incorrecta ---
         const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
-        // Mostrar feedback (ui.js traduce la respuesta correcta y añade botón "Siguiente")
+        // Muestra feedback (ui.js traduce la respuesta correcta y añade botón "Siguiente")
         ui.displayFeedback(isCorrect, isMasteryStyle, feedbackData, proceedToNextStep);
-        if (selectedButton) selectedButton.classList.add('incorrect'); // Marcar botón incorrecto
+        if (selectedButton) selectedButton.classList.add('incorrect'); // Marca botón incorrecto
     }
-    ui.updateRoundProgressUI(roundResults, isMasteryStyle); // Actualizar estrellas
+    ui.updateRoundProgressUI(roundResults, isMasteryStyle); // Actualiza estrellas
 }
 
 /**
@@ -301,10 +303,13 @@ function loadNextQuestion() {
                 if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) {
                     currentUserData.unlockedLevels.push('Associate');
                     currentUserData.entryPerfectStreak = 0; // Resetea racha al desbloquear
+                    // Mensaje traducido de nivel desbloqueado
                     extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') });
                 } else if (!currentUserData.unlockedLevels.includes('Associate')) {
+                    // Mensaje traducido de progreso de racha
                     extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_entry'), streak: currentUserData.entryPerfectStreak });
                 } else {
+                    // Mensaje traducido de ronda perfecta simple
                     extraMessage = getTranslation('game_over_good_round_entry');
                 }
             } else {
@@ -321,10 +326,13 @@ function loadNextQuestion() {
                 if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) {
                     currentUserData.unlockedLevels.push('Professional');
                     currentUserData.associatePerfectStreak = 0; // Resetea racha Associate
+                    // Mensaje traducido específico para desbloquear Pro
                     extraMessage = getTranslation('game_over_level_unlocked_pro');
                 } else if (!currentUserData.unlockedLevels.includes('Professional')) {
+                    // Mensaje traducido de progreso de racha
                     extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_associate'), streak: currentUserData.associatePerfectStreak });
                 } else {
+                    // Mensaje traducido de buena ronda en Associate
                     extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK });
                 }
              } else {
