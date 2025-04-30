@@ -6,9 +6,12 @@
 // ==================================================
 
 // --- Importaciones de Módulos ---
+// Importar constantes de configuración necesarias
 import { TOTAL_QUESTIONS_PER_GAME, MIN_SCORE_PERCENT_FOR_STREAK } from './config.js';
-import { handleAnswerClick } from './game.js'; // Solo necesitamos handleAnswerClick
-import { getTranslation } from './i18n.js'; // Función clave para traducir
+// Importar funciones del juego necesarias para añadir listeners
+import { handleAnswerClick } from './game.js';
+// Importar la función de traducción
+import { getTranslation } from './i18n.js';
 
 // --- Selección de Elementos del DOM ---
 export const userSetupSection = document.getElementById('user-setup');
@@ -135,34 +138,36 @@ export function displayQuestion(questionData, answerClickHandler) {
             let buttonText = '';
             let originalValue = ''; // Valor sin traducir para comparación
 
-            // --- Lógica REVISADA para determinar texto y valor original ---
+            // --- Lógica REVISADA v3 para determinar texto y valor original ---
             if (typeof optionData === 'string') {
                 // Es un valor técnico (IP, máscara, porción) o una clave i18n simple
                 const translated = getTranslation(optionData);
-                // Si la traducción es diferente de la clave, significa que la clave existía.
-                // Si son iguales, significa que la clave no existía y debemos mostrar el valor original.
                 buttonText = (translated !== optionData) ? translated : optionData;
-                originalValue = optionData; // Guardar el valor original (clave o valor técnico)
-            } else if (typeof optionData === 'object' && optionData.classKey && optionData.typeKey) {
-                // Objeto Clase/Tipo
-                buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.typeKey)}`;
-                originalValue = `${optionData.classKey},${optionData.typeKey}`;
-            } else if (typeof optionData === 'object' && optionData.classKey && optionData.maskValue) {
-                // Objeto Clase/Máscara
-                buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation('option_mask', { mask: optionData.maskValue })}`;
-                originalValue = `${optionData.classKey},${optionData.maskValue}`;
-            } else if (typeof optionData === 'object' && optionData.classKey && optionData.portionKey) {
-                 // Objeto Clase/Porción (Red o Host)
-                 buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.portionKey, { portion: optionData.portionValue || getTranslation('option_none') })}`;
-                 originalValue = `${optionData.classKey},${optionData.portionKey},${optionData.portionValue || 'None'}`;
+                originalValue = optionData;
+            } else if (typeof optionData === 'object') {
+                // Es un objeto combinado, construir texto y valor original
+                if (optionData.classKey && optionData.typeKey) {
+                    buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.typeKey)}`;
+                    originalValue = `${optionData.classKey},${optionData.typeKey}`;
+                } else if (optionData.classKey && optionData.maskValue) {
+                    buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation('option_mask', { mask: optionData.maskValue })}`;
+                    originalValue = `${optionData.classKey},${optionData.maskValue}`;
+                } else if (optionData.classKey && optionData.portionKey) {
+                     buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.portionKey, { portion: optionData.portionValue || getTranslation('option_none') })}`;
+                     originalValue = `${optionData.classKey},${optionData.portionKey},${optionData.portionValue || 'None'}`;
+                } else {
+                    // Fallback si la estructura del objeto no es reconocida
+                    buttonText = JSON.stringify(optionData);
+                    originalValue = buttonText;
+                    console.warn("Formato de objeto de opción desconocido:", optionData);
+                }
+            } else {
+                 // Fallback para tipos inesperados
+                 buttonText = 'Opción Inválida';
+                 originalValue = 'invalid';
+                 console.warn("Tipo de dato de opción inesperado:", optionData);
             }
-             else {
-                // Fallback
-                buttonText = JSON.stringify(optionData);
-                originalValue = buttonText;
-                console.warn("Formato de opción desconocido:", optionData);
-            }
-            // --- FIN Lógica REVISADA ---
+            // --- FIN Lógica REVISADA v3 ---
 
             button.textContent = buttonText;
             button.setAttribute('data-original-value', originalValue);
@@ -196,13 +201,18 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 
     // --- Traducir la respuesta correcta para mostrarla al usuario ---
     let translatedCorrectAnswer = '';
-    const ca = questionData.correctAnswer;
-    if (typeof ca === 'string') { translatedCorrectAnswer = getTranslation(ca) || ca; }
-    else if (typeof ca === 'object' && ca.classKey && ca.typeKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`; }
-    else if (typeof ca === 'object' && ca.classKey && ca.maskValue) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`; }
-    else if (typeof ca === 'object' && ca.classKey && ca.portionKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`; }
-    else { translatedCorrectAnswer = JSON.stringify(ca); }
-    // --- Fin Traducción ---
+    const ca = questionData.correctAnswer; // Alias para la respuesta correcta (string u objeto)
+
+    // --- Lógica REVISADA v3 para traducir respuesta correcta ---
+    if (typeof ca === 'string') {
+        translatedCorrectAnswer = getTranslation(ca) || ca;
+    } else if (typeof ca === 'object') {
+        if (ca.classKey && ca.typeKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`; }
+        else if (ca.classKey && ca.maskValue) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`; }
+        else if (ca.classKey && ca.portionKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`; }
+        else { translatedCorrectAnswer = JSON.stringify(ca); } // Fallback
+    } else { translatedCorrectAnswer = 'N/A'; }
+    // --- FIN Lógica REVISADA v3 ---
 
     if (isCorrect) {
         feedbackHTML = `<div id="feedback-text-content">${getTranslation('feedback_correct')}</div>`;
@@ -220,6 +230,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         // Resaltar botón correcto (comparando valor original)
         try {
             if(optionsContainer) {
+                // Reconstruir el valor original esperado de la respuesta correcta
                 let correctOriginalValueStr = '';
                 if (typeof ca === 'string') { correctOriginalValueStr = ca; }
                 else if (typeof ca === 'object' && ca.classKey && ca.typeKey) { correctOriginalValueStr = `${ca.classKey},${ca.typeKey}`; }
@@ -243,6 +254,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         else { console.error("No se encontró el botón 'next-question-button' después de crearlo."); }
     }
 }
+
 
 /**
  * Actualiza la pantalla de Game Over con la puntuación final y mensajes traducidos.
