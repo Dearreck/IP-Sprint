@@ -76,7 +76,7 @@ export function showSection(sectionToShow) {
             // Mostrar la sección solicitada directamente
             if (section === sectionToShow) {
                 shouldDisplay = true;
-            // Mostrar progreso y scores cuando se está en el menú de niveles o en game over
+            // Mostrar progreso y scores cuando se está en el menú de niveles o en game over.
             } else if (section === unlockProgressSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection)) {
                 shouldDisplay = true;
             } else if (section === highScoresSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection)) {
@@ -178,7 +178,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
  */
 export function updateUnlockProgressUI(currentUserData) {
     try {
-        // Verificar existencia de elementos necesarios (ya no incluye unlockInfoTextDiv)
+        // Verificar existencia de elementos necesarios
         if (!currentUserData || !unlockProgressSection || !unlockProgressDiv || !progressStarsSpan || !unlockProgressTitle) {
              if(unlockProgressSection) unlockProgressSection.style.display = 'none';
              return;
@@ -310,7 +310,7 @@ export function displayQuestion(questionData, answerClickHandler) {
 
             // Determinar texto y valor original según el tipo de opción
             if (typeof optionData === 'string') {
-                // Si es un string simple (IP, máscara, porción, clave i18n simple)
+                // Si es un string simple (IP, máscara, porción numérica, clave i18n simple)
                 buttonText = getTranslation(optionData) || optionData; // Intenta traducir, si no, usa el valor
                 originalValue = optionData; // Guardar el valor original (puede ser clave o valor técnico)
             } else if (typeof optionData === 'object' && optionData.classKey && optionData.typeKey) {
@@ -325,15 +325,16 @@ export function displayQuestion(questionData, answerClickHandler) {
                  // Objeto Clase/Porción (Red o Host)
                  buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.portionKey, { portion: optionData.portionValue || getTranslation('option_none') })}`;
                  originalValue = `${optionData.classKey},${optionData.portionKey},${optionData.portionValue || 'None'}`; // Valor original = claves + valor porción
-            } else {
-                // Fallback si la estructura no coincide
+            }
+             else {
+                // Fallback por si acaso
                 buttonText = JSON.stringify(optionData);
                 originalValue = buttonText;
                 console.warn("Formato de opción desconocido:", optionData);
             }
 
             button.textContent = buttonText;
-            // Guardar el valor original (clave o valor técnico) en el botón
+            // --- IMPORTANTE: Guardar el valor original sin traducir en un atributo data ---
             button.setAttribute('data-original-value', originalValue);
 
             // Añadir listener
@@ -407,7 +408,11 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
             if (questionData.explanation.table) {
                 explanationHTML += `<br>${questionData.explanation.table}`;
             }
+        } else if (typeof questionData.explanation === 'object' && questionData.explanation.table) {
+             // Si solo tiene tabla (caso de generatePortionExplanationHTML)
+             explanationHTML = questionData.explanation.table;
         }
+
 
         // Construir HTML del feedback incorrecto
         feedbackHTML = `
@@ -553,3 +558,4 @@ export function showTimerDisplay(show) {
          timerDisplayDiv.style.display = show ? 'block' : 'none';
      }
 }
+
