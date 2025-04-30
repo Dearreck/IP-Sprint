@@ -5,90 +5,36 @@
 /* --- Estilos Generales --- */
 body {
     font-family: 'Montserrat', sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f7f6;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    line-height: 1.6; margin: 0; padding: 0;
+    background-color: #f4f7f6; color: #333;
+    display: flex; flex-direction: column; min-height: 100vh;
     font-weight: 400;
 }
 
 main {
-    flex-grow: 1;
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    flex-grow: 1; max-width: 800px; margin: 20px auto;
+    padding: 20px; background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); border-radius: 8px;
+    display: flex; flex-direction: column; justify-content: center;
 }
 
 h1, h2 {
-    font-family: 'Comfortaa', sans-serif;
-    color: #0056b3;
-    text-align: center;
-    font-weight: 700;
+    font-family: 'Comfortaa', sans-serif; color: #0056b3;
+    text-align: center; font-weight: 700;
 }
 
-a {
-    color: #0056b3;
-    text-decoration: none;
-}
-a:hover {
-    text-decoration: underline;
-}
+a { color: #0056b3; text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-hr {
-    border: 0;
-    height: 1px;
-    background-color: #e0e0e0;
-    margin: 20px 0;
-}
+hr { border: 0; height: 1px; background-color: #e0e0e0; margin: 20px 0; }
 
 /* --- Estilos Header y Footer --- */
-header {
-    background-color: #007bff;
-    color: #ffffff;
-    padding: 15px 0;
-    text-align: center;
-}
-header h1 {
-    margin: 0;
-    color: #ffffff;
-    font-size: 2em;
-    font-family: 'Comfortaa', sans-serif;
-    font-weight: 700;
-}
+header { background-color: #007bff; color: #ffffff; padding: 15px 0; text-align: center; position: relative; /* Para posicionar selector de idioma */ }
+header h1 { margin: 0; color: #ffffff; font-size: 2em; font-family: 'Comfortaa', sans-serif; font-weight: 700; }
 
-footer {
-    background-color: #343a40;
-    color: #f8f9fa;
-    text-align: center;
-    padding: 15px 0;
-    margin-top: auto;
-    font-size: 0.9em;
-}
-footer p {
-    margin: 5px 0;
-}
-footer a {
-    color: #adb5bd;
-}
-footer a:hover {
-    color: #ffffff;
-}
-footer img {
-    vertical-align: middle;
-    margin-right: 5px;
-    height: 1em;
-    width: auto;
-}
+footer { background-color: #343a40; color: #f8f9fa; text-align: center; padding: 15px 0; margin-top: auto; font-size: 0.9em; }
+footer p { margin: 5px 0; } footer a { color: #adb5bd; } footer a:hover { color: #ffffff; }
+footer img { vertical-align: middle; margin-right: 5px; height: 1em; width: auto; }
 
 /* --- Estilos Generales para Secciones --- */
 .game-section {
@@ -100,116 +46,32 @@ footer img {
 }
 
 /* --- Controles Durante Juego --- */
-.game-controls {
-    text-align: right;
-    margin-bottom: 10px;
-}
-.game-controls button {
-    background-color: #6c757d;
-    color: white;
-    padding: 4px 10px;
-    font-size: 0.8em;
-    margin-left: 8px;
-    box-shadow: none;
-    font-weight: normal;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-.game-controls button:hover {
-    background-color: #5a6268;
-}
-.game-controls button i {
-    margin-right: 4px;
-}
+.game-controls { text-align: right; margin-bottom: 10px; }
+.game-controls button { background-color: #6c757d; color: white; padding: 4px 10px; font-size: 0.8em; margin-left: 8px; box-shadow: none; font-weight: normal; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; }
+.game-controls button:hover { background-color: #5a6268; }
+.game-controls button i { margin-right: 4px; }
 
 /* --- Formulario User Setup --- */
-#user-setup h2 {
-    margin-top: 0;
-}
-#username-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-}
-#username-form label {
-    font-weight: bold;
-}
-#username-form input[type="text"] {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    width: 80%;
-    max-width: 300px;
-    box-sizing: border-box;
-    font-family: 'Montserrat', sans-serif;
-}
+#user-setup h2 { margin-top: 0; }
+#username-form { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+#username-form label { font-weight: bold; }
+#username-form input[type="text"] { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 80%; max-width: 300px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
 
 /* --- Botones Principales --- */
-button {
-    font-family: 'Montserrat', sans-serif;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    font-weight: 700;
-}
-button:hover {
-    background-color: #0056b3;
-}
-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
+button { font-family: 'Montserrat', sans-serif; background-color: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 1em; transition: background-color 0.3s ease, transform 0.1s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); font-weight: 700; }
+button:hover { background-color: #0056b3; }
+button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
 
 /* --- Selección Nivel --- */
-#level-select h2 {
-    margin-bottom: 25px;
-}
-#level-buttons-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-}
-#level-buttons-container button {
-    width: 70%;
-    max-width: 300px;
-    padding: 15px;
-    font-size: 1.1em;
-}
+#level-select h2 { margin-bottom: 25px; }
+#level-buttons-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+#level-buttons-container button { width: 70%; max-width: 300px; padding: 15px; font-size: 1.1em; }
 
 /* --- Progreso Desbloqueo --- */
-#unlock-progress-section {
-     background-color: #f8f9fa;
-}
-/* Contenedor principal del progreso: centrado y con padding reducido */
-#unlock-progress {
-    padding: 5px 10px; /* Padding vertical/horizontal reducido */
-    text-align: center; /* Centra los elementos inline/inline-block hijos */
-    /* Quitamos max-width y margin:auto para que ocupe el ancho necesario */
-}
-#unlock-progress h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #495057;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-}
-#progress-stars {
-    font-size: 1.5em;
-    color: #ffc107;
-    letter-spacing: 5px;
-    margin-right: 5px;
-    vertical-align: middle;
-}
+#unlock-progress-section { background-color: #f8f9fa; }
+#unlock-progress { padding: 5px 10px; text-align: center; }
+#unlock-progress h4 { margin-top: 0; margin-bottom: 10px; color: #495057; font-family: 'Montserrat', sans-serif; font-weight: 700; }
+#progress-stars { font-size: 1.5em; color: #ffc107; letter-spacing: 5px; vertical-align: middle; }
 
 /* --- Área de Juego --- */
 #game-info { text-align: center; margin-bottom: 15px; color: #555; font-size: 0.9em; }
@@ -271,12 +133,37 @@ button:active {
 .level-score-item { white-space: nowrap; }
 .level-score-item strong { color: #0056b3; font-weight: bold; }
 
+/* --- NUEVO: Estilos para el Selector de Idioma --- */
+#language-selector {
+    position: absolute; /* Posiciona relativo al contenedor padre (header) */
+    top: 10px;          /* Espacio desde arriba */
+    right: 15px;         /* Espacio desde la derecha */
+    z-index: 100;        /* Asegura que esté por encima de otros elementos */
+}
+#language-selector button {
+    background-color: #ffffff; /* Fondo blanco */
+    color: #007bff;            /* Texto azul */
+    border: 1px solid #007bff; /* Borde azul */
+    padding: 5px 8px;          /* Relleno pequeño */
+    margin-left: 5px;          /* Espacio entre botones */
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.8em;          /* Texto pequeño */
+    opacity: 0.8;              /* Ligeramente transparente por defecto */
+    transition: opacity 0.2s ease, background-color 0.2s ease; /* Transiciones suaves */
+    font-weight: bold;         /* Texto en negrita */
+}
+#language-selector button:hover,
+#language-selector button.active { /* Estilo al pasar el mouse o si está activo */
+    opacity: 1;                /* Opacidad completa */
+    background-color: #e7f3ff; /* Fondo azul claro */
+}
+/* --- Fin Estilos Selector de Idioma --- */
+
+
 /* --- Responsiveness --- */
 @media (max-width: 600px) {
-    main {
-        margin: 10px;
-        padding: 10px 15px;
-    }
+    main { margin: 10px; padding: 10px 15px; }
     header h1 { font-size: 1.6em; }
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 10px 15px; }
@@ -285,14 +172,23 @@ button:active {
     #game-info i { font-size: 1em; }
     #level-buttons-container button { width: 90%; padding: 12px; font-size: 1em; }
     #unlock-progress h4 { font-size: 0.9em; }
-    #unlock-progress {
-        padding: 5px;
-        /* No limitamos el ancho del contenedor padre en móvil */
-    }
+    #unlock-progress { padding: 5px; }
     #progress-stars { font-size: 1.5em; }
-
     .game-controls { text-align: center; margin-bottom: 15px; }
     .game-controls button { margin: 5px 5px; }
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
 }
+
+/* Ajuste específico para selector de idioma en pantallas pequeñas */
+@media (max-width: 400px) {
+    #language-selector {
+         position: static; /* Quitar posicionamiento absoluto */
+         display: block; /* Hacer que ocupe su propia línea */
+         text-align: center; /* Centrar los botones */
+         margin-bottom: 10px; /* Añadir espacio debajo antes del main */
+         margin-top: 5px; /* Añadir espacio arriba */
+    }
+    header { padding-bottom: 5px; /* Reducir padding del header para compensar */ }
+}
+
