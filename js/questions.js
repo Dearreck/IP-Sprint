@@ -1,167 +1,363 @@
 // js/questions.js
 // ==================================================
 // Módulo Generador de Preguntas para IP Sprint
+// Contiene funciones para crear diferentes tipos de
+// preguntas para cada nivel del juego.
+// Devuelve objetos con claves de traducción y datos,
+// la traducción final la realiza ui.js.
 // ==================================================
 
-// --- Importaciones ---
+// --- Importaciones de Módulos ---
+// Importar funciones de utilidad necesarias desde utils.js
 import {
     getRandomInt, generateRandomIp, generateRandomPrivateIp, getIpInfo, shuffleArray,
     generateClassRangeTableHTML, generateClassMaskTableHTML, generatePrivateRangeTableHTML,
     getIpPortions, generatePortionExplanationHTML, generateSpecialAddressExplanationHTML,
     calculateNetworkAddress, calculateBroadcastAddress, calculateWildcardMask
 } from './utils.js';
-// getTranslation NO se importa aquí, la traducción se hace en ui.js
+
+import { getTranslation } from './i18n.js';
 
 // --- Generadores de Preguntas (Nivel Entry) ---
+// Estas funciones generan preguntas básicas donde se evalúa un solo concepto.
 
+/**
+ * Genera una pregunta sobre la Clase (A, B, C, D, E) de una IP dada.
+ * @returns {object|null} Objeto con { question: {key, replacements}, options, correctAnswer, explanation } o null si hay error.
+ */
 function generateClassQuestion() {
     try {
-        const ip = generateRandomIp(); const info = getIpInfo(ip);
+        const ip = generateRandomIp(); // Genera IP aleatoria
+        const info = getIpInfo(ip);    // Obtiene info de la IP
+        // Reintenta si la IP generada no tiene clase válida (p.ej., formato incorrecto)
         if (info.class === 'N/A') return generateClassQuestion();
-        const question = { key: 'question_given_ip_what_class', replacements: { ip: `<strong>${ip}</strong>` } };
-        const options = ['A', 'B', 'C', 'D', 'E']; // Clases son valores técnicos
-        const correct = info.class;
-        const explanation = generateClassRangeTableHTML(correct);
-        return { question, options, correctAnswer: correct, explanation };
-    } catch (error) { console.error("Error en generateClassQuestion:", error); return null; }
-}
 
+        // Objeto pregunta con clave y datos para reemplazo
+        const question = { key: 'question_given_ip_what_class', replacements: { ip: `<strong>${ip}</strong>` } };
+        // Opciones son valores técnicos (no claves i18n)
+        const options = ['A', 'B', 'C', 'D', 'E'];
+        // Respuesta correcta es el valor técnico
+        const correct = info.class;
+        // La explicación es HTML generado por utils.js (ya refactorizado para i18n)
+        const explanation = generateClassRangeTableHTML(correct);
+        // Devuelve el objeto completo de la pregunta
+        return { question, options, correctAnswer: correct, explanation };
+    } catch (error) {
+        console.error("Error en generateClassQuestion:", error);
+        return null; // Indica fallo
+    }
+ }
+
+/**
+ * Genera una pregunta sobre el Tipo (Pública o Privada) de una IP dada.
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateTypeQuestion() {
     try {
-        let ip, info, attempts = 0; let forcePrivate = Math.random() < 0.4;
-        ip = forcePrivate ? generateRandomPrivateIp() : generateRandomIp(); info = getIpInfo(ip);
-        while ((info.type === 'N/A' || info.type === 'Loopback' || info.type === 'APIPA' || info.type === 'Broadcast Limitado') && attempts < 50) { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; }
-        if (info.type !== 'Pública' && info.type !== 'Privada') { ip = '8.8.8.8'; info = getIpInfo(ip); }
+        let ip, info, attempts = 0;
+        // Decide aleatoriamente si forzar la generación de una IP privada (40% prob.)
+        let forcePrivate = Math.random() < 0.4;
+        ip = forcePrivate ? generateRandomPrivateIp() : generateRandomIp();
+        info = getIpInfo(ip);
+        // Reintenta si la IP generada es de tipo inválido o especial (se ven en Associate)
+        while ((info.type === 'N/A' || info.type === 'Loopback' || info.type === 'APIPA' || info.type === 'Broadcast Limitado') && attempts < 50) {
+            ip = generateRandomIp();
+            info = getIpInfo(ip);
+            attempts++;
+        }
+        // Si sigue sin ser válida (Pública/Privada), usa un fallback conocido (IP pública)
+        if (info.type !== 'Pública' && info.type !== 'Privada') {
+             ip = '8.8.8.8'; // DNS de Google
+             info = getIpInfo(ip);
+        }
+
+        // Objeto pregunta con clave y datos
         const question = { key: 'question_given_ip_what_type', replacements: { ip: `<strong>${ip}</strong>` } };
-        // Opciones como claves estandarizadas
+        // Opciones como claves de traducción
         const options = ['option_public', 'option_private'];
-        // Respuesta correcta como clave estandarizada
+        // Respuesta correcta como clave de traducción
         const correct = (info.type === 'Pública') ? 'option_public' : 'option_private';
+        // Explicación HTML generada por utils.js (ya refactorizado)
         const explanation = generatePrivateRangeTableHTML(ip);
         return { question, options, correctAnswer: correct, explanation };
-    } catch (error) { console.error("Error en generateTypeQuestion:", error); return null; }
+    } catch (error) {
+        console.error("Error en generateTypeQuestion:", error);
+        return null;
+    }
 }
 
+/**
+ * Genera una pregunta sobre la Máscara de Subred por Defecto de una IP (Clase A, B o C).
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateDefaultMaskQuestion() {
     try {
         let ip, info, attempts = 0;
-        do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; }
-        while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.type === 'Loopback') && attempts < 100);
+        // Busca una IP que sea Clase A, B o C y que no sea Loopback.
+        do {
+            ip = generateRandomIp();
+            info = getIpInfo(ip);
+            attempts++;
+        } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.type === 'Loopback') && attempts < 100);
+        // Fallback si no encuentra rápido.
         if (attempts >= 100) { ip = '192.168.1.1'; info = getIpInfo(ip); }
+
+        // Objeto pregunta con clave y datos
         const question = { key: 'question_given_ip_what_mask', replacements: { ip: `<strong>${ip}</strong>`, class: info.class } };
-        const options = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; // Máscaras son valores técnicos
+        // Opciones son valores técnicos (máscaras)
+        const options = ['255.0.0.0', '255.255.0.0', '255.255.255.0'];
+        // Respuesta correcta es valor técnico
         const correct = info.defaultMask;
+        // Explicación HTML generada por utils.js (ya refactorizado)
         const explanation = generateClassMaskTableHTML(info.class);
+        // Asegura que la respuesta correcta esté entre las opciones válidas
         const finalCorrectAnswer = options.includes(correct) ? correct : options[0];
         return { question, options, correctAnswer: finalCorrectAnswer, explanation };
-    } catch (error) { console.error("Error en generateDefaultMaskQuestion:", error); return null; }
+    } catch (error) {
+        console.error("Error en generateDefaultMaskQuestion:", error);
+        return null;
+    }
 }
 
+/**
+ * Genera una pregunta de formato inverso: "¿Cuál de estas IPs es Clase X?".
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateSelectClassQuestion() {
     try{
-        const targetClasses = ['A', 'B', 'C'];
-        const targetClass = targetClasses[getRandomInt(0, targetClasses.length - 1)];
+        const targetClasses = ['A', 'B', 'C']; // Clases objetivo válidas
+        const targetClass = targetClasses[getRandomInt(0, targetClasses.length - 1)]; // Elige una al azar
+        // Objeto pregunta con clave y datos
         const question = { key: 'question_select_ip_for_class', replacements: { targetClass: `<strong>${targetClass}</strong>` } };
-        let correctIp = ''; let incorrectIps = []; let attempts = 0; let ipSet = new Set();
-        while (!correctIp && attempts < 100) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.class === targetClass && info.type !== 'Loopback') { correctIp = ip; ipSet.add(ip); } attempts++; }
-        if (!correctIp) { if(targetClass === 'A') correctIp = '10.1.1.1'; else if(targetClass === 'B') correctIp = '172.16.1.1'; else correctIp = '192.168.1.1'; ipSet.add(correctIp); }
+        let correctIp = '';        // IP correcta (de la clase target)
+        let incorrectIps = [];   // Array para IPs incorrectas
+        let attempts = 0;
+        let ipSet = new Set();     // Set para evitar IPs duplicadas en las opciones
+
+        // Intenta generar una IP correcta para la clase objetivo (no Loopback)
+        while (!correctIp && attempts < 100) {
+            let ip = generateRandomIp(); let info = getIpInfo(ip);
+            if (info.class === targetClass && info.type !== 'Loopback') {
+                correctIp = ip; ipSet.add(ip); // Guarda la IP correcta y la añade al Set
+            }
+            attempts++;
+        }
+        // Si falla la generación aleatoria, usa un fallback conocido para esa clase
+        if (!correctIp) {
+            if(targetClass === 'A') correctIp = '10.1.1.1';
+            else if(targetClass === 'B') correctIp = '172.16.1.1';
+            else correctIp = '192.168.1.1';
+            ipSet.add(correctIp);
+        }
+
+        // Genera 3 IPs incorrectas (de clases diferentes a la target)
         attempts = 0;
-        while (incorrectIps.length < 3 && attempts < 300) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.class !== targetClass && info.class !== 'N/A' && info.type !== 'Loopback' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; }
-        if(incorrectIps.length < 3) { const fallbacks = ['8.8.8.8', '224.0.0.5', '169.254.1.1', '150.150.1.1', '200.200.1.1', '126.1.1.1', '191.1.1.1']; for (const fb of fallbacks) { if (incorrectIps.length < 3 && !ipSet.has(fb) && getIpInfo(fb).class !== targetClass) { incorrectIps.push(fb); ipSet.add(fb); } } }
-        incorrectIps = incorrectIps.slice(0, 3);
-        const options = [correctIp, ...incorrectIps]; // Opciones son IPs
+        while (incorrectIps.length < 3 && attempts < 300) {
+            let ip = generateRandomIp(); let info = getIpInfo(ip);
+            // Verifica que la clase sea diferente, no sea N/A, no sea Loopback y no esté ya en el Set
+            if (info.class !== targetClass && info.class !== 'N/A' && info.type !== 'Loopback' && !ipSet.has(ip)) {
+                 incorrectIps.push(ip); ipSet.add(ip); // Añade al array y al Set
+            }
+            attempts++;
+        }
+        // Si no se lograron generar 3 incorrectas, añade fallbacks conocidos
+        if(incorrectIps.length < 3) {
+            const fallbacks = ['8.8.8.8', '224.0.0.5', '169.254.1.1', '150.150.1.1', '200.200.1.1', '126.1.1.1', '191.1.1.1'];
+            for (const fb of fallbacks) {
+                // Verifica que el fallback no sea de la clase target y no esté duplicado
+                if (incorrectIps.length < 3 && !ipSet.has(fb) && getIpInfo(fb).class !== targetClass) {
+                    incorrectIps.push(fb); ipSet.add(fb);
+                }
+            }
+        }
+        incorrectIps = incorrectIps.slice(0, 3); // Asegura que solo haya 3 incorrectas
+
+        // Combina la correcta y las incorrectas, y baraja el orden
+        // Las opciones son IPs (valores técnicos)
+        const options = [correctIp, ...incorrectIps];
         shuffleArray(options);
-        const correct = correctIp; // Respuesta es IP
-        const explanation = { key: 'explanation_select_ip_for_class', replacements: { targetClass: targetClass, correctIp: correct }, table: generateClassRangeTableHTML(targetClass) };
+        const correct = correctIp; // La respuesta correcta es la IP
+        // Explicación como objeto con clave, datos y tabla HTML
+        const explanation = {
+            key: 'explanation_select_ip_for_class',
+            replacements: { targetClass: targetClass, correctIp: correct },
+            table: generateClassRangeTableHTML(targetClass) // Tabla generada por utils.js
+        };
         return { question, options, correctAnswer: correct, explanation };
-    } catch (error) { console.error("Error en generateSelectClassQuestion:", error); return null; }
+    } catch (error) {
+        console.error("Error en generateSelectClassQuestion:", error);
+        return null;
+    }
  }
 
+/**
+ * Genera una pregunta de formato inverso: "¿Cuál de estas IPs es Privada?".
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateSelectPrivateIpQuestion() {
     try {
+        // Objeto pregunta con clave
         const question = { key: 'question_select_private_ip' };
-        let correctIp = generateRandomPrivateIp(); let incorrectIps = []; let attempts = 0; let ipSet = new Set([correctIp]);
-        while (incorrectIps.length < 3 && attempts < 300) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.type === 'Pública' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; }
-        if(incorrectIps.length < 3) { const fallbacks = ['8.8.8.8', '1.1.1.1', '203.0.113.1', '198.51.100.1', '172.15.1.1', '192.169.1.1']; for (const fb of fallbacks) { if (incorrectIps.length < 3 && !ipSet.has(fb)) { incorrectIps.push(fb); ipSet.add(fb); } } }
+        // Genera una IP privada garantizada
+        let correctIp = generateRandomPrivateIp();
+        let incorrectIps = []; let attempts = 0; let ipSet = new Set([correctIp]); // Añade la correcta al Set
+
+        // Genera 3 IPs públicas incorrectas
+        while (incorrectIps.length < 3 && attempts < 300) {
+            let ip = generateRandomIp();
+            let info = getIpInfo(ip);
+            // Verifica que sea pública y no duplicada
+            if (info.type === 'Pública' && !ipSet.has(ip)) {
+                 incorrectIps.push(ip); ipSet.add(ip);
+            }
+            attempts++;
+        }
+        // Añade fallbacks públicos si es necesario
+        if(incorrectIps.length < 3) {
+            const fallbacks = ['8.8.8.8', '1.1.1.1', '203.0.113.1', '198.51.100.1', '172.15.1.1', '192.169.1.1'];
+             for (const fb of fallbacks) {
+                 if (incorrectIps.length < 3 && !ipSet.has(fb)) {
+                     incorrectIps.push(fb); ipSet.add(fb);
+                 }
+             }
+        }
         incorrectIps = incorrectIps.slice(0, 3);
-        const options = [correctIp, ...incorrectIps]; // Opciones son IPs
+
+        // Opciones son IPs (valores técnicos)
+        const options = [correctIp, ...incorrectIps];
         shuffleArray(options);
-        const correct = correctIp; // Respuesta es IP
+        const correct = correctIp; // Respuesta correcta es la IP
+        // Explicación es la tabla HTML generada por utils.js
         const explanation = generatePrivateRangeTableHTML(correct);
         return { question, options, correctAnswer: correct, explanation };
-    } catch (error) { console.error("Error en generateSelectPrivateIpQuestion:", error); return null; }
+    } catch (error) {
+        console.error("Error en generateSelectPrivateIpQuestion:", error);
+        return null;
+    }
  }
 
+/**
+ * Genera una pregunta de formato inverso: "¿Cuál de estas IPs usaría la máscara X por defecto?".
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateSelectIpByDefaultMaskQuestion() {
     try {
-        const targetMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0'];
-        const targetMask = targetMasks[getRandomInt(0, targetMasks.length - 1)];
+        const targetMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; // Máscaras objetivo
+        const targetMask = targetMasks[getRandomInt(0, targetMasks.length - 1)]; // Elige una
+        // Objeto pregunta con clave y datos
         const question = { key: 'question_select_ip_for_mask', replacements: { targetMask: `<strong>${targetMask}</strong>` } };
         let correctIp = ''; let incorrectIps = []; let attempts = 0; let ipSet = new Set();
-        while (!correctIp && attempts < 100) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask === targetMask && info.type !== 'Loopback') { correctIp = ip; ipSet.add(ip); } attempts++; }
+
+        // Genera IP correcta
+        while (!correctIp && attempts < 100) {
+            let ip = generateRandomIp(); let info = getIpInfo(ip);
+            if (info.defaultMask === targetMask && info.type !== 'Loopback') { correctIp = ip; ipSet.add(ip); }
+            attempts++;
+        }
+        // Fallback
         if (!correctIp) { if(targetMask === '255.0.0.0') correctIp = '10.1.1.1'; else if(targetMask === '255.255.0.0') correctIp = '172.16.1.1'; else correctIp = '192.168.1.1'; ipSet.add(correctIp); }
+
+        // Genera IPs incorrectas
         attempts = 0;
-        while (incorrectIps.length < 3 && attempts < 300) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask !== 'N/A' && info.defaultMask !== targetMask && info.type !== 'Loopback' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; }
-        if(incorrectIps.length < 3) { const fallbacks = ['8.8.8.8', '224.0.0.1', '169.254.1.1', '172.30.1.1', '192.168.5.5', '126.1.1.1', '191.1.1.1']; for (const fb of fallbacks) { let fbInfo = getIpInfo(fb); if (incorrectIps.length < 3 && !ipSet.has(fb) && fbInfo.defaultMask !== targetMask && fbInfo.defaultMask !== 'N/A') { incorrectIps.push(fb); ipSet.add(fb); } } }
+        while (incorrectIps.length < 3 && attempts < 300) {
+            let ip = generateRandomIp(); let info = getIpInfo(ip);
+            // Asegura máscara válida, diferente a target, no Loopback y no duplicada
+            if (info.defaultMask !== 'N/A' && info.defaultMask !== targetMask && info.type !== 'Loopback' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); }
+            attempts++;
+        }
+        // Rellena con fallbacks si es necesario
+        if(incorrectIps.length < 3) {
+            const fallbacks = ['8.8.8.8', '224.0.0.1', '169.254.1.1', '172.30.1.1', '192.168.5.5', '126.1.1.1', '191.1.1.1'];
+            for (const fb of fallbacks) { let fbInfo = getIpInfo(fb); if (incorrectIps.length < 3 && !ipSet.has(fb) && fbInfo.defaultMask !== targetMask && fbInfo.defaultMask !== 'N/A') { incorrectIps.push(fb); ipSet.add(fb); } }
+        }
         incorrectIps = incorrectIps.slice(0, 3);
-        const options = [correctIp, ...incorrectIps]; // Opciones son IPs
+
+        // Opciones son IPs (valores técnicos)
+        const options = [correctIp, ...incorrectIps];
         shuffleArray(options);
-        const correct = correctIp; // Respuesta es IP
+        const correct = correctIp; // Respuesta correcta es la IP
         const correctClass = getIpInfo(correct).class;
-        const explanation = { key: 'explanation_select_ip_for_mask', replacements: { class: correctClass, mask: targetMask }, table: generateClassMaskTableHTML(correctClass) };
+        // Explicación como objeto con clave, datos y tabla HTML
+        const explanation = {
+            key: 'explanation_select_ip_for_mask',
+            replacements: { class: correctClass, mask: targetMask },
+            table: generateClassMaskTableHTML(correctClass)
+        };
         return { question, options, correctAnswer: correct, explanation };
-    } catch (error) { console.error("Error en generateSelectIpByDefaultMaskQuestion:", error); return null; }
+    } catch (error) {
+        console.error("Error en generateSelectIpByDefaultMaskQuestion:", error);
+        return null;
+    }
 }
 
 
 // --- Generadores de Preguntas (Nivel Associate) ---
+// Estas funciones generan preguntas que combinan dos conceptos o introducen temas nuevos.
 
+/**
+ * Genera una pregunta para identificar la Clase y el Tipo (Pública/Privada) de una IP.
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateClassAndTypeQuestion() {
     try {
         let ip, info, attempts = 0;
+        // Genera IP válida (A, B, C, no Loopback)
         do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; }
         while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.type === 'Loopback') && attempts < 100);
-        if (attempts >= 100) { ip = Math.random() < 0.5 ? '172.20.1.1' : '10.10.10.10'; info = getIpInfo(ip); }
+        if (attempts >= 100) { ip = Math.random() < 0.5 ? '172.20.1.1' : '10.10.10.10'; info = getIpInfo(ip); } // Fallback
+
+        // Objeto pregunta con clave y datos
         const question = { key: 'question_given_ip_what_class_type', replacements: { ip: `<strong>${ip}</strong>` } };
         const correctClass = info.class; const correctType = info.type;
         // Respuesta correcta como objeto con claves estandarizadas
         const correctAnswerObject = { classKey: `option_class_${correctClass}`, typeKey: (correctType === 'Pública' ? 'option_public' : 'option_private') };
 
-        let options = []; options.push(correctAnswerObject);
+        let options = []; options.push(correctAnswerObject); // Añadir la correcta
         const possibleClasses = ['A', 'B', 'C'].filter(c => c !== correctClass);
         const possibleTypeKeys = ['option_public', 'option_private'].filter(k => k !== correctAnswerObject.typeKey);
 
-        // Generar opciones incorrectas como objetos con claves
+        // Generar opciones incorrectas como objetos con claves i18n
         if (possibleTypeKeys.length > 0) { options.push({ classKey: `option_class_${correctClass}`, typeKey: possibleTypeKeys[0] }); }
         if (possibleClasses.length > 0) { options.push({ classKey: `option_class_${possibleClasses[0]}`, typeKey: correctAnswerObject.typeKey }); }
         if (possibleClasses.length > 0 && possibleTypeKeys.length > 0) { options.push({ classKey: `option_class_${possibleClasses[0]}`, typeKey: possibleTypeKeys[0] }); }
+        // Rellenar hasta 4 opciones
         let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.typeKey}`));
         while (options.length < 4) {
             const randomClassKey = `option_class_${['A', 'B', 'C'][getRandomInt(0, 2)]}`;
             const randomTypeKey = ['option_public', 'option_private'][getRandomInt(0, 1)];
             const potentialOption = { classKey: randomClassKey, typeKey: randomTypeKey };
             const potentialOptionStr = `${potentialOption.classKey},${potentialOption.typeKey}`;
-            if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); }
+            if (!existingOptionsStr.has(potentialOptionStr)) {
+                options.push(potentialOption);
+                existingOptionsStr.add(potentialOptionStr);
+            }
         }
 
         options = options.slice(0, 4); shuffleArray(options);
+        // Explicación HTML combinada (generada por utils.js)
         const explanation = `${generateClassRangeTableHTML(correctClass)}<hr style="margin: 10px 0;">${generatePrivateRangeTableHTML(ip)}`;
+        // Devolver la respuesta correcta como objeto también
         return { question, options, correctAnswer: correctAnswerObject, explanation };
     } catch (error) { console.error("Error en generateClassAndTypeQuestion:", error); return null; }
 }
 
+/**
+ * Genera una pregunta para identificar la Clase y la Máscara por Defecto de una IP.
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateClassAndDefaultMaskQuestion() {
     try {
         let ip, info, attempts = 0;
         do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; }
         while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.type === 'Loopback') && attempts < 100);
         if (attempts >= 100) { ip = '172.16.50.50'; info = getIpInfo(ip); }
+        // Objeto pregunta con clave y datos
         const question = { key: 'question_given_ip_what_class_mask', replacements: { ip: `<strong>${ip}</strong>` } };
         const correctClass = info.class; const correctMask = info.defaultMask;
-        // Respuesta correcta como objeto
+        // Respuesta correcta como objeto con clave de clase y valor de máscara
         const correctAnswerObject = { classKey: `option_class_${correctClass}`, maskValue: correctMask };
 
-        let options = []; options.push(correctAnswerObject);
+        let options = []; options.push(correctAnswerObject); // Añadir la correcta
         const possibleClasses = ['A', 'B', 'C'].filter(c => c !== correctClass);
         const possibleMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0'].filter(m => m !== correctMask);
 
@@ -169,38 +365,52 @@ function generateClassAndDefaultMaskQuestion() {
         if (possibleMasks.length > 0) { options.push({ classKey: `option_class_${correctClass}`, maskValue: possibleMasks[0] }); }
         if (possibleClasses.length > 0) { options.push({ classKey: `option_class_${possibleClasses[0]}`, maskValue: correctMask }); }
         if (possibleClasses.length > 0) {
-             let incorrectMaskForIncorrectClass = '255.255.255.255';
+             let incorrectMaskForIncorrectClass = '255.255.255.255'; // Fallback
              if (possibleClasses[0] === 'A' && possibleMasks.includes('255.0.0.0')) incorrectMaskForIncorrectClass = '255.0.0.0';
              else if (possibleClasses[0] === 'B' && possibleMasks.includes('255.255.0.0')) incorrectMaskForIncorrectClass = '255.255.0.0';
              else if (possibleClasses[0] === 'C' && possibleMasks.includes('255.255.255.0')) incorrectMaskForIncorrectClass = '255.255.255.0';
              else if (possibleMasks.length > 0) incorrectMaskForIncorrectClass = possibleMasks[0];
              const incorrectCombination = { classKey: `option_class_${possibleClasses[0]}`, maskValue: incorrectMaskForIncorrectClass };
-             if (!options.some(o => o.classKey === incorrectCombination.classKey && o.maskValue === incorrectCombination.maskValue)) { options.push(incorrectCombination); }
+             // Evitar duplicados exactos
+             if (!options.some(o => o.classKey === incorrectCombination.classKey && o.maskValue === incorrectCombination.maskValue)) {
+                 options.push(incorrectCombination);
+             }
         }
+        // Rellenar hasta 4 opciones
         let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.maskValue}`));
         while (options.length < 4) {
             const randomClassKey = `option_class_${['A', 'B', 'C'][getRandomInt(0, 2)]}`;
             const randomMask = ['255.0.0.0', '255.255.0.0', '255.255.255.0'][getRandomInt(0, 2)];
             const potentialOption = { classKey: randomClassKey, maskValue: randomMask };
             const potentialOptionStr = `${potentialOption.classKey},${potentialOption.maskValue}`;
-            if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); }
+            if (!existingOptionsStr.has(potentialOptionStr)) {
+                 options.push(potentialOption);
+                 existingOptionsStr.add(potentialOptionStr);
+            }
         }
 
         options = options.slice(0, 4); shuffleArray(options);
+        // Explicación HTML generada por utils.js
         const explanation = generateClassMaskTableHTML(correctClass);
+        // Devolver respuesta correcta como objeto
         return { question, options, correctAnswer: correctAnswerObject, explanation };
     } catch (error) { console.error("Error en generateClassAndDefaultMaskQuestion:", error); return null; }
 }
 
+/**
+ * Genera pregunta: Clase y Porción de Red (con máscara default).
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateClassAndNetworkPortionQuestion() {
     try {
         let ip, info, portions, attempts = 0;
         do { ip = generateRandomIp(); info = getIpInfo(ip); if (info.class === 'A' || info.class === 'B' || info.class === 'C') { portions = getIpPortions(ip, info.defaultMask); } else { portions = null; } attempts++; } while (!portions && attempts < 100);
         if (!portions) { ip = '192.168.1.100'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask); if (!portions) throw new Error("Fallback IP falló"); }
+        // Objeto pregunta con clave y datos
         const question = { key: 'question_given_ip_what_class_net_portion', replacements: { ip: `<strong>${ip}</strong>` } };
         const correctClass = info.class; const correctNetworkPortion = portions.networkPortion;
         if (!correctNetworkPortion && correctNetworkPortion !== "") throw new Error(`No se pudo obtener networkPortion para ${ip}`);
-        // Respuesta correcta como objeto
+        // Respuesta correcta como objeto con claves y valor
         const correctAnswerObject = { classKey: `option_class_${correctClass}`, portionKey: 'option_network_portion', portionValue: correctNetworkPortion || 'None' };
 
         let options = []; options.push(correctAnswerObject);
@@ -217,17 +427,24 @@ function generateClassAndNetworkPortionQuestion() {
         while (options.length < 4) { const randomClassKey = `option_class_${['A', 'B', 'C'][getRandomInt(0, 2)]}`; let randomPortion = ''; if (randomClassKey === 'option_class_A') randomPortion = `${getRandomInt(1, 126)}`; else if (randomClassKey === 'option_class_B') randomPortion = `${getRandomInt(128, 191)}.${getRandomInt(0, 255)}`; else randomPortion = `${getRandomInt(192, 223)}.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}`; const potentialOption = { classKey: randomClassKey, portionKey: 'option_network_portion', portionValue: randomPortion }; const potentialOptionStr = `${potentialOption.classKey},${potentialOption.portionKey},${potentialOption.portionValue}`; if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); } }
 
         options = options.slice(0, 4); shuffleArray(options);
+        // Explicación HTML generada por utils.js
         const wildcardMask = calculateWildcardMask(info.defaultMask); const networkAddr = calculateNetworkAddress(ip, info.defaultMask); const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
         const explanation = { table: generatePortionExplanationHTML(ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr) }; // Explicación es solo la tabla
+        // Devolver respuesta correcta como objeto
         return { question, options, correctAnswer: correctAnswerObject, explanation };
     } catch (error) { console.error("Error en generateClassAndNetworkPortionQuestion:", error); return null; }
 }
 
+/**
+ * Genera pregunta: Clase y Porción de Host (con máscara default).
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateClassAndHostPortionQuestion() {
     try {
         let ip, info, portions, attempts = 0;
         do { ip = generateRandomIp(); info = getIpInfo(ip); if (info.class === 'A' || info.class === 'B' || info.class === 'C') { portions = getIpPortions(ip, info.defaultMask); } else { portions = null; } attempts++; } while (!portions && attempts < 100);
         if (!portions) { ip = '172.16.10.20'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask); if (!portions) throw new Error("Fallback IP falló"); }
+        // Objeto pregunta con clave y datos
         const question = { key: 'question_given_ip_what_class_host_portion', replacements: { ip: `<strong>${ip}</strong>` } };
         const correctClass = info.class; const correctHostPortion = portions.hostPortion;
         if (!correctHostPortion && correctHostPortion !== "") throw new Error(`No se pudo obtener hostPortion para ${ip}`);
@@ -251,10 +468,12 @@ function generateClassAndHostPortionQuestion() {
         // Explicación HTML generada por utils.js
         const wildcardMask = calculateWildcardMask(info.defaultMask); const networkAddr = calculateNetworkAddress(ip, info.defaultMask); const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
         const explanation = { table: generatePortionExplanationHTML(ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr) };
+        // Devolver respuesta correcta como objeto
         return { question, options, correctAnswer: correctAnswerObject, explanation };
     } catch (error) { console.error("Error en generateClassAndHostPortionQuestion:", error); return null; }
 }
 
+/** Genera preguntas sobre los bloques privados RFC 1918 (CIDR, Rango, Clase) */
 function generateRfc1918Question() {
     try {
         const rfcLink = 'https://datatracker.ietf.org/doc/html/rfc1918';
@@ -290,6 +509,7 @@ function generateRfc1918Question() {
     } catch (error) { console.error("Error en generateRfc1918Question:", error); return null; }
 }
 
+/** Genera preguntas sobre direcciones IP especiales (Loopback, APIPA, Broadcast Limitado) */
 function generateSpecialAddressQuestion() {
     try {
         const specialAddresses = [ { ip: '127.0.0.1', type: 'Loopback', descriptionKey: 'option_loopback' }, { ip: `169.254.${getRandomInt(1, 254)}.${getRandomInt(1, 254)}`, type: 'APIPA', descriptionKey: 'option_apipa' }, { ip: '255.255.255.255', type: 'Broadcast Limitado', descriptionKey: 'option_limited_broadcast' } ];
@@ -334,6 +554,7 @@ function generateSpecialAddressQuestion() {
     } catch (error) { console.error("Error en generateSpecialAddressQuestion:", error); return null; }
 }
 
+/** Genera pregunta para identificar la porción de red de una IP (con máscara default) */
 function generateIdentifyNetworkPortionQuestion() {
     try {
         let ip, info, portions, attempts = 0;
@@ -356,6 +577,7 @@ function generateIdentifyNetworkPortionQuestion() {
     } catch (error) { console.error("Error en generateIdentifyNetworkPortionQuestion:", error); return null; }
 }
 
+/** Genera pregunta para identificar la porción de host de una IP (con máscara default) */
 function generateIdentifyHostPortionQuestion() {
     try {
         let ip, info, portions, attempts = 0;
@@ -378,6 +600,10 @@ function generateIdentifyHostPortionQuestion() {
     } catch (error) { console.error("Error en generateIdentifyHostPortionQuestion:", error); return null; }
 }
 
+/**
+ * Genera pregunta para calcular la Dir. de Red o Broadcast (con máscara default).
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
 function generateNetworkBroadcastAddressQuestion() {
     try {
         let ip, info, attempts = 0;
@@ -439,7 +665,7 @@ const associateQuestionGenerators = [
     generateNetworkBroadcastAddressQuestion // Cálculo de Dir Red/Broadcast
 ];
 
-// TODO: Crear professionalQuestionGenerators = [...]
+// TODO: Crear array professionalQuestionGenerators = [...]
 
 // --- Función Principal para Obtener Pregunta ---
 
@@ -468,3 +694,4 @@ export function getNextQuestion(level) {
          } catch (error) { console.error(`Error al ejecutar el generador ${generatorFunction.name}:`, error); return null; }
      } else { console.error(`El generador seleccionado para el nivel ${level} en el índice ${randomIndex} no es una función válida.`); return null; }
 }
+
