@@ -26,7 +26,7 @@ let currentScore = 0;              // Puntuación acumulada durante la ronda/par
 let currentLevel = '';             // Nivel que se está jugando en la ronda actual (ej. 'Entry', 'Associate').
 let currentGameMode = 'standard';  // Modo de juego ('standard' o 'mastery'). Determina reglas como el timer.
 let currentQuestionData = null;    // Objeto que contiene toda la información de la pregunta actual
-                                   // (devuelto por questions.js, puede incluir claves i18n).
+                                   // (devuelto por questions.js, incluye claves i18n y datos).
 // let correctAnswer = null;       // Ya no se usa, la respuesta correcta está en currentQuestionData.correctAnswer
 let questionsAnswered = 0;         // Contador de cuántas preguntas se han respondido en la ronda actual.
 let roundResults = [];             // Array de booleanos (true/false) que registra si cada respuesta de la ronda fue correcta o no.
@@ -104,8 +104,8 @@ export function handleUserLogin(username) {
  * @param {string} mode - Modo seleccionado ('standard', 'mastery').
  */
 export function selectLevelAndMode(level, mode) {
-    currentLevel = level;     // Guarda el nivel.
-    currentGameMode = mode; // Guarda el modo.
+    currentLevel = level;     // Guarda el nivel seleccionado.
+    currentGameMode = mode; // Guarda el modo seleccionado.
     startGame();            // Inicia la ronda.
 }
 
@@ -115,7 +115,7 @@ export function selectLevelAndMode(level, mode) {
  */
 export function startGame() {
     clearInterval(questionTimerInterval); // Detiene cualquier timer anterior.
-    // Reinicia variables de la ronda.
+    // Reinicia las variables de estado de la ronda.
     currentScore = 0;
     questionsAnswered = 0;
     roundResults = [];
@@ -153,7 +153,6 @@ function loadNextQuestion() {
         if (questionDataResult && questionDataResult.question && questionDataResult.options && Array.isArray(questionDataResult.options) && questionDataResult.correctAnswer !== undefined && questionDataResult.explanation !== undefined) {
             // Guarda los datos completos de la pregunta actual.
             currentQuestionData = questionDataResult;
-            // correctAnswer = questionDataResult.correctAnswer; // Ya no es necesario guardarlo por separado
 
             // --- Lógica del Temporizador ---
             const duration = getTimerDurationForCurrentLevel(); // Obtiene duración para este nivel/modo.
@@ -162,13 +161,15 @@ function loadNextQuestion() {
                 ui.showTimerDisplay(true); // Muestra el display.
                 timeLeft = duration;       // Establece la duración.
                 ui.updateTimerDisplay(timeLeft); // Muestra el tiempo inicial.
-                questionTimerInterval = setInterval(updateTimer, 1000); // Inicia el contador.
+                // Inicia el intervalo que llamará a updateTimer cada 1000ms (1 segundo).
+                questionTimerInterval = setInterval(updateTimer, 1000);
             } else {
                 ui.showTimerDisplay(false); // Oculta si no aplica.
             }
             // --- Fin Lógica Timer ---
 
             // Muestra la pregunta y opciones en la UI, pasando los datos completos.
+            // ui.js se encargará de traducir.
             ui.displayQuestion(currentQuestionData, handleAnswerClick);
 
         } else {
@@ -202,7 +203,7 @@ function loadNextQuestion() {
 
     // Si se acabó el tiempo.
     if (timeLeft <= 0) {
-        clearInterval(questionTimerInterval); // Detiene timer.
+        clearInterval(questionTimerInterval); // Detiene el timer actual.
         if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled'); // Deshabilita opciones.
 
         roundResults.push(false); // Marca como incorrecta.
@@ -211,17 +212,17 @@ function loadNextQuestion() {
 
         // Muestra feedback de tiempo agotado.
         const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
+        // ui.js se encarga de traducir la respuesta correcta dentro de displayFeedback
         ui.displayFeedback(false, isMasteryStyle, timeoutFeedbackData, proceedToNextStep);
 
         // Modifica el texto del feedback para indicar timeout (usa traducción).
         if (ui.feedbackArea) {
             const feedbackContent = ui.feedbackArea.querySelector('#feedback-text-content span:first-child');
-            // Traduce la respuesta correcta antes de mostrarla
+            // Traduce la respuesta correcta para el mensaje de timeout
             let translatedCorrectAnswer = '';
             const ca = currentQuestionData?.correctAnswer;
             if (typeof ca === 'string') { translatedCorrectAnswer = getTranslation(ca) || ca; }
             else if (typeof ca === 'object') { /* ... lógica para traducir objetos de respuesta ... */
-                 // Esta lógica debería estar en ui.js, pero la replicamos aquí por simplicidad del ejemplo
                  if (ca.classKey && ca.typeKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`;
                  else if (ca.classKey && ca.maskValue) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`;
                  else if (ca.classKey && ca.portionKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`;
@@ -451,6 +452,6 @@ export function initializeGame() {
     // Carga y muestra las puntuaciones altas iniciales.
     const initialHighScores = storage.loadHighScores();
     ui.displayHighScores(initialHighScores);
-    // Muestra la pantalla inicial de configuración de usuario.
+    // Muestra la primera pantalla que ve el usuario: el formulario para ingresar nombre.
     ui.showSection(ui.userSetupSection);
 }
