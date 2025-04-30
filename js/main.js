@@ -2,8 +2,9 @@
 import * as storage from './storage.js';
 import * as ui from './ui.js';
 import * as game from './game.js';
-// Importar funciones de i18n
-import { setLanguage, getCurrentLanguage } from './i18n.js';
+// Importar funciones de i18n y la función para obtener datos de la pregunta actual
+import { setLanguage, getCurrentLanguage, getTranslation } from './i18n.js';
+import { getCurrentUsername, getCurrentQuestionData, handleAnswerClick } from './game.js'; // Importar funciones necesarias de game
 
 // Espera a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', async () => { // Marcar como async
@@ -25,8 +26,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Marcar como async
             if (enteredUsername) {
                 game.handleUserLogin(enteredUsername);
             } else {
-                // TODO: Usar getTranslation para mensajes de alerta
-                alert(getTranslation('alert_enter_username')); // Necesitas añadir 'alert_enter_username' a los JSON
+                // TODO: Añadir clave 'alert_enter_username' a JSONs
+                alert(getTranslation('alert_enter_username') || "Por favor, ingresa un nombre de usuario.");
             }
         });
     } else {
@@ -57,32 +58,46 @@ document.addEventListener('DOMContentLoaded', async () => { // Marcar como async
             if (selectedLang) {
                 await setLanguage(selectedLang); // Cambiar idioma y aplicar a elementos estáticos
 
-                // --- NUEVO: Refrescar elementos dinámicos ---
-                // Recargar y volver a mostrar High Scores para aplicar traducción
+                // --- Refrescar elementos dinámicos ---
+
+                // 1. Recargar y volver a mostrar High Scores
                 const currentHighScores = storage.loadHighScores();
                 ui.displayHighScores(currentHighScores);
 
-                // --- NUEVO: Volver a mostrar la pantalla de selección de nivel si está activa ---
-                // Esto actualizará los botones de nivel y el progreso de desbloqueo
-                // Necesitamos obtener los datos del usuario actual (podríamos necesitar exponerlos desde game.js
-                // o recargarlos aquí si es necesario)
-                // Asumiendo que game.js tiene una forma de exponer currentUserData o username
-                const currentUserData = storage.getUserData(game.getCurrentUsername()); // Necesitamos una función getCurrentUsername en game.js
-                if (ui.levelSelectSection.style.display === 'block' && currentUserData) {
-                     ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, game.selectLevelAndMode);
-                }
-                // Si estamos en Game Over, también actualizamos el progreso
-                else if (ui.gameOverSection.style.display === 'block' && currentUserData) {
-                     ui.updateUnlockProgressUI(currentUserData); // Solo actualizar progreso en Game Over
-                     // Actualizar texto botón "Jugar de Nuevo"
-                     if (ui.playAgainButton && currentUserData.unlockedLevels) {
-                         if (currentUserData.unlockedLevels.length <= 1) {
-                             const levelName = getTranslation(`level_${(currentUserData.unlockedLevels[0] || 'entry').toLowerCase()}`);
-                             ui.playAgainButton.textContent = getTranslation('play_again_level_button', { levelName: levelName });
-                         } else {
-                             ui.playAgainButton.textContent = getTranslation('play_again_button');
+                // 2. Volver a mostrar la pantalla de selección de nivel O Game Over (si están activas)
+                //    para actualizar botones y progreso traducidos
+                const username = getCurrentUsername(); // Obtener username actual
+                if (username) { // Solo si ya hay un usuario logueado
+                    const currentUserData = storage.getUserData(username);
+                    if (ui.levelSelectSection.style.display === 'block' && currentUserData) {
+                         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, game.selectLevelAndMode);
+                    } else if (ui.gameOverSection.style.display === 'block' && currentUserData) {
+                         ui.updateUnlockProgressUI(currentUserData); // Actualizar progreso
+                         // Actualizar texto botón "Jugar de Nuevo"
+                         if (ui.playAgainButton && currentUserData.unlockedLevels) {
+                             if (currentUserData.unlockedLevels.length <= 1) {
+                                 const levelName = getTranslation(`level_${(currentUserData.unlockedLevels[0] || 'entry').toLowerCase()}`);
+                                 ui.playAgainButton.textContent = getTranslation('play_again_level_button', { levelName: levelName });
+                             } else {
+                                 ui.playAgainButton.textContent = getTranslation('play_again_button');
+                             }
                          }
-                     }
+                    }
+                }
+
+                // --- NUEVO: Refrescar la pregunta y opciones actuales si el juego está activo ---
+                if (ui.gameAreaSection.style.display === 'block') {
+                    const currentQuestion = getCurrentQuestionData(); // Obtener datos de la pregunta actual
+                    if(currentQuestion) {
+                       // Volver a llamar a displayQuestion para que use las nuevas traducciones
+                       ui.displayQuestion(currentQuestion, handleAnswerClick);
+                       // Opcional: Actualizar info del jugador por si acaso
+                       ui.updatePlayerInfo(username, game.getCurrentLevel ? game.getCurrentLevel() : '', game.getCurrentScore ? game.getCurrentScore() : 0); // Necesitaríamos exponer nivel y score actuales desde game.js
+                    } else {
+                        // Si no hay datos de pregunta (raro en esta pantalla), mostrar carga
+                         if(ui.questionText) ui.questionText.innerHTML = getTranslation('loading_question');
+                         if(ui.optionsContainer) ui.optionsContainer.innerHTML = '';
+                    }
                 }
                 // --- Fin Nuevo ---
             }
