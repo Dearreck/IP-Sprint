@@ -1,12 +1,12 @@
 // js/ui.js
 // ==================================================
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
-// ... (Imports y Selectores DOM iguales que en la versión anterior) ...
+// ... (Imports y Selectores DOM iguales que antes) ...
 // ==================================================
 
 // --- Importaciones de Módulos ---
 import * as config from './config.js';
-import { handleAnswerClick } from './game.js';
+import { handleAnswerClick } from './game.js'; // Necesario para que game.js pase la función
 import { getTranslation } from './i18n.js';
 import {
     generateClassRangeTableHTML,
@@ -17,6 +17,7 @@ import {
 } from './utils.js';
 
 // --- Selección de Elementos del DOM ---
+// (Igual que antes)
 export const userSetupSection = document.getElementById('user-setup');
 export const levelSelectSection = document.getElementById('level-select');
 export const gameAreaSection = document.getElementById('game-area');
@@ -212,7 +213,7 @@ export function updateRoundProgressUI(roundResults, isMasteryMode) {
 
 /**
  * Muestra la pregunta actual y genera los botones de opción traducidos.
- * MODIFICADO: Refactorizada la construcción del texto para opciones de objeto.
+ * CORREGIDO: Asegura la traducción de cada parte en opciones de objeto.
  * @param {object} questionData - Objeto con { question: {key, replacements}, options: [string|object], correctAnswer, explanation }.
  * @param {function} answerClickHandler - La función que manejará el clic en una opción.
  */
@@ -232,45 +233,41 @@ export function displayQuestion(questionData, answerClickHandler) {
             let originalValue = ''; // El valor original sin traducir para la lógica del juego
 
             if (typeof optionData === 'string') {
-                // Opción simple (ej. 'A', 'B', 'option_public', '10.0.0.0')
                 const translated = getTranslation(optionData);
-                // Usar el texto traducido si existe y es diferente a la clave, sino usar el valor original
                 buttonText = (translated && translated !== optionData) ? translated : optionData;
-                originalValue = optionData; // El valor original es la clave/valor en sí
+                originalValue = optionData;
             } else if (typeof optionData === 'object') {
-                // Opción compleja (ej. { classKey: 'option_class_B', maskValue: '255.255.0.0' })
-                let textParts = []; // Array para guardar las partes traducidas del texto
-                let originalValueParts = []; // Array para guardar las claves originales
+                let textParts = [];
+                let originalValueParts = [];
 
-                // Traducir y añadir cada parte existente al texto y a originalValue
+                // --- Lógica CORREGIDA y más explícita ---
                 if (optionData.classKey) {
-                    textParts.push(getTranslation(optionData.classKey));
-                    originalValueParts.push(optionData.classKey);
+                    const translatedClass = getTranslation(optionData.classKey);
+                    textParts.push(translatedClass); // Usar el texto traducido
+                    originalValueParts.push(optionData.classKey); // Guardar la clave original
                 }
                 if (optionData.typeKey) {
-                    textParts.push(getTranslation(optionData.typeKey));
+                    const translatedType = getTranslation(optionData.typeKey);
+                    textParts.push(translatedType);
                     originalValueParts.push(optionData.typeKey);
                 }
                 if (optionData.maskValue) {
-                    // Usar la clave 'option_mask' para formatear la máscara
+                    // Usar la clave 'option_mask' para el formato, que ya está traducida
                     textParts.push(getTranslation('option_mask', { mask: optionData.maskValue }));
-                    originalValueParts.push(optionData.maskValue); // Guardar solo el valor de la máscara
+                    originalValueParts.push(optionData.maskValue); // Guardar solo el valor
                 }
                 if (optionData.portionKey) {
-                    // Usar la clave de la porción (ej. 'option_network_portion') para formatear
-                    textParts.push(getTranslation(optionData.portionKey, { portion: optionData.portionValue || getTranslation('option_none') }));
-                    originalValueParts.push(optionData.portionKey); // Guardar la clave de la porción
-                    originalValueParts.push(optionData.portionValue || 'None'); // Guardar el valor (o 'None')
+                    const portionVal = optionData.portionValue || getTranslation('option_none'); // Obtener valor (o traducido 'None')
+                    // Usar la clave de formato (ej. 'option_host_portion'), que ya está traducida
+                    textParts.push(getTranslation(optionData.portionKey, { portion: portionVal }));
+                    originalValueParts.push(optionData.portionKey); // Guardar clave original
+                    originalValueParts.push(optionData.portionValue || 'None'); // Guardar valor original (o 'None')
                 }
+                // --- Fin Lógica CORREGIDA ---
 
-                // Unir las partes traducidas para el texto del botón
                 buttonText = textParts.join(', ');
-
-                // Unir las claves/valores originales para data-original-value
-                // Usamos una coma como separador consistente. Asegurarse que game.js lo reconstruye igual.
                 originalValue = originalValueParts.join(',');
 
-                // Fallback por si el objeto no tenía claves reconocidas
                 if (textParts.length === 0) {
                     buttonText = JSON.stringify(optionData);
                     originalValue = buttonText;
@@ -278,7 +275,6 @@ export function displayQuestion(questionData, answerClickHandler) {
                 }
 
             } else {
-                // Tipo de dato inesperado
                 buttonText = 'Opción Inválida';
                 originalValue = 'invalid';
                 console.warn("Tipo de dato de opción inesperado:", optionData);
@@ -306,7 +302,7 @@ export function displayQuestion(questionData, answerClickHandler) {
 
 /**
  * Muestra el feedback (correcto/incorrecto) después de una respuesta.
- * MODIFICADO: Refactorizada la construcción del texto para la respuesta correcta de objeto.
+ * CORREGIDO: Asegura la traducción de cada parte en la respuesta correcta de objeto.
  * @param {boolean} isCorrect - Indica si la respuesta fue correcta.
  * @param {boolean} isMasteryMode - Indica si se debe usar el estilo mastery.
  * @param {object} questionData - Objeto con los datos de la pregunta actual.
@@ -319,42 +315,43 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     let explanationHTML = '';
     const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
 
-    // --- MODIFICADO: Construir texto de respuesta correcta pieza por pieza ---
+    // --- Lógica CORREGIDA para construir texto de respuesta correcta ---
     let translatedCorrectAnswer = '';
-    const ca = questionData.correctAnswer; // Respuesta correcta (puede ser string u objeto)
+    const ca = questionData.correctAnswer;
 
     if (typeof ca === 'string') {
         const translated = getTranslation(ca);
         translatedCorrectAnswer = (translated && translated !== ca) ? translated : ca;
     } else if (typeof ca === 'object') {
         let textParts = [];
-        // Traducir y añadir cada parte existente
-        if (ca.classKey) textParts.push(getTranslation(ca.classKey));
-        if (ca.typeKey) textParts.push(getTranslation(ca.typeKey));
-        if (ca.maskValue) textParts.push(getTranslation('option_mask', { mask: ca.maskValue }));
-        if (ca.portionKey) textParts.push(getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') }));
+        if (ca.classKey) textParts.push(getTranslation(ca.classKey)); // Traducir directamente
+        if (ca.typeKey) textParts.push(getTranslation(ca.typeKey)); // Traducir directamente
+        if (ca.maskValue) textParts.push(getTranslation('option_mask', { mask: ca.maskValue })); // Usar formato
+        if (ca.portionKey) {
+             const portionVal = ca.portionValue || getTranslation('option_none');
+             textParts.push(getTranslation(ca.portionKey, { portion: portionVal })); // Usar formato
+        }
 
         if (textParts.length > 0) {
             translatedCorrectAnswer = textParts.join(', ');
         } else {
-            translatedCorrectAnswer = JSON.stringify(ca); // Fallback
+            translatedCorrectAnswer = JSON.stringify(ca);
             console.warn("Objeto de respuesta correcta vacío o con claves desconocidas:", ca);
         }
     } else {
-        translatedCorrectAnswer = 'N/A'; // Fallback para otros tipos
+        translatedCorrectAnswer = 'N/A';
     }
-    // --- FIN MODIFICADO ---
+    // --- FIN Lógica CORREGIDA ---
 
 
     if (isCorrect) {
         feedbackText = getTranslation('feedback_correct');
         feedbackArea.className = isMasteryMode ? 'mastery' : 'correct';
     } else {
-        // Usar el translatedCorrectAnswer construido arriba
         feedbackText = getTranslation('feedback_incorrect', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` });
         feedbackArea.className = 'incorrect';
 
-        // Generar explicación dinámicamente (lógica igual que en la versión anterior)
+        // Generar explicación dinámicamente (sin cambios aquí)
         try {
             const expInfo = questionData.explanation;
             let baseExplanationText = '';
@@ -381,11 +378,10 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
             explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' })}</p>`;
         }
 
-        // Resaltar botón correcto (lógica igual que antes)
+        // Resaltar botón correcto (sin cambios aquí, usa el originalValue reconstruido)
         try {
             if(optionsContainer) {
                 let correctOriginalValueStr = '';
-                // Reconstruir el valor original de la respuesta correcta para comparación
                 let originalValueParts = [];
                 if (typeof ca === 'string') {
                     correctOriginalValueStr = ca;
@@ -399,7 +395,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                     }
                     correctOriginalValueStr = originalValueParts.join(',');
                 } else {
-                     correctOriginalValueStr = 'N/A'; // Fallback
+                     correctOriginalValueStr = 'N/A';
                 }
 
                 Array.from(optionsContainer.children).forEach(button => {
@@ -411,22 +407,19 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         } catch (highlightError) { console.error("Error resaltando botón correcto:", highlightError); }
     }
 
-    // Construir el HTML final del feedback
+    // Construir el HTML final del feedback (sin cambios aquí)
     let finalFeedbackHTML = `<div id="feedback-text-content"><span>${feedbackText}</span>`;
     if (explanationHTML) {
         finalFeedbackHTML += `<span class="explanation">${explanationHTML}</span>`;
     }
     finalFeedbackHTML += `</div>`;
-
-    // Añadir botón "Siguiente" solo si la respuesta fue incorrecta
     if (!isCorrect) {
         const buttonTextKey = (questionData.questionsAnswered + 1 >= config.TOTAL_QUESTIONS_PER_GAME) ? 'final_result_button' : 'next_button';
         finalFeedbackHTML += `<button id="next-question-button">${getTranslation(buttonTextKey)}</button>`;
     }
-
     feedbackArea.innerHTML = finalFeedbackHTML;
 
-    // Añadir listener al botón "Siguiente" si existe
+    // Añadir listener al botón "Siguiente" (sin cambios aquí)
     if (!isCorrect) {
         const newNextButton = document.getElementById('next-question-button');
         if (newNextButton) {
