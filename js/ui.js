@@ -559,4 +559,3 @@ export function showTimerDisplay(show) {
          timerDisplayDiv.style.display = show ? 'block' : 'none';
      }
 }
-
