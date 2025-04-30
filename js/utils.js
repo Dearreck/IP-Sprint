@@ -367,7 +367,7 @@ export function generatePrivateRangeTableHTML(highlightIp = null) {
 }
 
 /**
- * REESCRITA Y CORREGIDA: Genera el HTML para la explicación de cálculo de Red/Broadcast/Wildcard.
+ * CORREGIDA: Genera el HTML para la explicación de cálculo de Red/Broadcast/Wildcard.
  * Muestra IP, Máscara, Wildcard, Dir. Red y Dir. Broadcast en una tabla didáctica.
  * @param {string} ipString - La IP original.
  * @param {string} maskString - La máscara de subred usada.
@@ -397,11 +397,13 @@ export function generatePortionExplanationHTML(ipString, maskString, wildcardStr
         html += '<table class="explanation-table">';
         html += '<thead><tr><th>Concepto</th><th>Valor</th><th>Cálculo / Nota</th></tr></thead>';
         html += '<tbody>';
+        // --- CORREGIDO: Usar las variables correctas pasadas como argumento ---
         html += `<tr><td>IP Original</td><td><code>${ipString}</code></td><td>-</td></tr>`;
         html += `<tr><td>Máscara</td><td><code>${maskString}</code></td><td>Define la porción de red</td></tr>`;
         html += `<tr><td>Wildcard</td><td><code>${wildcardString}</code></td><td>Inverso de Máscara (255 - octeto)</td></tr>`;
         html += `<tr><td>Dir. Red</td><td><code>${networkAddr}</code></td><td>IP <strong>AND</strong> Máscara</td></tr>`;
         html += `<tr><td>Dir. Broadcast</td><td><code>${broadcastAddr}</code></td><td>Dir. Red <strong>OR</strong> Wildcard</td></tr>`;
+        // --- Fin Corrección ---
         html += '</tbody></table>';
 
         return html;
@@ -460,7 +462,7 @@ export function generateSpecialAddressExplanationHTML(addressType) {
 // --- Función Auxiliar Interna ---
 /**
  * Obtiene el rango del primer octeto de una clase.
- * Usada por generatePortionExplanationHTML.
+ * Usada por generatePortionExplanationHTML (aunque ya no se usa en la v2).
  * @param {string} ipClass - La clase ('A', 'B', 'C').
  * @returns {string} El rango como string (ej. "1-126") o "N/A".
  */
