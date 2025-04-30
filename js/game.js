@@ -7,39 +7,43 @@
 // ==================================================
 
 // --- Importaciones de Módulos ---
-import * as config from './config.js';
-import * as storage from './storage.js';
-import * as ui from './ui.js';
-import { getNextQuestion } from './questions.js';
-import { getTranslation } from './i18n.js'; // Importar función de traducción
+import * as config from './config.js';         // Constantes de configuración
+import * as storage from './storage.js';       // Funciones para localStorage
+import * as ui from './ui.js';             // Funciones y elementos de UI
+import { getNextQuestion } from './questions.js'; // Función para obtener la siguiente pregunta
+import { getTranslation } from './i18n.js';    // Función para obtener textos traducidos
 
 // --- Variables de Estado del Juego ---
-let currentUsername = '';
-let currentUserData = {};
-let currentScore = 0;
-let currentLevel = '';
-let currentGameMode = 'standard';
-let currentQuestionData = null;
-let questionsAnswered = 0;
-let roundResults = [];
-let questionTimerInterval = null;
-let timeLeft = 0;
+let currentUsername = '';          // Nombre del usuario actual
+let currentUserData = {};          // Datos persistentes del usuario (niveles, rachas)
+let currentScore = 0;              // Puntuación de la ronda actual
+let currentLevel = '';             // Nivel actual ('Entry', 'Associate', etc.)
+let currentGameMode = 'standard';  // Modo ('standard', 'mastery')
+let currentQuestionData = null;    // Objeto con datos de la pregunta actual (claves i18n incluidas)
+let questionsAnswered = 0;         // Contador de preguntas respondidas en la ronda
+let roundResults = [];             // Array [true/false] de resultados de la ronda
+let questionTimerInterval = null;  // ID del intervalo del temporizador
+let timeLeft = 0;                  // Segundos restantes
 
 // --- Funciones Auxiliares ---
 
 /**
  * Obtiene la duración del temporizador para el nivel y modo actuales.
+ * Consulta el objeto TIMER_DURATION_BY_LEVEL en config.js.
  * @returns {number|null} Duración en segundos o null si no aplica timer.
  */
 function getTimerDurationForCurrentLevel() {
     try {
         const levelConfig = config.TIMER_DURATION_BY_LEVEL[currentLevel];
         if (levelConfig) {
+            // Devuelve duración para modo actual o 'standard' como fallback, o null
             return levelConfig[currentGameMode] ?? levelConfig['standard'] ?? null;
         }
+        // Usa default general si no hay config para el nivel
         return config.TIMER_DURATION_BY_LEVEL['default'] ?? null;
     } catch (error) {
         console.error("Error obteniendo duración del timer:", error);
+        // Fallback seguro
         return config.TIMER_DURATION_BY_LEVEL['default'] ?? 15;
     }
 }
@@ -55,14 +59,16 @@ export function handleUserLogin(username) {
     try {
         currentUserData = storage.getUserData(username);
         storage.saveUserData(username, currentUserData);
-        ui.updatePlayerInfo(currentUsername, '', '');
+        ui.updatePlayerInfo(currentUsername, '', ''); // Nivel y score se actualizan al iniciar juego
+        // Mostrar secciones relevantes en pantalla de selección de nivel
         if (ui.highScoresSection) ui.highScoresSection.style.display = 'block';
         if (ui.unlockProgressSection) ui.unlockProgressSection.style.display = 'block';
+        // Mostrar botones de nivel
         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
     } catch (error) {
         console.error("Error durante handleUserLogin:", error);
         alert(getTranslation('error_loading_user_data', { message: error.message }));
-        ui.showSection(ui.userSetupSection);
+        ui.showSection(ui.userSetupSection); // Volver al inicio si hay error
     }
 }
 
@@ -81,15 +87,17 @@ export function selectLevelAndMode(level, mode) {
  * Inicializa el estado para una nueva partida/ronda.
  */
 export function startGame() {
-    clearInterval(questionTimerInterval);
+    clearInterval(questionTimerInterval); // Limpiar timer anterior
+    // Reiniciar estado de la ronda
     currentScore = 0;
     questionsAnswered = 0;
     roundResults = [];
     timeLeft = 0;
+    // Actualizar UI e iniciar carga de pregunta
     ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
     ui.showSection(ui.gameAreaSection);
     ui.updateRoundProgressUI(roundResults, currentGameMode === 'mastery');
-    ui.showTimerDisplay(false);
+    ui.showTimerDisplay(false); // Ocultar timer por defecto
     loadNextQuestion();
 }
 
@@ -97,35 +105,50 @@ export function startGame() {
  * Carga los datos de la siguiente pregunta y actualiza la UI.
  */
 function loadNextQuestion() {
+    // Limpieza de UI de la pregunta anterior
     if (ui.feedbackArea) { ui.feedbackArea.innerHTML = ''; ui.feedbackArea.className = ''; }
     if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
-    currentQuestionData = null;
-    clearInterval(questionTimerInterval);
+    currentQuestionData = null; // Borra datos pregunta anterior
+    clearInterval(questionTimerInterval); // Limpia timer
     ui.showTimerDisplay(false);
-    if (ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time');
+    if (ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time'); // Quita estilo de poco tiempo
+
     try {
+        // Obtiene los datos de la siguiente pregunta desde questions.js
         const questionDataResult = getNextQuestion(currentLevel);
+        // Valida los datos recibidos
         if (questionDataResult && questionDataResult.question && questionDataResult.options && Array.isArray(questionDataResult.options) && questionDataResult.correctAnswer !== undefined && questionDataResult.explanation !== undefined) {
-            currentQuestionData = questionDataResult;
+            currentQuestionData = questionDataResult; // Guarda datos nuevos
+
+            // --- Lógica del Temporizador (Usa getTimerDurationForCurrentLevel) ---
             const duration = getTimerDurationForCurrentLevel();
-            if (duration !== null && duration > 0) {
-                ui.showTimerDisplay(true);
-                timeLeft = duration;
-                ui.updateTimerDisplay(timeLeft);
-                questionTimerInterval = setInterval(updateTimer, 1000);
+            if (duration !== null && duration > 0) { // Si aplica timer...
+                ui.showTimerDisplay(true); // Muestra el display
+                timeLeft = duration;       // Establece la duración correcta
+                ui.updateTimerDisplay(timeLeft); // Muestra el tiempo inicial
+                questionTimerInterval = setInterval(updateTimer, 1000); // Inicia el contador
             } else {
-                ui.showTimerDisplay(false);
+                ui.showTimerDisplay(false); // Oculta si no aplica
             }
+            // --- Fin Lógica Timer ---
+
+            // Muestra la pregunta y opciones en la UI (ui.js se encarga de traducir)
             ui.displayQuestion(currentQuestionData, handleAnswerClick);
+
         } else {
-            if (!questionDataResult && (currentLevel === 'Associate' || currentLevel === 'Professional')) { throw new Error(getTranslation('error_no_questions_for_level', { level: currentLevel })); }
-            else { throw new Error(getTranslation('error_invalid_question_data')); }
+            // Manejar error si no hay preguntas o datos inválidos
+            if (!questionDataResult && (currentLevel === 'Associate' || currentLevel === 'Professional')) {
+                 throw new Error(getTranslation('error_no_questions_for_level', { level: currentLevel }));
+            } else {
+                 throw new Error(getTranslation('error_invalid_question_data'));
+            }
         }
     } catch (error) {
+        // Manejo de Errores General
         console.error("Error en loadNextQuestion:", error);
         if (ui.questionText) ui.questionText.innerHTML = getTranslation('error_loading_question_msg', { message: error.message });
         if (ui.optionsContainer) ui.optionsContainer.innerHTML = '';
-        setTimeout(endGame, 2500);
+        setTimeout(endGame, 2500); // Terminar juego tras mostrar error
     }
  }
 
@@ -133,31 +156,40 @@ function loadNextQuestion() {
  * Actualiza el temporizador de la pregunta cada segundo.
  */
  function updateTimer() {
-    timeLeft--;
-    ui.updateTimerDisplay(timeLeft);
+    timeLeft--; // Decrementa el tiempo
+    ui.updateTimerDisplay(timeLeft); // Actualiza UI
+
+    // Si se acabó el tiempo
     if (timeLeft <= 0) {
-        clearInterval(questionTimerInterval);
-        if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled');
-        roundResults.push(false);
+        clearInterval(questionTimerInterval); // Detiene timer
+        if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled'); // Deshabilita opciones
+
+        roundResults.push(false); // Marca como incorrecta
         const isMasteryStyle = (currentLevel === 'Entry' && currentGameMode === 'mastery');
-        ui.updateRoundProgressUI(roundResults, isMasteryStyle);
+        ui.updateRoundProgressUI(roundResults, isMasteryStyle); // Actualiza estrellas
+
+        // Muestra feedback de tiempo agotado (ui.js traduce la respuesta correcta)
         const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
         ui.displayFeedback(false, isMasteryStyle, timeoutFeedbackData, proceedToNextStep);
+
+        // Modifica el texto específico para timeout (usa traducción)
         if (ui.feedbackArea) {
             const feedbackContent = ui.feedbackArea.querySelector('#feedback-text-content span:first-child');
+            // Traduce la respuesta correcta para el mensaje
             let translatedCorrectAnswer = '';
             const ca = currentQuestionData?.correctAnswer;
             if (typeof ca === 'string') { translatedCorrectAnswer = getTranslation(ca) || ca; }
-            else if (typeof ca === 'object') {
+            else if (typeof ca === 'object') { // Lógica para traducir objetos
                  if (ca.classKey && ca.typeKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`;
                  else if (ca.classKey && ca.maskValue) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`;
                  else if (ca.classKey && ca.portionKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`;
-                 else translatedCorrectAnswer = JSON.stringify(ca);
+                 else translatedCorrectAnswer = JSON.stringify(ca); // Fallback
             } else { translatedCorrectAnswer = 'N/A'; }
+            // Usa clave traducida para mensaje de timeout
             const timeoutMsg = getTranslation('feedback_timeout', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` });
             if (feedbackContent) { feedbackContent.innerHTML = timeoutMsg; }
             else { const timeoutSpan = document.createElement('span'); timeoutSpan.innerHTML = timeoutMsg; ui.feedbackArea.prepend(timeoutSpan); }
-            ui.feedbackArea.className = 'incorrect';
+            ui.feedbackArea.className = 'incorrect'; // Asegurar estilo incorrecto
         }
     }
 }
@@ -166,12 +198,12 @@ function loadNextQuestion() {
  * Función intermedia para avanzar a la siguiente pregunta o terminar el juego.
  */
  function proceedToNextStep() {
-    clearInterval(questionTimerInterval);
-    questionsAnswered++;
+    clearInterval(questionTimerInterval); // Asegura detener timer
+    questionsAnswered++; // Incrementa contador
     if (questionsAnswered >= config.TOTAL_QUESTIONS_PER_GAME) {
-        endGame();
+        endGame(); // Termina la ronda
     } else {
-        loadNextQuestion();
+        loadNextQuestion(); // Carga siguiente
     }
 }
 
@@ -181,39 +213,60 @@ function loadNextQuestion() {
  * @param {Event} event - El objeto del evento click.
  */
  export function handleAnswerClick(event) {
-    clearInterval(questionTimerInterval);
-    if (!currentQuestionData || currentQuestionData.correctAnswer === undefined) { console.error("handleAnswerClick llamado sin datos de pregunta o respuesta correcta."); return; }
+    clearInterval(questionTimerInterval); // Detiene timer
+    // Verifica que haya datos de pregunta cargados
+    if (!currentQuestionData || currentQuestionData.correctAnswer === undefined) {
+        console.error("handleAnswerClick llamado sin datos de pregunta o respuesta correcta.");
+        return;
+    }
+
     const selectedButton = event.target;
+    // Obtiene el valor original (sin traducir) guardado en el atributo data
     const selectedOriginalValue = selectedButton.getAttribute('data-original-value');
-    if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled');
+
+    if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled'); // Deshabilita botones
 
     // --- Comparación usando Valores Originales ---
     let isCorrect = false;
-    const correctAnswerOriginal = currentQuestionData.correctAnswer;
+    const correctAnswerOriginal = currentQuestionData.correctAnswer; // Respuesta correcta original (string u objeto)
+
+    // Reconstruye el string del valor original esperado para comparar
     let correctOriginalValueStr = '';
-    if (typeof correctAnswerOriginal === 'string') { correctOriginalValueStr = correctAnswerOriginal; }
-    else if (typeof correctAnswerOriginal === 'object' && correctAnswerOriginal.classKey && correctAnswerOriginal.typeKey) { correctOriginalValueStr = `${correctAnswerOriginal.classKey},${correctAnswerOriginal.typeKey}`; }
-    else if (typeof correctAnswerOriginal === 'object' && correctAnswerOriginal.classKey && correctAnswerOriginal.maskValue) { correctOriginalValueStr = `${correctAnswerOriginal.classKey},${correctAnswerOriginal.maskValue}`; }
-    else if (typeof correctAnswerOriginal === 'object' && correctAnswerOriginal.classKey && correctAnswerOriginal.portionKey) { correctOriginalValueStr = `${correctAnswerOriginal.classKey},${correctAnswerOriginal.portionKey},${correctAnswerOriginal.portionValue || 'None'}`; }
-    else { correctOriginalValueStr = JSON.stringify(correctAnswerOriginal); }
+    if (typeof correctAnswerOriginal === 'string') {
+        correctOriginalValueStr = correctAnswerOriginal;
+    } else if (typeof correctAnswerOriginal === 'object' && correctAnswerOriginal.classKey && correctAnswerOriginal.typeKey) {
+        correctOriginalValueStr = `${correctAnswerOriginal.classKey},${correctAnswerOriginal.typeKey}`;
+    } else if (typeof correctAnswerOriginal === 'object' && correctAnswerOriginal.classKey && correctAnswerOriginal.maskValue) {
+        correctOriginalValueStr = `${correctAnswerOriginal.classKey},${correctAnswerOriginal.maskValue}`;
+    } else if (typeof correctAnswerOriginal === 'object' && correctAnswerOriginal.classKey && correctAnswerOriginal.portionKey) {
+        correctOriginalValueStr = `${correctAnswerOriginal.classKey},${correctAnswerOriginal.portionKey},${correctAnswerOriginal.portionValue || 'None'}`;
+    } else {
+         correctOriginalValueStr = JSON.stringify(correctAnswerOriginal); // Fallback
+    }
+
+    // Compara el valor original del botón con el esperado
     isCorrect = (selectedOriginalValue === correctOriginalValueStr);
     // --- Fin Comparación ---
 
-    roundResults.push(isCorrect);
+    roundResults.push(isCorrect); // Registra resultado
     const isMasteryStyle = (currentLevel === 'Entry' && currentGameMode === 'mastery');
 
     if (isCorrect) {
-        currentScore += config.POINTS_PER_QUESTION;
-        ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
+        // --- Respuesta Correcta ---
+        currentScore += config.POINTS_PER_QUESTION; // Suma puntos (valor fijo)
+        ui.updatePlayerInfo(currentUsername, currentLevel, currentScore); // Actualiza UI
+        // Muestra feedback (ui.js traduce la respuesta correcta si es necesario)
         ui.displayFeedback(isCorrect, isMasteryStyle, currentQuestionData, proceedToNextStep);
-        if (selectedButton) selectedButton.classList.add(isMasteryStyle ? 'mastery' : 'correct');
-        setTimeout(proceedToNextStep, 1200);
+        if (selectedButton) selectedButton.classList.add(isMasteryStyle ? 'mastery' : 'correct'); // Resalta botón
+        setTimeout(proceedToNextStep, 1200); // Avance automático
     } else {
+        // --- Respuesta Incorrecta ---
         const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
+        // Muestra feedback (ui.js traduce la respuesta correcta y añade botón "Siguiente")
         ui.displayFeedback(isCorrect, isMasteryStyle, feedbackData, proceedToNextStep);
-        if (selectedButton) selectedButton.classList.add('incorrect');
+        if (selectedButton) selectedButton.classList.add('incorrect'); // Marca botón incorrecto
     }
-    ui.updateRoundProgressUI(roundResults, isMasteryStyle);
+    ui.updateRoundProgressUI(roundResults, isMasteryStyle); // Actualiza estrellas
 }
 
 /**
@@ -221,26 +274,27 @@ function loadNextQuestion() {
  * guarda datos, y muestra la pantalla de Game Over con mensajes traducidos.
  */
  function endGame() {
-    clearInterval(questionTimerInterval);
-    const maxScore = config.PERFECT_SCORE;
+    clearInterval(questionTimerInterval); // Asegura detener timer
+    const maxScore = config.PERFECT_SCORE; // Usa puntuación perfecta fija
     const scorePercentage = maxScore > 0 ? (currentScore / maxScore) * 100 : 0;
-    const isPerfect = currentScore === maxScore;
-    const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK;
+    const isPerfect = currentScore === maxScore; // Verifica si es 100%
+    const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK; // Verifica si cumple 90%
 
     // --- Construcción del Mensaje Final con i18n (CORREGIDO) ---
+    // Obtener la parte base del mensaje traducida
     let baseMessage = getTranslation('game_over_base_message', {
         score: currentScore,
         maxScore: maxScore,
         percentage: scorePercentage.toFixed(0)
     });
-    let extraMessage = '';
+    let extraMessage = ''; // Mensaje adicional sobre racha o desbloqueo
 
     try {
-        currentUserData = storage.getUserData(currentUsername);
+        currentUserData = storage.getUserData(currentUsername); // Recarga datos frescos
 
-        // Lógica de Racha/Desbloqueo usando getTranslation
+        // --- Lógica de Racha y Desbloqueo de Niveles (Usa getTranslation) ---
         if (currentLevel === 'Entry') {
-            if (isPerfect) {
+            if (isPerfect) { // Desbloqueo Associate requiere 100%
                 currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1;
                 if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) {
                     currentUserData.unlockedLevels.push('Associate');
@@ -258,7 +312,7 @@ function loadNextQuestion() {
                 currentUserData.entryPerfectStreak = 0;
             }
         } else if (currentLevel === 'Associate') {
-             if (meetsAssociateThreshold) {
+             if (meetsAssociateThreshold) { // Desbloqueo Pro requiere 90%
                 currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1;
                 if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) {
                     currentUserData.unlockedLevels.push('Professional');
@@ -278,7 +332,7 @@ function loadNextQuestion() {
         }
         // --- Fin Lógica Racha ---
 
-        // Combinar mensaje base con el extra (si existe)
+        // Combinar mensaje base con el extra (añadiendo un espacio si hay extra)
         const finalMessage = extraMessage ? `${baseMessage} ${extraMessage}` : baseMessage;
 
         // Guardar datos y mostrar UI
@@ -286,8 +340,8 @@ function loadNextQuestion() {
         storage.saveHighScore(currentUsername, currentScore, currentLevel, currentGameMode);
         const highScores = storage.loadHighScores();
         ui.displayHighScores(highScores);
-        ui.displayGameOver(currentScore, finalMessage, currentUserData); // Pasar el mensaje final traducido
-        currentQuestionData = null;
+        ui.displayGameOver(currentScore, finalMessage, currentUserData); // Pasar el mensaje final ya construido y traducido
+        currentQuestionData = null; // Limpiar datos de la última pregunta
 
     } catch (error) {
         console.error("Error en endGame:", error);
@@ -298,39 +352,55 @@ function loadNextQuestion() {
 
 /**
  * Maneja el evento del botón 'Reiniciar Ronda Actual'.
+ * Exportada para main.js.
  */
 export function handleRestartRound() {
+    // Simplemente reinicia la ronda con la configuración actual.
     startGame();
 }
 
 /**
  * Maneja el evento del botón 'Salir al Menú de Niveles'.
+ * Exportada para main.js.
  */
 export function handleExitToMenu() {
-     clearInterval(questionTimerInterval);
-     handlePlayAgain();
+     clearInterval(questionTimerInterval); // Detiene el timer si está activo.
+     handlePlayAgain(); // Muestra el menú de niveles.
 }
 
 /**
  * Maneja el evento del botón 'Jugar de Nuevo / Elegir Nivel' en la pantalla Game Over.
+ * Exportada para main.js.
  */
 export function handlePlayAgain() {
-    if (currentUsername) { currentUserData = storage.getUserData(currentUsername); }
-    else { currentUserData = { unlockedLevels: ['Entry'], entryPerfectStreak: 0, associatePerfectStreak: 0 }; console.warn("handlePlayAgain llamado sin currentUsername establecido."); }
+    // Recarga los datos del usuario para reflejar posibles desbloqueos.
+    if (currentUsername) {
+         currentUserData = storage.getUserData(currentUsername);
+    } else {
+         // Fallback si no hay usuario (poco probable).
+         currentUserData = { unlockedLevels: ['Entry'], entryPerfectStreak: 0, associatePerfectStreak: 0 };
+         console.warn("handlePlayAgain llamado sin currentUsername establecido.");
+    }
+    // Muestra la pantalla de selección de nivel.
     ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
 }
 
 /**
  * Función de inicialización general del juego.
+ * Llamada una vez desde main.js cuando el DOM está listo.
+ * Exportada para main.js.
  */
 export function initializeGame() {
+    // Carga y muestra las puntuaciones altas iniciales.
     const initialHighScores = storage.loadHighScores();
     ui.displayHighScores(initialHighScores);
+    // Muestra la primera pantalla que ve el usuario: el formulario para ingresar nombre.
     ui.showSection(ui.userSetupSection);
 }
 
 /**
  * Devuelve el nombre de usuario actual.
+ * Necesario para que main.js recargue datos al cambiar idioma.
  * @returns {string} El nombre de usuario.
  */
 export function getCurrentUsername() {
@@ -339,6 +409,7 @@ export function getCurrentUsername() {
 
 /**
  * Devuelve los datos de la pregunta actual.
+ * Necesario para que main.js pueda redisplayar al cambiar idioma.
  * @returns {object|null} Los datos de la pregunta actual o null.
  */
 export function getCurrentQuestionData() {
@@ -347,6 +418,7 @@ export function getCurrentQuestionData() {
 
 /**
  * Devuelve el nivel actual.
+ * Necesario para que main.js actualice la UI al cambiar idioma.
  * @returns {string} El nivel actual.
  */
 export function getCurrentLevel() {
@@ -355,6 +427,7 @@ export function getCurrentLevel() {
 
 /**
  * Devuelve la puntuación actual.
+ * Necesario para que main.js actualice la UI al cambiar idioma.
  * @returns {number} La puntuación actual.
  */
 export function getCurrentScore() {
