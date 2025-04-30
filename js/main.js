@@ -2,20 +2,19 @@
 import * as storage from './storage.js';
 import * as ui from './ui.js';
 import * as game from './game.js';
-// --- NUEVO: Importar funciones de i18n ---
+// Importar funciones de i18n
 import { setLanguage, getCurrentLanguage } from './i18n.js';
 
 // Espera a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', async () => { // Marcar como async
 
-    // --- NUEVO: Establecer idioma inicial ---
-    const initialLang = getCurrentLanguage(); // Obtener idioma guardado o detectado
+    // Establecer idioma inicial
+    const initialLang = getCurrentLanguage();
     await setLanguage(initialLang); // Cargar y aplicar el idioma inicial
-    // --- Fin Nuevo ---
 
     // Configuración Inicial al cargar la página (después de cargar idioma)
     const initialHighScores = storage.loadHighScores();
-    ui.displayHighScores(initialHighScores);
+    ui.displayHighScores(initialHighScores); // Mostrar scores iniciales (ya traducidos)
     ui.showSection(ui.userSetupSection); // Mostrar solo el setup inicial
 
     // Listener para el formulario de username
@@ -27,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Marcar como async
                 game.handleUserLogin(enteredUsername);
             } else {
                 // TODO: Usar getTranslation para mensajes de alerta
-                alert("Por favor, ingresa un nombre de usuario.");
+                alert(getTranslation('alert_enter_username')); // Necesitas añadir 'alert_enter_username' a los JSON
             }
         });
     } else {
@@ -50,16 +49,44 @@ document.addEventListener('DOMContentLoaded', async () => { // Marcar como async
         ui.exitToMenuButton.addEventListener('click', game.handleExitToMenu);
     } else { console.error("#exit-to-menu-button no encontrado"); }
 
-    // --- NUEVO: Listeners para botones de idioma ---
+    // Listeners para botones de idioma
     const langButtons = document.querySelectorAll('#language-selector button');
     langButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const selectedLang = event.target.getAttribute('data-lang'); // Obtener 'es' o 'en' del botón
+        button.addEventListener('click', async (event) => { // Marcar como async
+            const selectedLang = event.target.getAttribute('data-lang');
             if (selectedLang) {
-                setLanguage(selectedLang); // Llamar a la función para cambiar idioma
+                await setLanguage(selectedLang); // Cambiar idioma y aplicar a elementos estáticos
+
+                // --- NUEVO: Refrescar elementos dinámicos ---
+                // Recargar y volver a mostrar High Scores para aplicar traducción
+                const currentHighScores = storage.loadHighScores();
+                ui.displayHighScores(currentHighScores);
+
+                // --- NUEVO: Volver a mostrar la pantalla de selección de nivel si está activa ---
+                // Esto actualizará los botones de nivel y el progreso de desbloqueo
+                // Necesitamos obtener los datos del usuario actual (podríamos necesitar exponerlos desde game.js
+                // o recargarlos aquí si es necesario)
+                // Asumiendo que game.js tiene una forma de exponer currentUserData o username
+                const currentUserData = storage.getUserData(game.getCurrentUsername()); // Necesitamos una función getCurrentUsername en game.js
+                if (ui.levelSelectSection.style.display === 'block' && currentUserData) {
+                     ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, game.selectLevelAndMode);
+                }
+                // Si estamos en Game Over, también actualizamos el progreso
+                else if (ui.gameOverSection.style.display === 'block' && currentUserData) {
+                     ui.updateUnlockProgressUI(currentUserData); // Solo actualizar progreso en Game Over
+                     // Actualizar texto botón "Jugar de Nuevo"
+                     if (ui.playAgainButton && currentUserData.unlockedLevels) {
+                         if (currentUserData.unlockedLevels.length <= 1) {
+                             const levelName = getTranslation(`level_${(currentUserData.unlockedLevels[0] || 'entry').toLowerCase()}`);
+                             ui.playAgainButton.textContent = getTranslation('play_again_level_button', { levelName: levelName });
+                         } else {
+                             ui.playAgainButton.textContent = getTranslation('play_again_button');
+                         }
+                     }
+                }
+                // --- Fin Nuevo ---
             }
         });
     });
-    // --- Fin Nuevo ---
 
 }); // Fin DOMContentLoaded
