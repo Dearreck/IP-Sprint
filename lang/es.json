@@ -140,5 +140,6 @@
   "error_displaying_question": "Error al mostrar la pregunta.",
   "no_scores_recorded": "Sin puntuaciones registradas",
   "error_displaying_scores": "Error al mostrar puntuaciones.",
-  "error_end_game": "Error al finalizar la partida: {message}"
+  "error_end_game": "Error al finalizar la partida: {message}",
+  "alert_enter_username": "Por favor, ingresa un nombre de usuario."
 }
