@@ -7,7 +7,8 @@
 import {
     getRandomInt, generateRandomIp, generateRandomPrivateIp, getIpInfo, shuffleArray,
     generateClassRangeTableHTML, generateClassMaskTableHTML, generatePrivateRangeTableHTML,
-    getIpPortions, generatePortionExplanationHTML
+    getIpPortions, generatePortionExplanationHTML,
+    generateSpecialAddressExplanationHTML // Importar NUEVA utilidad de explicación
 } from './utils.js';
 
 // --- Generadores de Preguntas (Nivel Entry) ---
@@ -35,76 +36,162 @@ function generateClassAndHostPortionQuestion() { try { let ip, info, portions, a
 
 /**
  * Genera preguntas sobre los bloques privados RFC 1918 (CIDR, Rango, Clase).
+ * Incluye enlace al RFC en la pregunta y explicación.
  * @returns {object|null} Objeto de pregunta o null si hay error.
  */
 function generateRfc1918Question() {
     try {
-        // Define los bloques privados con información adicional de clase
+        const rfcLink = 'https://datatracker.ietf.org/doc/html/rfc1918'; // Enlace RFC 1918
         const rfc1918Blocks = [
             { cidr: '/8', range: '10.0.0.0 - 10.255.255.255', blockStart: '10.0.0.0', class: 'A' },
             { cidr: '/12', range: '172.16.0.0 - 172.31.255.255', blockStart: '172.16.0.0', class: 'B' },
             { cidr: '/16', range: '192.168.0.0 - 192.168.255.255', blockStart: '192.168.0.0', class: 'C' }
         ];
-        const otherCidrs = ['/10', '/20', '/24', '/28']; // CIDRs incorrectos
-        const possibleClasses = ['A', 'B', 'C']; // Clases posibles
+        const otherCidrs = ['/10', '/20', '/24', '/28'];
+        const possibleClasses = ['A', 'B', 'C'];
 
-        // Elige aleatoriamente un bloque RFC 1918
         const chosenBlock = rfc1918Blocks[getRandomInt(0, rfc1918Blocks.length - 1)];
+        let question = ''; let correctAnswer = ''; let options = []; let explanation = '';
+        const questionType = getRandomInt(0, 2); // 0: CIDR, 1: Rango, 2: Clase
 
-        let question = '';
-        let correctAnswer = '';
-        let options = [];
-        let explanation = '';
-
-        // Elige aleatoriamente el tipo de pregunta (0: CIDR, 1: Rango, 2: Clase)
-        const questionType = getRandomInt(0, 2);
+        // Añadir enlace al RFC en la pregunta general
+        const rfcLinkHTML = `<a href="${rfcLink}" target="_blank" rel="noopener noreferrer">RFC 1918</a>`;
 
         if (questionType === 0) {
-            // Preguntar por CIDR dado el rango/bloque inicial
-            question = `¿Qué notación CIDR corresponde al bloque privado RFC 1918 que comienza en <strong>${chosenBlock.blockStart}</strong>?`;
+            question = `Según ${rfcLinkHTML}, ¿qué notación CIDR corresponde al bloque privado que comienza en <strong>${chosenBlock.blockStart}</strong>?`;
             correctAnswer = chosenBlock.cidr;
             options = [correctAnswer];
             let incorrectOptions = otherCidrs.filter(c => c !== correctAnswer);
             shuffleArray(incorrectOptions);
             options.push(...incorrectOptions.slice(0, 3));
         } else if (questionType === 1) {
-            // Preguntar por Rango dado el CIDR
-            question = `¿Qué rango de direcciones corresponde al bloque privado RFC 1918 definido como <strong>${chosenBlock.cidr}</strong>?`;
+            question = `Según ${rfcLinkHTML}, ¿qué rango de direcciones corresponde al bloque privado definido como <strong>${chosenBlock.cidr}</strong>?`;
             correctAnswer = chosenBlock.range;
             options = [correctAnswer];
             let incorrectOptions = rfc1918Blocks.filter(b => b.cidr !== chosenBlock.cidr).map(b => b.range);
             if (incorrectOptions.length < 3) { incorrectOptions.push('8.8.0.0 - 8.8.255.255'); }
             options.push(...incorrectOptions.slice(0, 3));
-        } else { // questionType === 2
-            // --- NUEVO: Preguntar por Clase dado el bloque ---
-            // Se puede presentar el bloque por CIDR o por rango inicial
+        } else {
             const blockIdentifier = Math.random() < 0.5 ? chosenBlock.cidr : chosenBlock.blockStart;
-            question = `El bloque privado RFC 1918 <strong>${blockIdentifier}</strong> pertenece originalmente a la Clase:`;
-            correctAnswer = chosenBlock.class; // La clase asociada al bloque
+            question = `El bloque privado ${rfcLinkHTML} <strong>${blockIdentifier}</strong> pertenece originalmente a la Clase:`;
+            correctAnswer = chosenBlock.class;
             options = [correctAnswer];
-            // Las opciones incorrectas son las otras clases (A, B, C)
             let incorrectOptions = possibleClasses.filter(c => c !== correctAnswer);
-            options.push(...incorrectOptions); // Añadir las 2 clases incorrectas
+            options.push(...incorrectOptions);
         }
 
-        // Barajar las opciones finales y asegurar que la correcta esté
         shuffleArray(options);
-        if (options.length > 4) options = options.slice(0, 4); // Limitar a 4 si se añadieron extras
-        if (!options.includes(correctAnswer)) {
-            options.pop(); options.push(correctAnswer); shuffleArray(options);
-        }
+        if (options.length > 4) options = options.slice(0, 4);
+        if (!options.includes(correctAnswer)) { options.pop(); options.push(correctAnswer); shuffleArray(options); }
 
-        // Generar explicación usando la tabla RFC 1918 (resalta la fila correcta)
-        // También se podría añadir texto sobre la clase si la pregunta fue sobre clase.
+        // La explicación ya incluye el enlace al RFC a través de la función de utilidad
         explanation = generatePrivateRangeTableHTML(chosenBlock.blockStart);
         if (questionType === 2) {
             explanation += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">Este bloque usa direcciones que caen dentro del rango original de la <strong>Clase ${chosenBlock.class}</strong>.</p>`;
         }
 
         return { question, options, correctAnswer, explanation };
-
     } catch (error) {
         console.error("Error en generateRfc1918Question:", error);
+        return null;
+    }
+}
+
+/**
+ * NUEVA FUNCIÓN: Genera preguntas sobre direcciones IP especiales.
+ * (Loopback, APIPA, Broadcast Limitado)
+ * @returns {object|null} Objeto de pregunta o null si hay error.
+ */
+function generateSpecialAddressQuestion() {
+    try {
+        const specialAddresses = [
+            { ip: '127.0.0.1', type: 'Loopback', description: 'Dirección de Loopback' },
+            { ip: `169.254.${getRandomInt(1, 254)}.${getRandomInt(1, 254)}`, type: 'APIPA', description: 'Dirección APIPA (Link-Local)' },
+            { ip: '255.255.255.255', type: 'Broadcast Limitado', description: 'Broadcast Limitado' }
+        ];
+        const normalIpTypes = ['Pública', 'Privada']; // Tipos normales para opciones incorrectas
+
+        // Elige aleatoriamente una dirección especial o una normal
+        const pickSpecial = Math.random() < 0.6; // 60% de probabilidad de preguntar por una especial
+        let targetIp = '';
+        let correctAnswer = '';
+        let questionFormat = getRandomInt(0, 1); // 0: "¿Qué tipo es X?", 1: "¿Cuál es de tipo Y?"
+
+        if (pickSpecial) {
+            // Pregunta sobre una dirección especial
+            const chosenSpecial = specialAddresses[getRandomInt(0, specialAddresses.length - 1)];
+            targetIp = chosenSpecial.ip;
+            correctAnswer = chosenSpecial.description; // Usar descripción como respuesta correcta
+
+            if (questionFormat === 0) {
+                // Formato: Dada la IP especial, preguntar su tipo
+                const question = `La dirección IP <strong>${targetIp}</strong> es una dirección de tipo:`;
+                let options = [correctAnswer];
+                // Añadir otros tipos especiales y tipos normales como incorrectos
+                let incorrectOptions = specialAddresses.filter(s => s.type !== chosenSpecial.type).map(s => s.description);
+                incorrectOptions.push(...normalIpTypes);
+                shuffleArray(incorrectOptions);
+                options.push(...incorrectOptions.slice(0, 3));
+                shuffleArray(options);
+                if (options.length > 4) options = options.slice(0, 4);
+                if (!options.includes(correctAnswer)) { options.pop(); options.push(correctAnswer); shuffleArray(options); }
+
+                const explanation = generateSpecialAddressExplanationHTML(chosenSpecial.type);
+                return { question, options, correctAnswer, explanation };
+
+            } else {
+                // Formato: Preguntar cuál de las opciones es de un tipo especial específico
+                const question = `¿Cuál de las siguientes es una dirección de <strong>${correctAnswer}</strong>?`;
+                let options = [targetIp]; // La IP especial correcta
+                let incorrectIps = new Set();
+                // Añadir IPs normales (públicas/privadas)
+                while (incorrectIps.size < 2) {
+                    let ip = generateRandomIp();
+                    if (getIpInfo(ip).type !== 'Loopback' && getIpInfo(ip).type !== 'APIPA') { // Evitar otras especiales
+                        incorrectIps.add(ip);
+                    }
+                }
+                // Añadir otra IP especial (diferente) si es posible
+                let otherSpecial = specialAddresses.find(s => s.type !== chosenSpecial.type);
+                if (otherSpecial) {
+                    incorrectIps.add(otherSpecial.ip);
+                } else { // Si no, añadir otra normal
+                     while (incorrectIps.size < 3) {
+                         let ip = generateRandomIp();
+                         if (getIpInfo(ip).type !== 'Loopback' && getIpInfo(ip).type !== 'APIPA') { incorrectIps.add(ip); }
+                     }
+                }
+                options.push(...Array.from(incorrectIps).slice(0, 3));
+                shuffleArray(options);
+                 if (options.length > 4) options = options.slice(0, 4);
+                 if (!options.includes(targetIp)) { options.pop(); options.push(targetIp); shuffleArray(options); }
+
+                const explanation = generateSpecialAddressExplanationHTML(chosenSpecial.type);
+                return { question, options, correctAnswer: targetIp, explanation };
+            }
+
+        } else {
+            // Pregunta trampa: mostrar una IP normal y preguntar si es especial
+            targetIp = generateRandomIp(); // Genera una IP normal (pública o privada)
+            const info = getIpInfo(targetIp);
+            correctAnswer = info.type; // La respuesta correcta es 'Pública' o 'Privada'
+            const question = `La dirección IP <strong>${targetIp}</strong> es de tipo:`;
+            let options = [correctAnswer];
+            // Añadir tipos especiales como opciones incorrectas
+            let incorrectOptions = specialAddresses.map(s => s.description);
+            shuffleArray(incorrectOptions);
+            options.push(...incorrectOptions.slice(0, 3));
+            shuffleArray(options);
+             if (options.length > 4) options = options.slice(0, 4);
+             if (!options.includes(correctAnswer)) { options.pop(); options.push(correctAnswer); shuffleArray(options); }
+
+            // Explicación basada en si es pública o privada
+            const explanation = generatePrivateRangeTableHTML(targetIp);
+            return { question, options, correctAnswer, explanation };
+        }
+
+    } catch (error) {
+        console.error("Error en generateSpecialAddressQuestion:", error);
         return null;
     }
 }
@@ -123,9 +210,9 @@ const associateQuestionGenerators = [
     generateClassAndDefaultMaskQuestion,
     generateClassAndNetworkPortionQuestion,
     generateClassAndHostPortionQuestion,
-    generateRfc1918Question, // Ahora incluye preguntas de Clase
-    // TODO: Añadir generadores para los puntos restantes de Associate:
-    // generateSpecialAddressQuestion,
+    generateRfc1918Question,
+    generateSpecialAddressQuestion, // <-- Nueva función añadida
+    // TODO: Añadir generador para:
     // generateNetworkBroadcastAddressQuestion
 ];
 
