@@ -308,11 +308,11 @@ export function displayQuestion(questionData, answerClickHandler) {
             let buttonText = '';
             let originalValue = ''; // Valor sin traducir para comparación
 
-            // Determinar texto y valor original según el tipo de opción
+            // --- CORREGIDO: Lógica para determinar texto y valor original ---
             if (typeof optionData === 'string') {
-                // Si es un string simple (IP, máscara, porción numérica, clave i18n simple)
+                // Es un valor técnico (IP, máscara, porción) o una clave i18n simple
                 buttonText = getTranslation(optionData) || optionData; // Intenta traducir, si no, usa el valor
-                originalValue = optionData; // Guardar el valor original (puede ser clave o valor técnico)
+                originalValue = optionData; // Guardar el valor original
             } else if (typeof optionData === 'object' && optionData.classKey && optionData.typeKey) {
                 // Objeto Clase/Tipo
                 buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.typeKey)}`;
@@ -332,9 +332,10 @@ export function displayQuestion(questionData, answerClickHandler) {
                 originalValue = buttonText;
                 console.warn("Formato de opción desconocido:", optionData);
             }
+            // --- FIN CORRECCIÓN ---
 
             button.textContent = buttonText;
-            // --- IMPORTANTE: Guardar el valor original sin traducir en un atributo data ---
+            // Guardar el valor original (clave o valor técnico) en el botón
             button.setAttribute('data-original-value', originalValue);
 
             // Añadir listener
