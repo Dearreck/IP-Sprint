@@ -98,6 +98,7 @@
   "explanation_portion_table_calc_netaddr": "IP <strong>AND</strong> Mask",
   "explanation_portion_table_calc_broadaddr": "Net Addr <strong>OR</strong> Wildcard",
   "explanation_portion_calc_error": "Could not generate detailed explanation table for {ip} / {mask}.",
+  "explanation_select_ip_for_mask": "Looking for an IP whose class ({class}) has the default mask {mask}.",
   "explanation_special_loopback": "The <strong>127.0.0.0/8</strong> network is reserved for <strong>Loopback</strong>. It is used for internal host network testing (communicating with itself). The most common address is 127.0.0.1 (localhost).",
   "explanation_special_apipa": "The <strong>169.254.0.0/16</strong> range is used for <strong>APIPA</strong> (Automatic Private IP Addressing) or Link-Local Addresses. A host self-assigns an IP from this range if it cannot obtain one from a DHCP server. These IPs are not routable.",
   "explanation_special_limited_broadcast": "The address <strong>255.255.255.255</strong> is the <strong>Limited Broadcast</strong> address. Packets sent to this address are delivered to all hosts on the same local subnet, but routers do not forward them to other networks.",
