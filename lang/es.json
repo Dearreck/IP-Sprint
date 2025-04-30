@@ -130,5 +130,15 @@
   "game_over_level_unlocked": "¡Nivel {levelName} Desbloqueado! 🎉",
   "game_over_level_unlocked_pro": "¡Nivel Professional Desbloqueado! 🏆",
   "game_over_good_round_entry": "¡Ronda Perfecta (100%)!",
-  "game_over_good_round_associate": "¡Buena ronda en Associate (+{threshold}%)!"
+  "game_over_good_round_associate": "¡Buena ronda en Associate (+{threshold}%)!",
+
+  "error_loading_user_data": "Hubo un problema al cargar los datos del usuario: {message}",
+  "error_no_questions_for_level": "No hay preguntas disponibles para el nivel {level} todavía.",
+  "error_invalid_question_data": "Datos de pregunta inválidos o nulos recibidos del generador.",
+  "error_loading_question_msg": "Error al cargar pregunta: {message}",
+  "error_creating_options": "Error al crear opciones.",
+  "error_displaying_question": "Error al mostrar la pregunta.",
+  "no_scores_recorded": "Sin puntuaciones registradas",
+  "error_displaying_scores": "Error al mostrar puntuaciones.",
+  "error_end_game": "Error al finalizar la partida: {message}"
 }
