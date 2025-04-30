@@ -436,8 +436,13 @@ function generateClassAndNetworkPortionQuestion() {
         optionsArray = optionsArray.slice(0, 4);
         shuffleArray(optionsArray);
 
-        // Usa la función de explicación visual de porciones
-        const explanation = generatePortionExplanationHTML(ip, info.defaultMask, info.class, correctNetworkPortion, portions.hostPortion);
+        // Calcula todos los componentes necesarios para la tabla de explicación
+        const wildcardMask = calculateWildcardMask(info.defaultMask);
+        const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
+        const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
+
+        // Usa la nueva función para generar la explicación visual de porciones/cálculos
+        const explanation = generatePortionExplanationHTML(ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr);
 
         return { question, options: optionsArray, correctAnswer: correctAnswerText, explanation };
     } catch (error) {
@@ -505,8 +510,13 @@ function generateClassAndHostPortionQuestion() {
         optionsArray = optionsArray.slice(0, 4);
         shuffleArray(optionsArray);
 
-        // Usa la función de explicación visual de porciones
-        const explanation = generatePortionExplanationHTML(ip, info.defaultMask, info.class, portions.networkPortion, correctHostPortion);
+        // Calcula todos los componentes necesarios para la tabla de explicación
+        const wildcardMask = calculateWildcardMask(info.defaultMask);
+        const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
+        const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
+
+        // Usa la nueva función para generar la explicación visual de porciones/cálculos
+        const explanation = generatePortionExplanationHTML(ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr);
 
         return { question, options: optionsArray, correctAnswer: correctAnswerText, explanation };
     } catch (error) {
@@ -716,8 +726,13 @@ function generateIdentifyNetworkPortionQuestion() {
         optionsArray = optionsArray.slice(0, 4);
         shuffleArray(optionsArray);
 
-        // Explicación visual
-        const explanation = generatePortionExplanationHTML(ip, info.defaultMask, info.class, correctAnswer, portions.hostPortion);
+        // Calcula todos los componentes para la explicación
+        const wildcardMask = calculateWildcardMask(info.defaultMask);
+        const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
+        const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
+        // Genera la explicación con la tabla de cálculo
+        const explanation = generatePortionExplanationHTML(ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr);
+
         return { question, options: optionsArray, correctAnswer, explanation };
     } catch (error) {
         console.error("Error en generateIdentifyNetworkPortionQuestion:", error);
@@ -776,8 +791,13 @@ function generateIdentifyHostPortionQuestion() {
         optionsArray = optionsArray.slice(0, 4);
         shuffleArray(optionsArray);
 
-        // Explicación visual
-        const explanation = generatePortionExplanationHTML(ip, info.defaultMask, info.class, portions.networkPortion, correctAnswer);
+        // Calcula todos los componentes para la explicación
+        const wildcardMask = calculateWildcardMask(info.defaultMask);
+        const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
+        const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
+        // Genera la explicación con la tabla de cálculo
+        const explanation = generatePortionExplanationHTML(ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr);
+
         return { question, options: optionsArray, correctAnswer, explanation };
     } catch (error) {
         console.error("Error en generateIdentifyHostPortionQuestion:", error);
