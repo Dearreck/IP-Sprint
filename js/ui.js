@@ -6,11 +6,8 @@
 // ==================================================
 
 // --- Importaciones de Módulos ---
-// Importar constantes de configuración necesarias
 import { TOTAL_QUESTIONS_PER_GAME, MIN_SCORE_PERCENT_FOR_STREAK } from './config.js';
-// Importar funciones del juego necesarias para añadir listeners
 import { handleAnswerClick } from './game.js';
-// Importar la función de traducción
 import { getTranslation } from './i18n.js';
 
 // --- Selección de Elementos del DOM ---
@@ -138,14 +135,14 @@ export function displayQuestion(questionData, answerClickHandler) {
             let buttonText = '';
             let originalValue = ''; // Valor sin traducir para comparación
 
-            // --- Lógica REVISADA v3 para determinar texto y valor original ---
+            // --- Lógica REVISADA v4 para determinar texto y valor original ---
             if (typeof optionData === 'string') {
                 // Es un valor técnico (IP, máscara, porción) o una clave i18n simple
                 const translated = getTranslation(optionData);
-                buttonText = (translated !== optionData) ? translated : optionData;
+                buttonText = (translated !== optionData && translated !== '') ? translated : optionData; // Usa traducción si existe y no es vacía
                 originalValue = optionData;
             } else if (typeof optionData === 'object') {
-                // Es un objeto combinado, construir texto y valor original
+                // Es un objeto combinado
                 if (optionData.classKey && optionData.typeKey) {
                     buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.typeKey)}`;
                     originalValue = `${optionData.classKey},${optionData.typeKey}`;
@@ -155,7 +152,8 @@ export function displayQuestion(questionData, answerClickHandler) {
                 } else if (optionData.classKey && optionData.portionKey) {
                      buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.portionKey, { portion: optionData.portionValue || getTranslation('option_none') })}`;
                      originalValue = `${optionData.classKey},${optionData.portionKey},${optionData.portionValue || 'None'}`;
-                } else {
+                }
+                 else {
                     // Fallback si la estructura del objeto no es reconocida
                     buttonText = JSON.stringify(optionData);
                     originalValue = buttonText;
@@ -167,7 +165,7 @@ export function displayQuestion(questionData, answerClickHandler) {
                  originalValue = 'invalid';
                  console.warn("Tipo de dato de opción inesperado:", optionData);
             }
-            // --- FIN Lógica REVISADA v3 ---
+            // --- FIN Lógica REVISADA v4 ---
 
             button.textContent = buttonText;
             button.setAttribute('data-original-value', originalValue);
@@ -180,7 +178,6 @@ export function displayQuestion(questionData, answerClickHandler) {
         optionsContainer.classList.remove('options-disabled');
     } catch (error) {
         console.error("Error en displayQuestion:", error);
-        // TODO: Añadir clave 'error_displaying_question'
         if(questionText) questionText.textContent = getTranslation('error_displaying_question');
         if(optionsContainer) optionsContainer.innerHTML = "";
     }
@@ -201,18 +198,18 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 
     // --- Traducir la respuesta correcta para mostrarla al usuario ---
     let translatedCorrectAnswer = '';
-    const ca = questionData.correctAnswer; // Alias para la respuesta correcta (string u objeto)
-
-    // --- Lógica REVISADA v3 para traducir respuesta correcta ---
+    const ca = questionData.correctAnswer;
+    // --- Lógica REVISADA v4 para traducir respuesta correcta ---
     if (typeof ca === 'string') {
-        translatedCorrectAnswer = getTranslation(ca) || ca;
+        const translated = getTranslation(ca);
+        translatedCorrectAnswer = (translated !== ca && translated !== '') ? translated : ca;
     } else if (typeof ca === 'object') {
         if (ca.classKey && ca.typeKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`; }
         else if (ca.classKey && ca.maskValue) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`; }
         else if (ca.classKey && ca.portionKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`; }
         else { translatedCorrectAnswer = JSON.stringify(ca); } // Fallback
     } else { translatedCorrectAnswer = 'N/A'; }
-    // --- FIN Lógica REVISADA v3 ---
+    // --- FIN Lógica REVISADA v4 ---
 
     if (isCorrect) {
         feedbackHTML = `<div id="feedback-text-content">${getTranslation('feedback_correct')}</div>`;
@@ -230,7 +227,6 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         // Resaltar botón correcto (comparando valor original)
         try {
             if(optionsContainer) {
-                // Reconstruir el valor original esperado de la respuesta correcta
                 let correctOriginalValueStr = '';
                 if (typeof ca === 'string') { correctOriginalValueStr = ca; }
                 else if (typeof ca === 'object' && ca.classKey && ca.typeKey) { correctOriginalValueStr = `${ca.classKey},${ca.typeKey}`; }
@@ -312,4 +308,3 @@ export function showTimerDisplay(show) {
          timerDisplayDiv.style.display = show ? 'block' : 'none';
      }
 }
-
