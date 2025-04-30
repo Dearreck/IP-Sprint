@@ -1,14 +1,13 @@
 // js/ui.js
 // ==================================================
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
-// ... (Selectores DOM iguales que antes) ...
+// ... (Imports y Selectores DOM iguales que en la versión anterior) ...
 // ==================================================
 
 // --- Importaciones de Módulos ---
 import * as config from './config.js';
-import { handleAnswerClick } from './game.js'; // Necesario para refreshActiveGameUI -> displayQuestion
+import { handleAnswerClick } from './game.js';
 import { getTranslation } from './i18n.js';
-// --- NUEVO: Importar generadores de tablas de utils.js ---
 import {
     generateClassRangeTableHTML,
     generateClassMaskTableHTML,
@@ -16,10 +15,8 @@ import {
     generatePortionExplanationHTML,
     generateSpecialAddressExplanationHTML
 } from './utils.js';
-// --- FIN NUEVO ---
 
 // --- Selección de Elementos del DOM ---
-// (Igual que antes)
 export const userSetupSection = document.getElementById('user-setup');
 export const levelSelectSection = document.getElementById('level-select');
 export const gameAreaSection = document.getElementById('game-area');
@@ -48,7 +45,7 @@ export const highScoreMessage = document.getElementById('high-score-message');
 export const playAgainButton = document.getElementById('play-again-button');
 export const scoreList = document.getElementById('score-list');
 
-// --- NUEVO: Mapa para llamar a los generadores de utils.js ---
+// Mapa para llamar a los generadores de utils.js
 const explanationGenerators = {
     generateClassRangeTableHTML,
     generateClassMaskTableHTML,
@@ -56,12 +53,11 @@ const explanationGenerators = {
     generatePortionExplanationHTML,
     generateSpecialAddressExplanationHTML
 };
-// --- FIN NUEVO ---
 
 
 // --- Funciones de Manipulación de la UI ---
 
-// ... (showSection, updatePlayerInfo, displayLevelSelection, updateUnlockProgressUI, updateRoundProgressUI, displayQuestion iguales que antes) ...
+// ... (showSection, updatePlayerInfo, displayLevelSelection, updateUnlockProgressUI, updateRoundProgressUI sin cambios) ...
 /**
  * Muestra una sección específica del juego y oculta las demás.
  * @param {HTMLElement} sectionToShow - El elemento de la sección que se debe mostrar.
@@ -213,44 +209,92 @@ export function updateRoundProgressUI(roundResults, isMasteryMode) {
     } catch(error) { console.error("Error en updateRoundProgressUI:", error); }
 }
 
+
 /**
  * Muestra la pregunta actual y genera los botones de opción traducidos.
+ * MODIFICADO: Refactorizada la construcción del texto para opciones de objeto.
  * @param {object} questionData - Objeto con { question: {key, replacements}, options: [string|object], correctAnswer, explanation }.
  * @param {function} answerClickHandler - La función que manejará el clic en una opción.
  */
 export function displayQuestion(questionData, answerClickHandler) {
     try {
         if(!questionText || !optionsContainer || !feedbackArea) { console.error("Error: Faltan elementos DOM en displayQuestion."); return; }
-        // Limpiar feedback al mostrar nueva pregunta
         feedbackArea.innerHTML = '';
         feedbackArea.className = '';
-        // Mostrar texto de la pregunta
         questionText.innerHTML = getTranslation(questionData.question.key, questionData.question.replacements);
-        // Limpiar opciones anteriores
         optionsContainer.innerHTML = '';
         if (!questionData.options || !Array.isArray(questionData.options)) { throw new Error("optionsArray inválido o no es un array."); }
 
-        // Crear botones de opción
         questionData.options.forEach((optionData) => {
             const button = document.createElement('button');
             button.classList.add('option-button');
             let buttonText = '';
-            let originalValue = '';
+            let originalValue = ''; // El valor original sin traducir para la lógica del juego
 
-            // ... (lógica para buttonText y originalValue igual que antes) ...
-            if (typeof optionData === 'string') { const translated = getTranslation(optionData); buttonText = (translated && translated !== optionData) ? translated : optionData; originalValue = optionData; }
-            else if (typeof optionData === 'object') { if (optionData.classKey && optionData.typeKey) { buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.typeKey)}`; originalValue = `${optionData.classKey},${optionData.typeKey}`; } else if (optionData.classKey && optionData.maskValue) { buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation('option_mask', { mask: optionData.maskValue })}`; originalValue = `${optionData.classKey},${optionData.maskValue}`; } else if (optionData.classKey && optionData.portionKey) { buttonText = `${getTranslation(optionData.classKey)}, ${getTranslation(optionData.portionKey, { portion: optionData.portionValue || getTranslation('option_none') })}`; originalValue = `${optionData.classKey},${optionData.portionKey},${optionData.portionValue || 'None'}`; } else { buttonText = JSON.stringify(optionData); originalValue = buttonText; console.warn("Formato de objeto de opción desconocido:", optionData); } }
-            else { buttonText = 'Opción Inválida'; originalValue = 'invalid'; console.warn("Tipo de dato de opción inesperado:", optionData); }
+            if (typeof optionData === 'string') {
+                // Opción simple (ej. 'A', 'B', 'option_public', '10.0.0.0')
+                const translated = getTranslation(optionData);
+                // Usar el texto traducido si existe y es diferente a la clave, sino usar el valor original
+                buttonText = (translated && translated !== optionData) ? translated : optionData;
+                originalValue = optionData; // El valor original es la clave/valor en sí
+            } else if (typeof optionData === 'object') {
+                // Opción compleja (ej. { classKey: 'option_class_B', maskValue: '255.255.0.0' })
+                let textParts = []; // Array para guardar las partes traducidas del texto
+                let originalValueParts = []; // Array para guardar las claves originales
+
+                // Traducir y añadir cada parte existente al texto y a originalValue
+                if (optionData.classKey) {
+                    textParts.push(getTranslation(optionData.classKey));
+                    originalValueParts.push(optionData.classKey);
+                }
+                if (optionData.typeKey) {
+                    textParts.push(getTranslation(optionData.typeKey));
+                    originalValueParts.push(optionData.typeKey);
+                }
+                if (optionData.maskValue) {
+                    // Usar la clave 'option_mask' para formatear la máscara
+                    textParts.push(getTranslation('option_mask', { mask: optionData.maskValue }));
+                    originalValueParts.push(optionData.maskValue); // Guardar solo el valor de la máscara
+                }
+                if (optionData.portionKey) {
+                    // Usar la clave de la porción (ej. 'option_network_portion') para formatear
+                    textParts.push(getTranslation(optionData.portionKey, { portion: optionData.portionValue || getTranslation('option_none') }));
+                    originalValueParts.push(optionData.portionKey); // Guardar la clave de la porción
+                    originalValueParts.push(optionData.portionValue || 'None'); // Guardar el valor (o 'None')
+                }
+
+                // Unir las partes traducidas para el texto del botón
+                buttonText = textParts.join(', ');
+
+                // Unir las claves/valores originales para data-original-value
+                // Usamos una coma como separador consistente. Asegurarse que game.js lo reconstruye igual.
+                originalValue = originalValueParts.join(',');
+
+                // Fallback por si el objeto no tenía claves reconocidas
+                if (textParts.length === 0) {
+                    buttonText = JSON.stringify(optionData);
+                    originalValue = buttonText;
+                    console.warn("Objeto de opción vacío o con claves desconocidas:", optionData);
+                }
+
+            } else {
+                // Tipo de dato inesperado
+                buttonText = 'Opción Inválida';
+                originalValue = 'invalid';
+                console.warn("Tipo de dato de opción inesperado:", optionData);
+            }
 
             button.textContent = buttonText;
             button.setAttribute('data-original-value', originalValue);
 
-            if (typeof answerClickHandler === 'function') { button.addEventListener('click', answerClickHandler); }
-            else { console.error("answerClickHandler no es una función en displayQuestion"); }
+            if (typeof answerClickHandler === 'function') {
+                button.addEventListener('click', answerClickHandler);
+            } else {
+                console.error("answerClickHandler no es una función en displayQuestion");
+            }
             optionsContainer.appendChild(button);
         });
 
-        // Asegurar que las opciones estén habilitadas al mostrar la pregunta
         optionsContainer.classList.remove('options-disabled');
     } catch (error) {
         console.error("Error en displayQuestion:", error);
@@ -262,7 +306,7 @@ export function displayQuestion(questionData, answerClickHandler) {
 
 /**
  * Muestra el feedback (correcto/incorrecto) después de una respuesta.
- * MODIFICADO: Ahora genera el HTML de la explicación dinámicamente.
+ * MODIFICADO: Refactorizada la construcción del texto para la respuesta correcta de objeto.
  * @param {boolean} isCorrect - Indica si la respuesta fue correcta.
  * @param {boolean} isMasteryMode - Indica si se debe usar el estilo mastery.
  * @param {object} questionData - Objeto con los datos de la pregunta actual.
@@ -271,70 +315,98 @@ export function displayQuestion(questionData, answerClickHandler) {
 export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStepHandler) {
     if (!feedbackArea || !questionData || questionData.correctAnswer === undefined) { console.error("Error: Falta feedbackArea o questionData/correctAnswer en displayFeedback."); return; }
 
-    let feedbackText = ''; // Texto base (Correcto/Incorrecto)
-    let explanationHTML = ''; // HTML de la explicación (texto + tabla)
+    let feedbackText = '';
+    let explanationHTML = '';
     const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
 
-    // Traducir la respuesta correcta para mostrarla en el mensaje "Incorrecto"
+    // --- MODIFICADO: Construir texto de respuesta correcta pieza por pieza ---
     let translatedCorrectAnswer = '';
-    const ca = questionData.correctAnswer;
-    // ... (lógica para traducir ca igual que antes) ...
-    if (typeof ca === 'string') { const translated = getTranslation(ca); translatedCorrectAnswer = (translated && translated !== ca) ? translated : ca; }
-    else if (typeof ca === 'object') { if (ca.classKey && ca.typeKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`; } else if (ca.classKey && ca.maskValue) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`; } else if (ca.classKey && ca.portionKey) { translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`; } else { translatedCorrectAnswer = JSON.stringify(ca); } }
-    else { translatedCorrectAnswer = 'N/A'; }
+    const ca = questionData.correctAnswer; // Respuesta correcta (puede ser string u objeto)
+
+    if (typeof ca === 'string') {
+        const translated = getTranslation(ca);
+        translatedCorrectAnswer = (translated && translated !== ca) ? translated : ca;
+    } else if (typeof ca === 'object') {
+        let textParts = [];
+        // Traducir y añadir cada parte existente
+        if (ca.classKey) textParts.push(getTranslation(ca.classKey));
+        if (ca.typeKey) textParts.push(getTranslation(ca.typeKey));
+        if (ca.maskValue) textParts.push(getTranslation('option_mask', { mask: ca.maskValue }));
+        if (ca.portionKey) textParts.push(getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') }));
+
+        if (textParts.length > 0) {
+            translatedCorrectAnswer = textParts.join(', ');
+        } else {
+            translatedCorrectAnswer = JSON.stringify(ca); // Fallback
+            console.warn("Objeto de respuesta correcta vacío o con claves desconocidas:", ca);
+        }
+    } else {
+        translatedCorrectAnswer = 'N/A'; // Fallback para otros tipos
+    }
+    // --- FIN MODIFICADO ---
+
 
     if (isCorrect) {
         feedbackText = getTranslation('feedback_correct');
         feedbackArea.className = isMasteryMode ? 'mastery' : 'correct';
     } else {
+        // Usar el translatedCorrectAnswer construido arriba
         feedbackText = getTranslation('feedback_incorrect', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` });
         feedbackArea.className = 'incorrect';
 
-        // --- MODIFICADO: Generar explicación dinámicamente ---
+        // Generar explicación dinámicamente (lógica igual que en la versión anterior)
         try {
             const expInfo = questionData.explanation;
             let baseExplanationText = '';
-
-            // Obtener texto base si existe
             if (expInfo && expInfo.baseTextKey) {
                 baseExplanationText = getTranslation(expInfo.baseTextKey, expInfo.replacements || {});
             }
-
-            // Generar tabla(s) si existe(n) info del generador
             let generatedTableHTML = '';
             if (expInfo && expInfo.generatorName && explanationGenerators[expInfo.generatorName]) {
-                // Caso: Un solo generador
                 const generatorFunc = explanationGenerators[expInfo.generatorName];
-                generatedTableHTML = generatorFunc.apply(null, expInfo.args || []); // Llamar a la función con sus args
+                generatedTableHTML = generatorFunc.apply(null, expInfo.args || []);
             } else if (expInfo && Array.isArray(expInfo.generators)) {
-                // Caso: Múltiples generadores
-                const separator = expInfo.separator || '<br>'; // Usar separador o <br>
+                const separator = expInfo.separator || '<br>';
                 generatedTableHTML = expInfo.generators.map(genInfo => {
                     if (genInfo.generatorName && explanationGenerators[genInfo.generatorName]) {
                         const generatorFunc = explanationGenerators[genInfo.generatorName];
                         return generatorFunc.apply(null, genInfo.args || []);
                     }
-                    return ''; // Retornar string vacío si el generador no es válido
-                }).join(separator); // Unir tablas con separador
+                    return '';
+                }).join(separator);
             }
-
-            // Combinar texto base y tabla(s) generada(s)
             explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedTableHTML}` : generatedTableHTML;
-
         } catch (genError) {
             console.error("Error generando explicación HTML dinámicamente:", genError, questionData.explanation);
-            explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' })}</p>`; // Mensaje de error genérico
+            explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' })}</p>`;
         }
-        // --- FIN MODIFICADO ---
 
         // Resaltar botón correcto (lógica igual que antes)
         try {
             if(optionsContainer) {
                 let correctOriginalValueStr = '';
-                // ... (lógica para construir correctOriginalValueStr igual que antes) ...
-                if (typeof ca === 'string') { correctOriginalValueStr = ca; } else if (typeof ca === 'object' && ca.classKey && ca.typeKey) { correctOriginalValueStr = `${ca.classKey},${ca.typeKey}`; } else if (typeof ca === 'object' && ca.classKey && ca.maskValue) { correctOriginalValueStr = `${ca.classKey},${ca.maskValue}`; } else if (typeof ca === 'object' && ca.classKey && ca.portionKey) { correctOriginalValueStr = `${ca.classKey},${ca.portionKey},${ca.portionValue || 'None'}`; } else { correctOriginalValueStr = JSON.stringify(ca); }
+                // Reconstruir el valor original de la respuesta correcta para comparación
+                let originalValueParts = [];
+                if (typeof ca === 'string') {
+                    correctOriginalValueStr = ca;
+                } else if (typeof ca === 'object') {
+                    if (ca.classKey) originalValueParts.push(ca.classKey);
+                    if (ca.typeKey) originalValueParts.push(ca.typeKey);
+                    if (ca.maskValue) originalValueParts.push(ca.maskValue);
+                    if (ca.portionKey) {
+                         originalValueParts.push(ca.portionKey);
+                         originalValueParts.push(ca.portionValue || 'None');
+                    }
+                    correctOriginalValueStr = originalValueParts.join(',');
+                } else {
+                     correctOriginalValueStr = 'N/A'; // Fallback
+                }
 
-                Array.from(optionsContainer.children).forEach(button => { if (button.getAttribute('data-original-value') === correctOriginalValueStr) { button.classList.add(correctButtonClass); } });
+                Array.from(optionsContainer.children).forEach(button => {
+                    if (button.getAttribute('data-original-value') === correctOriginalValueStr) {
+                         button.classList.add(correctButtonClass);
+                    }
+                });
             }
         } catch (highlightError) { console.error("Error resaltando botón correcto:", highlightError); }
     }
@@ -352,7 +424,6 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         finalFeedbackHTML += `<button id="next-question-button">${getTranslation(buttonTextKey)}</button>`;
     }
 
-    // Actualizar el DOM
     feedbackArea.innerHTML = finalFeedbackHTML;
 
     // Añadir listener al botón "Siguiente" si existe
@@ -365,14 +436,13 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                 console.error("nextStepHandler no es una función en displayFeedback");
             }
         } else {
-            // Este error podría ocurrir si el DOM no se actualiza instantáneamente.
-            // Considerar un pequeño retraso si esto pasa consistentemente.
             console.error("No se encontró el botón 'next-question-button' inmediatamente después de crearlo.");
         }
     }
 }
 
 
+// ... (displayGameOver, displayHighScores, updateTimerDisplay, showTimerDisplay sin cambios) ...
 /**
  * Actualiza la pantalla de Game Over.
  * @param {number} score - Puntuación final de la ronda.
