@@ -7,18 +7,24 @@
 // ==================================================
 
 // --- Importaciones de Módulos ---
-import * as config from './config.js';         // Constantes de configuración
-import * as storage from './storage.js';       // Funciones para localStorage
-import * as ui from './ui.js';             // Funciones y elementos de UI
-import { getNextQuestion } from './questions.js'; // Función para obtener la siguiente pregunta
+// Importar constantes y configuraciones definidas en otros archivos.
+import * as config from './config.js';         // Constantes (ej. preguntas por ronda, puntos, claves localStorage, duración timer)
+import * as storage from './storage.js';       // Funciones para interactuar con localStorage (guardar/cargar datos)
+import * as ui from './ui.js';             // Funciones y selectores de elementos para manipular la interfaz de usuario (DOM)
+import { getNextQuestion } from './questions.js'; // Función que genera los datos de la siguiente pregunta según el nivel
 import { getTranslation } from './i18n.js';    // Función para obtener textos traducidos
 
 // --- Variables de Estado del Juego ---
-let currentUsername = '';          // Nombre del usuario actual
-let currentUserData = {};          // Datos persistentes del usuario (niveles, rachas)
-let currentScore = 0;              // Puntuación de la ronda actual
-let currentLevel = '';             // Nivel actual ('Entry', 'Associate', etc.)
-let currentGameMode = 'standard';  // Modo ('standard', 'mastery')
+// Estas variables guardan la información sobre el estado actual del juego
+// mientras el usuario está jugando una sesión. Se reinician o actualizan
+// según sea necesario.
+
+let currentUsername = '';          // Nombre del usuario que está jugando actualmente.
+let currentUserData = {};          // Objeto que contiene los datos persistentes del usuario cargados de localStorage
+                                   // (ej. { unlockedLevels: [...], entryPerfectStreak: #, associatePerfectStreak: # }).
+let currentScore = 0;              // Puntuación acumulada durante la ronda/partida actual.
+let currentLevel = '';             // Nivel que se está jugando en la ronda actual (ej. 'Entry', 'Associate').
+let currentGameMode = 'standard';  // Modo de juego ('standard' o 'mastery'). Determina reglas como el timer.
 let currentQuestionData = null;    // Objeto con datos de la pregunta actual (claves i18n incluidas)
 let questionsAnswered = 0;         // Contador de preguntas respondidas en la ronda
 let roundResults = [];             // Array [true/false] de resultados de la ronda
@@ -183,11 +189,11 @@ function loadNextQuestion() {
             let translatedCorrectAnswer = '';
             const ca = currentQuestionData?.correctAnswer;
             if (typeof ca === 'string') { translatedCorrectAnswer = getTranslation(ca) || ca; }
-            else if (typeof ca === 'object') { /* ... lógica para traducir objetos ... */
+            else if (typeof ca === 'object') { // Lógica para traducir objetos de respuesta
                  if (ca.classKey && ca.typeKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.typeKey)}`;
                  else if (ca.classKey && ca.maskValue) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation('option_mask', { mask: ca.maskValue })}`;
                  else if (ca.classKey && ca.portionKey) translatedCorrectAnswer = `${getTranslation(ca.classKey)}, ${getTranslation(ca.portionKey, { portion: ca.portionValue || getTranslation('option_none') })}`;
-                 else translatedCorrectAnswer = JSON.stringify(ca);
+                 else translatedCorrectAnswer = JSON.stringify(ca); // Fallback
             } else { translatedCorrectAnswer = 'N/A'; }
             // Usa clave traducida para mensaje de timeout
             const timeoutMsg = getTranslation('feedback_timeout', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` });
@@ -412,4 +418,22 @@ export function initializeGame() {
     ui.displayHighScores(initialHighScores);
     // Muestra la primera pantalla que ve el usuario: el formulario para ingresar nombre.
     ui.showSection(ui.userSetupSection);
+}
+
+/**
+ * Devuelve el nombre de usuario actual.
+ * Necesario para que main.js recargue datos al cambiar idioma.
+ * @returns {string} El nombre de usuario.
+ */
+export function getCurrentUsername() {
+    return currentUsername;
+}
+
+/**
+ * Devuelve los datos de la pregunta actual.
+ * Necesario para que main.js pueda redisplayar al cambiar idioma.
+ * @returns {object|null} Los datos de la pregunta actual o null.
+ */
+export function getCurrentQuestionData() {
+    return currentQuestionData;
 }
