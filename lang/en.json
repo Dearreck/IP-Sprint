@@ -140,5 +140,6 @@
   "error_displaying_question": "Error displaying question.",
   "no_scores_recorded": "No scores recorded",
   "error_displaying_scores": "Error displaying scores.",
-  "error_end_game": "Error finishing game: {message}"
+  "error_end_game": "Error finishing game: {message}",
+  "alert_enter_username": "Please enter a username."
 }
