@@ -130,5 +130,15 @@
   "game_over_level_unlocked": "Level {levelName} Unlocked! 🎉",
   "game_over_level_unlocked_pro": "Professional Level Unlocked! 🏆",
   "game_over_good_round_entry": "Perfect Round (100%)!",
-  "game_over_good_round_associate": "Good round in Associate (+{threshold}%)!"
+  "game_over_good_round_associate": "Good round in Associate (+{threshold}%)!",
+
+  "error_loading_user_data": "There was a problem loading user data: {message}",
+  "error_no_questions_for_level": "No questions available for level {level} yet.",
+  "error_invalid_question_data": "Invalid or null question data received from generator.",
+  "error_loading_question_msg": "Error loading question: {message}",
+  "error_creating_options": "Error creating options.",
+  "error_displaying_question": "Error displaying question.",
+  "no_scores_recorded": "No scores recorded",
+  "error_displaying_scores": "Error displaying scores.",
+  "error_end_game": "Error finishing game: {message}"
 }
