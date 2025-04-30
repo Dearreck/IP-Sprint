@@ -20,5 +20,23 @@
   "user_label": "Usuario:",
   "points_label": "Puntos:",
   "timer_label": "Tiempo:",
-  "loading_question": "Cargando pregunta..."
+  "loading_question": "Cargando pregunta...",
+
+  "level_entry": "Entry",
+  "level_associate": "Associate",
+  "level_professional": "Professional",
+  "level_entry_standard": "Entry ★",
+  "level_entry_mastery": "Entry 👑",
+
+  "progress_title_associate": "Progreso para Nivel Associate:",
+  "progress_title_professional": "Progreso para Nivel Professional:",
+  "progress_title_all_unlocked": "¡Todos los niveles desbloqueados!",
+
+  "feedback_correct": "¡Correcto! ✔️",
+  "feedback_incorrect": "Incorrecto. La respuesta correcta era: <strong>{correctAnswer}</strong> ❌",
+  "feedback_timeout": "¡Tiempo Agotado! ⌛ La respuesta correcta era: <strong>{correctAnswer}</strong>",
+  "next_button": "Siguiente &gt;&gt;",
+  "final_result_button": "Ver Resultado Final &gt;&gt;",
+
+  "play_again_level_button": "Jugar de Nuevo ({levelName})"
 }
