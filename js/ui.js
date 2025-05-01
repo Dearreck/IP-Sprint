@@ -1,12 +1,12 @@
 // js/ui.js
 // ==================================================
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
-// ... (Imports y Selectores DOM iguales que antes) ...
+// Añadidos console.log para depurar Game Over
 // ==================================================
 
 // --- Importaciones de Módulos ---
 import * as config from './config.js';
-import { handleAnswerClick } from './game.js'; // Necesario para que game.js pase la función
+import { handleAnswerClick } from './game.js';
 import { getTranslation } from './i18n.js';
 import {
     generateClassRangeTableHTML,
@@ -17,7 +17,6 @@ import {
 } from './utils.js';
 
 // --- Selección de Elementos del DOM ---
-// (Igual que antes)
 export const userSetupSection = document.getElementById('user-setup');
 export const levelSelectSection = document.getElementById('level-select');
 export const gameAreaSection = document.getElementById('game-area');
@@ -46,7 +45,6 @@ export const highScoreMessage = document.getElementById('high-score-message');
 export const playAgainButton = document.getElementById('play-again-button');
 export const scoreList = document.getElementById('score-list');
 
-// Mapa para llamar a los generadores de utils.js
 const explanationGenerators = {
     generateClassRangeTableHTML,
     generateClassMaskTableHTML,
@@ -55,29 +53,15 @@ const explanationGenerators = {
     generateSpecialAddressExplanationHTML
 };
 
-
 // --- Funciones de Manipulación de la UI ---
-
-// ... (showSection, updatePlayerInfo, displayLevelSelection, updateUnlockProgressUI, updateRoundProgressUI sin cambios) ...
-/**
- * Muestra una sección específica del juego y oculta las demás.
- * @param {HTMLElement} sectionToShow - El elemento de la sección que se debe mostrar.
- */
 export function showSection(sectionToShow) {
-    const sections = [
-        userSetupSection, levelSelectSection, gameAreaSection,
-        gameOverSection, unlockProgressSection, highScoresSection
-    ];
+    const sections = [ userSetupSection, levelSelectSection, gameAreaSection, gameOverSection, unlockProgressSection, highScoresSection ];
     sections.forEach(section => {
         if (section) {
             let shouldDisplay = false;
-            if (section === sectionToShow) {
-                shouldDisplay = true;
-            } else if (section === unlockProgressSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection)) {
-                shouldDisplay = true;
-            } else if (section === highScoresSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection)) {
-                shouldDisplay = true;
-            }
+            if (section === sectionToShow) { shouldDisplay = true; }
+            else if (section === unlockProgressSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection)) { shouldDisplay = true; }
+            else if (section === highScoresSection && (sectionToShow === levelSelectSection || sectionToShow === gameOverSection)) { shouldDisplay = true; }
             section.style.display = shouldDisplay ? 'block' : 'none';
         }
     });
@@ -87,86 +71,35 @@ export function showSection(sectionToShow) {
      }
 }
 
-/**
- * Actualiza la información del jugador (nombre, nivel, puntos) en la UI del área de juego.
- * @param {string} username - Nombre del usuario.
- * @param {string} level - Nivel actual (ej. 'Entry', 'Associate').
- * @param {number} score - Puntuación actual.
- */
 export function updatePlayerInfo(username, level, score) {
     if (usernameDisplay) usernameDisplay.textContent = username;
     if (levelDisplay) levelDisplay.textContent = level ? getTranslation(`level_${level.toLowerCase()}`) : '';
     if (scoreDisplay) scoreDisplay.textContent = score;
 }
 
-/**
- * Genera y muestra los botones de selección de nivel basados en los niveles desbloqueados.
- * @param {Array<string>} unlockedLevels - Array con los nombres de los niveles desbloqueados.
- * @param {object} currentUserData - Datos completos del usuario (para progreso).
- * @param {function} levelSelectHandler - La función a llamar cuando se hace clic en un botón de nivel.
- */
 export function displayLevelSelection(unlockedLevels, currentUserData, levelSelectHandler) {
-    if (!levelButtonsContainer || !unlockedLevels) {
-        console.error("Error: Falta levelButtonsContainer o unlockedLevels en displayLevelSelection.");
-        return;
-    }
+    if (!levelButtonsContainer || !unlockedLevels) { console.error("Error: Falta levelButtonsContainer o unlockedLevels en displayLevelSelection."); return; }
     levelButtonsContainer.innerHTML = '';
     try {
-        if (unlockedLevels.includes('Entry')) {
-            const entryBtn = document.createElement('button');
-            entryBtn.textContent = getTranslation('level_entry_standard');
-            entryBtn.addEventListener('click', () => levelSelectHandler('Entry', 'standard'));
-            levelButtonsContainer.appendChild(entryBtn);
-        }
-        if (unlockedLevels.includes('Associate')) { // Mastery se desbloquea con Associate
-            const entryTimerBtn = document.createElement('button');
-            entryTimerBtn.textContent = getTranslation('level_entry_mastery');
-            entryTimerBtn.addEventListener('click', () => levelSelectHandler('Entry', 'mastery'));
-            levelButtonsContainer.appendChild(entryTimerBtn);
-        }
-        unlockedLevels.forEach(level => {
-            if (level !== 'Entry') {
-                const button = document.createElement('button');
-                button.textContent = getTranslation(`level_${level.toLowerCase()}`);
-                button.addEventListener('click', () => levelSelectHandler(level, 'standard')); // Asume modo standard para otros niveles
-                levelButtonsContainer.appendChild(button);
-            }
-        });
-    } catch (error) {
-        console.error("Error generando botones de nivel:", error);
-        levelButtonsContainer.innerHTML = `<p>${getTranslation('error_loading_levels', { error: error.message })}</p>`;
-        return;
-    }
-    try {
-        updateUnlockProgressUI(currentUserData);
-    } catch (error) {
-        console.error("Error en updateUnlockProgressUI desde displayLevelSelection:", error);
-    }
+        if (unlockedLevels.includes('Entry')) { const entryBtn = document.createElement('button'); entryBtn.textContent = getTranslation('level_entry_standard'); entryBtn.addEventListener('click', () => levelSelectHandler('Entry', 'standard')); levelButtonsContainer.appendChild(entryBtn); }
+        if (unlockedLevels.includes('Associate')) { const entryTimerBtn = document.createElement('button'); entryTimerBtn.textContent = getTranslation('level_entry_mastery'); entryTimerBtn.addEventListener('click', () => levelSelectHandler('Entry', 'mastery')); levelButtonsContainer.appendChild(entryTimerBtn); }
+        unlockedLevels.forEach(level => { if (level !== 'Entry') { const button = document.createElement('button'); button.textContent = getTranslation(`level_${level.toLowerCase()}`); button.addEventListener('click', () => levelSelectHandler(level, 'standard')); levelButtonsContainer.appendChild(button); } });
+    } catch (error) { console.error("Error generando botones de nivel:", error); levelButtonsContainer.innerHTML = `<p>${getTranslation('error_loading_levels', { error: error.message })}</p>`; return; }
+    try { updateUnlockProgressUI(currentUserData); } catch (error) { console.error("Error en updateUnlockProgressUI desde displayLevelSelection:", error); }
     showSection(levelSelectSection);
 }
 
-
-/**
- * Actualiza la UI de progreso de DESBLOQUEO de nivel (estrellas y título).
- * @param {object} currentUserData - Datos del usuario con niveles y rachas.
- */
 export function updateUnlockProgressUI(currentUserData) {
     try {
-        if (!currentUserData || !unlockProgressSection || !unlockProgressDiv || !progressStarsSpan || !unlockProgressTitle) {
-             if(unlockProgressSection) unlockProgressSection.style.display = 'none';
-             return;
-        }
+        if (!currentUserData || !unlockProgressSection || !unlockProgressDiv || !progressStarsSpan || !unlockProgressTitle) { if(unlockProgressSection) unlockProgressSection.style.display = 'none'; return; }
         const unlocked = currentUserData.unlockedLevels || ['Entry'];
         const entryStreak = currentUserData.entryPerfectStreak || 0;
         const associateStreak = currentUserData.associatePerfectStreak || 0;
         let targetLevel = null; let currentStreak = 0; let progressTitleKey = ""; let showProgress = false;
-
         if (!unlocked.includes('Associate')) { targetLevel = 'Associate'; currentStreak = entryStreak; progressTitleKey = "progress_title_associate"; showProgress = true; }
         else if (!unlocked.includes('Professional')) { targetLevel = 'Professional'; currentStreak = associateStreak; progressTitleKey = "progress_title_professional"; showProgress = true; }
         else { targetLevel = 'None'; progressTitleKey = "progress_title_all_unlocked"; showProgress = false; }
-
         unlockProgressTitle.textContent = getTranslation(progressTitleKey);
-
         if (showProgress) {
             let stars = ''; for (let i = 0; i < 3; i++) { stars += (i < currentStreak) ? '★' : '☆'; }
             progressStarsSpan.textContent = stars;
@@ -180,301 +113,123 @@ export function updateUnlockProgressUI(currentUserData) {
                  unlockProgressDiv.style.display = 'block';
                  if(progressStarsSpan) progressStarsSpan.style.display = 'none';
                  unlockProgressSection.style.display = 'block';
-             } else {
-                 if(unlockProgressSection) unlockProgressSection.style.display = 'none';
-             }
+             } else { if(unlockProgressSection) unlockProgressSection.style.display = 'none'; }
         }
-    } catch(error) {
-        console.error("Error en updateUnlockProgressUI:", error);
-        if(unlockProgressSection) unlockProgressSection.style.display = 'none';
-    }
+    } catch(error) { console.error("Error en updateUnlockProgressUI:", error); if(unlockProgressSection) unlockProgressSection.style.display = 'none'; }
 }
 
-
-/**
- * Actualiza las estrellas de progreso DENTRO de la ronda actual.
- * @param {Array<boolean>} roundResults - Array con los resultados (true/false) de la ronda.
- * @param {boolean} isMasteryMode - Indica si se debe usar el estilo de corona.
- */
 export function updateRoundProgressUI(roundResults, isMasteryMode) {
     try {
         if (!roundProgressStarsDiv) return;
         let starsHTML = '';
         for (let i = 0; i < config.TOTAL_QUESTIONS_PER_GAME; i++) {
-            if (i < roundResults.length) {
-                if (roundResults[i] === true) { starsHTML += isMasteryMode ? '<i class="fas fa-crown star-mastery"></i>' : '<i class="fas fa-star star-correct"></i>'; }
-                else { starsHTML += '<i class="fas fa-star star-incorrect"></i>'; }
-            } else { starsHTML += '<i class="far fa-star star-pending"></i>'; }
+            if (i < roundResults.length) { if (roundResults[i] === true) { starsHTML += isMasteryMode ? '<i class="fas fa-crown star-mastery"></i>' : '<i class="fas fa-star star-correct"></i>'; } else { starsHTML += '<i class="fas fa-star star-incorrect"></i>'; } }
+            else { starsHTML += '<i class="far fa-star star-pending"></i>'; }
         }
         roundProgressStarsDiv.innerHTML = starsHTML;
     } catch(error) { console.error("Error en updateRoundProgressUI:", error); }
 }
 
-
-/**
- * Muestra la pregunta actual y genera los botones de opción traducidos.
- * CORREGIDO: Asegura la traducción de cada parte en opciones de objeto.
- * @param {object} questionData - Objeto con { question: {key, replacements}, options: [string|object], correctAnswer, explanation }.
- * @param {function} answerClickHandler - La función que manejará el clic en una opción.
- */
 export function displayQuestion(questionData, answerClickHandler) {
     try {
         if(!questionText || !optionsContainer || !feedbackArea) { console.error("Error: Faltan elementos DOM en displayQuestion."); return; }
-        feedbackArea.innerHTML = '';
-        feedbackArea.className = '';
+        feedbackArea.innerHTML = ''; feedbackArea.className = '';
         questionText.innerHTML = getTranslation(questionData.question.key, questionData.question.replacements);
         optionsContainer.innerHTML = '';
         if (!questionData.options || !Array.isArray(questionData.options)) { throw new Error("optionsArray inválido o no es un array."); }
-
         questionData.options.forEach((optionData) => {
-            const button = document.createElement('button');
-            button.classList.add('option-button');
-            let buttonText = '';
-            let originalValue = ''; // El valor original sin traducir para la lógica del juego
-
-            if (typeof optionData === 'string') {
-                const translated = getTranslation(optionData);
-                buttonText = (translated && translated !== optionData) ? translated : optionData;
-                originalValue = optionData;
-            } else if (typeof optionData === 'object') {
-                let textParts = [];
-                let originalValueParts = [];
-
-                // --- Lógica CORREGIDA y más explícita ---
-                if (optionData.classKey) {
-                    const translatedClass = getTranslation(optionData.classKey);
-                    textParts.push(translatedClass); // Usar el texto traducido
-                    originalValueParts.push(optionData.classKey); // Guardar la clave original
-                }
-                if (optionData.typeKey) {
-                    const translatedType = getTranslation(optionData.typeKey);
-                    textParts.push(translatedType);
-                    originalValueParts.push(optionData.typeKey);
-                }
-                if (optionData.maskValue) {
-                    // Usar la clave 'option_mask' para el formato, que ya está traducida
-                    textParts.push(getTranslation('option_mask', { mask: optionData.maskValue }));
-                    originalValueParts.push(optionData.maskValue); // Guardar solo el valor
-                }
-                if (optionData.portionKey) {
-                    const portionVal = optionData.portionValue || getTranslation('option_none'); // Obtener valor (o traducido 'None')
-                    // Usar la clave de formato (ej. 'option_host_portion'), que ya está traducida
-                    textParts.push(getTranslation(optionData.portionKey, { portion: portionVal }));
-                    originalValueParts.push(optionData.portionKey); // Guardar clave original
-                    originalValueParts.push(optionData.portionValue || 'None'); // Guardar valor original (o 'None')
-                }
-                // --- Fin Lógica CORREGIDA ---
-
-                buttonText = textParts.join(', ');
-                originalValue = originalValueParts.join(',');
-
-                if (textParts.length === 0) {
-                    buttonText = JSON.stringify(optionData);
-                    originalValue = buttonText;
-                    console.warn("Objeto de opción vacío o con claves desconocidas:", optionData);
-                }
-
-            } else {
-                buttonText = 'Opción Inválida';
-                originalValue = 'invalid';
-                console.warn("Tipo de dato de opción inesperado:", optionData);
-            }
-
-            button.textContent = buttonText;
-            button.setAttribute('data-original-value', originalValue);
-
-            if (typeof answerClickHandler === 'function') {
-                button.addEventListener('click', answerClickHandler);
-            } else {
-                console.error("answerClickHandler no es una función en displayQuestion");
-            }
+            const button = document.createElement('button'); button.classList.add('option-button');
+            let buttonText = ''; let originalValue = '';
+            if (typeof optionData === 'string') { const translated = getTranslation(optionData); buttonText = (translated && translated !== optionData) ? translated : optionData; originalValue = optionData; }
+            else if (typeof optionData === 'object') {
+                let textParts = []; let originalValueParts = [];
+                if (optionData.classKey) { const translatedClass = getTranslation(optionData.classKey); textParts.push(translatedClass); originalValueParts.push(optionData.classKey); }
+                if (optionData.typeKey) { const translatedType = getTranslation(optionData.typeKey); textParts.push(translatedType); originalValueParts.push(optionData.typeKey); }
+                if (optionData.maskValue) { textParts.push(getTranslation('option_mask', { mask: optionData.maskValue })); originalValueParts.push(optionData.maskValue); }
+                if (optionData.portionKey) { const portionVal = optionData.portionValue || getTranslation('option_none'); textParts.push(getTranslation(optionData.portionKey, { portion: portionVal })); originalValueParts.push(optionData.portionKey); originalValueParts.push(optionData.portionValue || 'None'); }
+                buttonText = textParts.join(', '); originalValue = originalValueParts.join(',');
+                if (textParts.length === 0) { buttonText = JSON.stringify(optionData); originalValue = buttonText; console.warn("Objeto de opción vacío o con claves desconocidas:", optionData); }
+            } else { buttonText = 'Opción Inválida'; originalValue = 'invalid'; console.warn("Tipo de dato de opción inesperado:", optionData); }
+            button.textContent = buttonText; button.setAttribute('data-original-value', originalValue);
+            if (typeof answerClickHandler === 'function') { button.addEventListener('click', answerClickHandler); } else { console.error("answerClickHandler no es una función en displayQuestion"); }
             optionsContainer.appendChild(button);
         });
-
         optionsContainer.classList.remove('options-disabled');
-    } catch (error) {
-        console.error("Error en displayQuestion:", error);
-        if(questionText) questionText.textContent = getTranslation('error_displaying_question');
-        if(optionsContainer) optionsContainer.innerHTML = "";
-    }
+    } catch (error) { console.error("Error en displayQuestion:", error); if(questionText) questionText.textContent = getTranslation('error_displaying_question'); if(optionsContainer) optionsContainer.innerHTML = ""; }
 }
 
-
-/**
- * Muestra el feedback (correcto/incorrecto) después de una respuesta.
- * CORREGIDO: Asegura la traducción de cada parte en la respuesta correcta de objeto.
- * @param {boolean} isCorrect - Indica si la respuesta fue correcta.
- * @param {boolean} isMasteryMode - Indica si se debe usar el estilo mastery.
- * @param {object} questionData - Objeto con los datos de la pregunta actual.
- * @param {function} nextStepHandler - Función a llamar al hacer clic en "Siguiente".
- */
 export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStepHandler) {
     if (!feedbackArea || !questionData || questionData.correctAnswer === undefined) { console.error("Error: Falta feedbackArea o questionData/correctAnswer en displayFeedback."); return; }
-
-    let feedbackText = '';
-    let explanationHTML = '';
-    const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
-
-    // --- Lógica CORREGIDA para construir texto de respuesta correcta ---
-    let translatedCorrectAnswer = '';
-    const ca = questionData.correctAnswer;
-
-    if (typeof ca === 'string') {
-        const translated = getTranslation(ca);
-        translatedCorrectAnswer = (translated && translated !== ca) ? translated : ca;
-    } else if (typeof ca === 'object') {
+    let feedbackText = ''; let explanationHTML = ''; const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
+    let translatedCorrectAnswer = ''; const ca = questionData.correctAnswer;
+    if (typeof ca === 'string') { const translated = getTranslation(ca); translatedCorrectAnswer = (translated && translated !== ca) ? translated : ca; }
+    else if (typeof ca === 'object') {
         let textParts = [];
-        if (ca.classKey) textParts.push(getTranslation(ca.classKey)); // Traducir directamente
-        if (ca.typeKey) textParts.push(getTranslation(ca.typeKey)); // Traducir directamente
-        if (ca.maskValue) textParts.push(getTranslation('option_mask', { mask: ca.maskValue })); // Usar formato
-        if (ca.portionKey) {
-             const portionVal = ca.portionValue || getTranslation('option_none');
-             textParts.push(getTranslation(ca.portionKey, { portion: portionVal })); // Usar formato
-        }
-
-        if (textParts.length > 0) {
-            translatedCorrectAnswer = textParts.join(', ');
-        } else {
-            translatedCorrectAnswer = JSON.stringify(ca);
-            console.warn("Objeto de respuesta correcta vacío o con claves desconocidas:", ca);
-        }
-    } else {
-        translatedCorrectAnswer = 'N/A';
-    }
-    // --- FIN Lógica CORREGIDA ---
-
-
-    if (isCorrect) {
-        feedbackText = getTranslation('feedback_correct');
-        feedbackArea.className = isMasteryMode ? 'mastery' : 'correct';
-    } else {
-        feedbackText = getTranslation('feedback_incorrect', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` });
-        feedbackArea.className = 'incorrect';
-
-        // Generar explicación dinámicamente (sin cambios aquí)
+        if (ca.classKey) textParts.push(getTranslation(ca.classKey));
+        if (ca.typeKey) textParts.push(getTranslation(ca.typeKey));
+        if (ca.maskValue) textParts.push(getTranslation('option_mask', { mask: ca.maskValue }));
+        if (ca.portionKey) { const portionVal = ca.portionValue || getTranslation('option_none'); textParts.push(getTranslation(ca.portionKey, { portion: portionVal })); }
+        if (textParts.length > 0) { translatedCorrectAnswer = textParts.join(', '); } else { translatedCorrectAnswer = JSON.stringify(ca); console.warn("Objeto de respuesta correcta vacío o con claves desconocidas:", ca); }
+    } else { translatedCorrectAnswer = 'N/A'; }
+    if (isCorrect) { feedbackText = getTranslation('feedback_correct'); feedbackArea.className = isMasteryMode ? 'mastery' : 'correct'; }
+    else {
+        feedbackText = getTranslation('feedback_incorrect', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` }); feedbackArea.className = 'incorrect';
         try {
-            const expInfo = questionData.explanation;
-            let baseExplanationText = '';
-            if (expInfo && expInfo.baseTextKey) {
-                baseExplanationText = getTranslation(expInfo.baseTextKey, expInfo.replacements || {});
-            }
+            const expInfo = questionData.explanation; let baseExplanationText = '';
+            if (expInfo && expInfo.baseTextKey) { baseExplanationText = getTranslation(expInfo.baseTextKey, expInfo.replacements || {}); }
             let generatedTableHTML = '';
-            if (expInfo && expInfo.generatorName && explanationGenerators[expInfo.generatorName]) {
-                const generatorFunc = explanationGenerators[expInfo.generatorName];
-                generatedTableHTML = generatorFunc.apply(null, expInfo.args || []);
-            } else if (expInfo && Array.isArray(expInfo.generators)) {
-                const separator = expInfo.separator || '<br>';
-                generatedTableHTML = expInfo.generators.map(genInfo => {
-                    if (genInfo.generatorName && explanationGenerators[genInfo.generatorName]) {
-                        const generatorFunc = explanationGenerators[genInfo.generatorName];
-                        return generatorFunc.apply(null, genInfo.args || []);
-                    }
-                    return '';
-                }).join(separator);
-            }
+            if (expInfo && expInfo.generatorName && explanationGenerators[expInfo.generatorName]) { const generatorFunc = explanationGenerators[expInfo.generatorName]; generatedTableHTML = generatorFunc.apply(null, expInfo.args || []); }
+            else if (expInfo && Array.isArray(expInfo.generators)) { const separator = expInfo.separator || '<br>'; generatedTableHTML = expInfo.generators.map(genInfo => { if (genInfo.generatorName && explanationGenerators[genInfo.generatorName]) { const generatorFunc = explanationGenerators[genInfo.generatorName]; return generatorFunc.apply(null, genInfo.args || []); } return ''; }).join(separator); }
             explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedTableHTML}` : generatedTableHTML;
-        } catch (genError) {
-            console.error("Error generando explicación HTML dinámicamente:", genError, questionData.explanation);
-            explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' })}</p>`;
-        }
-
-        // Resaltar botón correcto (sin cambios aquí, usa el originalValue reconstruido)
+        } catch (genError) { console.error("Error generando explicación HTML dinámicamente:", genError, questionData.explanation); explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' })}</p>`; }
         try {
             if(optionsContainer) {
-                let correctOriginalValueStr = '';
-                let originalValueParts = [];
-                if (typeof ca === 'string') {
-                    correctOriginalValueStr = ca;
-                } else if (typeof ca === 'object') {
-                    if (ca.classKey) originalValueParts.push(ca.classKey);
-                    if (ca.typeKey) originalValueParts.push(ca.typeKey);
-                    if (ca.maskValue) originalValueParts.push(ca.maskValue);
-                    if (ca.portionKey) {
-                         originalValueParts.push(ca.portionKey);
-                         originalValueParts.push(ca.portionValue || 'None');
-                    }
-                    correctOriginalValueStr = originalValueParts.join(',');
-                } else {
-                     correctOriginalValueStr = 'N/A';
-                }
-
-                Array.from(optionsContainer.children).forEach(button => {
-                    if (button.getAttribute('data-original-value') === correctOriginalValueStr) {
-                         button.classList.add(correctButtonClass);
-                    }
-                });
+                let correctOriginalValueStr = ''; let originalValueParts = [];
+                if (typeof ca === 'string') { correctOriginalValueStr = ca; }
+                else if (typeof ca === 'object') { if (ca.classKey) originalValueParts.push(ca.classKey); if (ca.typeKey) originalValueParts.push(ca.typeKey); if (ca.maskValue) originalValueParts.push(ca.maskValue); if (ca.portionKey) { originalValueParts.push(ca.portionKey); originalValueParts.push(ca.portionValue || 'None'); } correctOriginalValueStr = originalValueParts.join(','); }
+                else { correctOriginalValueStr = 'N/A'; }
+                Array.from(optionsContainer.children).forEach(button => { if (button.getAttribute('data-original-value') === correctOriginalValueStr) { button.classList.add(correctButtonClass); } });
             }
         } catch (highlightError) { console.error("Error resaltando botón correcto:", highlightError); }
     }
-
-    // Construir el HTML final del feedback (sin cambios aquí)
     let finalFeedbackHTML = `<div id="feedback-text-content"><span>${feedbackText}</span>`;
-    if (explanationHTML) {
-        finalFeedbackHTML += `<span class="explanation">${explanationHTML}</span>`;
-    }
+    if (explanationHTML) { finalFeedbackHTML += `<span class="explanation">${explanationHTML}</span>`; }
     finalFeedbackHTML += `</div>`;
-    if (!isCorrect) {
-        const buttonTextKey = (questionData.questionsAnswered + 1 >= config.TOTAL_QUESTIONS_PER_GAME) ? 'final_result_button' : 'next_button';
-        finalFeedbackHTML += `<button id="next-question-button">${getTranslation(buttonTextKey)}</button>`;
-    }
+    if (!isCorrect) { const buttonTextKey = (questionData.questionsAnswered + 1 >= config.TOTAL_QUESTIONS_PER_GAME) ? 'final_result_button' : 'next_button'; finalFeedbackHTML += `<button id="next-question-button">${getTranslation(buttonTextKey)}</button>`; }
     feedbackArea.innerHTML = finalFeedbackHTML;
-
-    // Añadir listener al botón "Siguiente" (sin cambios aquí)
     if (!isCorrect) {
         const newNextButton = document.getElementById('next-question-button');
-        if (newNextButton) {
-            if (typeof nextStepHandler === 'function') {
-                newNextButton.addEventListener('click', nextStepHandler);
-            } else {
-                console.error("nextStepHandler no es una función en displayFeedback");
-            }
-        } else {
-            console.error("No se encontró el botón 'next-question-button' inmediatamente después de crearlo.");
-        }
+        if (newNextButton) { if (typeof nextStepHandler === 'function') { newNextButton.addEventListener('click', nextStepHandler); } else { console.error("nextStepHandler no es una función en displayFeedback"); } }
+        else { console.error("No se encontró el botón 'next-question-button' inmediatamente después de crearlo."); }
     }
 }
 
-
-// ... (displayGameOver, displayHighScores, updateTimerDisplay, showTimerDisplay sin cambios) ...
-/**
- * Actualiza la pantalla de Game Over.
- * @param {number} score - Puntuación final de la ronda.
- * @param {object} currentUserData - Datos actualizados del usuario.
- * @param {string} playedLevel - El nivel que se acaba de jugar.
- */
 export function displayGameOver(score, currentUserData, playedLevel) {
+    // --- DEBUG LOG ---
+    console.log("displayGameOver function started");
+    // --- END DEBUG LOG ---
     if(finalScoreDisplay) finalScoreDisplay.textContent = score;
-
     const maxScore = config.PERFECT_SCORE;
     const scorePercentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
     const isPerfect = score === maxScore;
     const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK;
     let baseMessage = getTranslation('game_over_base_message', { score: score, maxScore: maxScore, percentage: scorePercentage.toFixed(0) });
     let extraMessage = '';
-
-    // ... (lógica para construir extraMessage igual que antes) ...
     if (playedLevel === 'Entry') { if (isPerfect) { if (currentUserData.unlockedLevels.includes('Associate') && currentUserData.entryPerfectStreak === 0) { extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') }); } else if (!currentUserData.unlockedLevels.includes('Associate')) { extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_entry'), streak: currentUserData.entryPerfectStreak }); } else { extraMessage = getTranslation('game_over_good_round_entry'); } } else { if (storage.getUserData(currentUserData.username || '')?.entryPerfectStreak > 0) { extraMessage = getTranslation('game_over_streak_reset_100'); } } }
     else if (playedLevel === 'Associate') { if (meetsAssociateThreshold) { if (currentUserData.unlockedLevels.includes('Professional') && currentUserData.associatePerfectStreak === 0) { extraMessage = getTranslation('game_over_level_unlocked_pro'); } else if (!currentUserData.unlockedLevels.includes('Professional')) { extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_associate'), streak: currentUserData.associatePerfectStreak }); } else { extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK }); } } else { if (storage.getUserData(currentUserData.username || '')?.associatePerfectStreak > 0) { extraMessage = getTranslation('game_over_streak_reset_90'); } } }
-
     const finalMessage = extraMessage ? `${baseMessage} ${extraMessage}` : baseMessage;
     if(highScoreMessage) highScoreMessage.textContent = finalMessage;
-
     if (playAgainButton && currentUserData && currentUserData.unlockedLevels) {
-        if (currentUserData.unlockedLevels.length <= 1) {
-            const levelName = getTranslation(`level_${(currentUserData.unlockedLevels[0] || 'entry').toLowerCase()}`);
-            playAgainButton.textContent = getTranslation('play_again_level_button', { levelName: levelName });
-        } else {
-            playAgainButton.textContent = getTranslation('play_again_button');
-        }
+        if (currentUserData.unlockedLevels.length <= 1) { const levelName = getTranslation(`level_${(currentUserData.unlockedLevels[0] || 'entry').toLowerCase()}`); playAgainButton.textContent = getTranslation('play_again_level_button', { levelName: levelName }); }
+        else { playAgainButton.textContent = getTranslation('play_again_button'); }
     }
     try { updateUnlockProgressUI(currentUserData); } catch (error) { console.error("Error en updateUnlockProgressUI desde displayGameOver:", error); }
     showSection(gameOverSection);
+    // --- DEBUG LOG ---
+    console.log("displayGameOver function finished");
+    // --- END DEBUG LOG ---
 }
 
-/**
- * Actualiza la lista de High Scores en la UI.
- * @param {Array<object>} scoresData - Array de objetos [{ name: string, scores: { levelMode: score, ... } }, ...]
- */
 export function displayHighScores(scoresData) {
      if(!scoreList) { console.error("Elemento scoreList no encontrado."); return; }
      scoreList.innerHTML = '';
@@ -493,10 +248,6 @@ export function displayHighScores(scoresData) {
      } catch (error) { console.error("Error generando la lista de high scores:", error); scoreList.innerHTML = `<li>${getTranslation('error_displaying_scores')}</li>`; }
 }
 
-/**
- * Actualiza el display del temporizador.
- * @param {number} timeLeftValue - Segundos restantes.
- */
 export function updateTimerDisplay(timeLeftValue) {
     if (!timerDisplayDiv || !timeLeftSpan) return;
     timeLeftSpan.textContent = timeLeftValue;
@@ -504,10 +255,6 @@ export function updateTimerDisplay(timeLeftValue) {
     else { timerDisplayDiv.classList.remove('low-time'); }
 }
 
-/**
- * Muestra u oculta el display del temporizador.
- * @param {boolean} show - True para mostrar, false para ocultar.
- */
 export function showTimerDisplay(show) {
      if (timerDisplayDiv) {
          timerDisplayDiv.style.display = show ? 'block' : 'none';
