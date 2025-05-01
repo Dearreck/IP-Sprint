@@ -126,6 +126,7 @@
   "table_header_default_mask": "Máscara por Defecto",
   "table_header_block_cidr": "Bloque (CIDR)",
   "table_header_address_range": "Rango de Direcciones",
+  "table_header_octet": "Octeto",
   "table_header_portion": "Porción",
   "table_header_visual_representation": "Representación Visual",
   "table_portion_network": "Red",
