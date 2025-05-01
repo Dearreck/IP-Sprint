@@ -79,6 +79,7 @@
   "question_identify_network_portion": "Given the IP <strong>{ip}</strong> and its default mask (<strong>{mask}</strong>), what is the network portion?",
   "question_identify_host_portion": "Given the IP <strong>{ip}</strong> and its default mask (<strong>{mask}</strong>), what is the host portion?",
   "question_calculate_address": "Given the IP <strong>{ip}</strong> and its default mask (<strong>{mask}</strong>), what is its <strong>{addressType}</strong>?",
+  "question_calculate_wildcard": "Given the subnet mask: <strong>{subnetMask}</strong><br>What is its corresponding wildcard mask?",
   "address_type_network": "Network Address",
   "address_type_broadcast": "Broadcast Address",
 
@@ -108,7 +109,9 @@
   "explanation_special_default": "This is an address with a special purpose not detailed here.",
   "explanation_special_defined_in": "(Defined in <a href=\"{rfcLink}\" target=\"_blank\" rel=\"noopener noreferrer\">{rfcText}</a>).",
   "explanation_rfc1918_class_note": "Although the <strong>{blockId}</strong> block is classless, the IP addresses within it fall into the original range of <strong>Class {class}</strong>.",
-
+  "explanation_wildcard_intro": "The wildcard mask is calculated by subtracting each octet of the subnet mask from 255:",
+  "explanation_wildcard_calculation": "Calculation: 255 - {octetValue} = {wildcardOctet}",
+  
   "table_header_concept": "Concept",
   "table_header_value": "Value",
   "table_header_calculation_note": "Calculation / Note",
