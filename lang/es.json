@@ -72,6 +72,7 @@
   "question_given_ip_what_class_mask": "Dada la IP: <strong>{ip}</strong><br>¿Cuál es su Clase y Máscara por Defecto?",
   "question_given_ip_what_class_net_portion": "Dada la IP: <strong>{ip}</strong><br>¿Cuál es su Clase y Porción de Red (usando máscara default)?",
   "question_given_ip_what_class_host_portion": "Dada la IP: <strong>{ip}</strong><br>¿Cuál es su Clase y Porción de Host (usando máscara default)?",
+  "question_given_ip_what_class_type_mask": "Dada la IP: <strong>{ip}</strong><br>¿Cuál es su Clase, Tipo y Máscara por Defecto?",
   "question_rfc1918_cidr_from_block": "Según {rfcLinkHTML}, ¿qué notación CIDR corresponde al bloque privado que comienza en <strong>{blockStart}</strong>?",
   "question_rfc1918_range_from_cidr": "Según {rfcLinkHTML}, ¿qué rango de direcciones corresponde al bloque privado definido como <strong>{cidr}</strong>?",
   "question_rfc1918_class_from_block": "El bloque privado {rfcLinkHTML} <strong>{blockIdentifier}</strong> utiliza direcciones que originalmente pertenecen a la Clase:",
