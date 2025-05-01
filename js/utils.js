@@ -1,7 +1,7 @@
 // js/utils.js
 // ==================================================
 // Módulo de Utilidades para IP Sprint
-// Añadidos console.log para depurar explicación wildcard.
+// CORREGIDO: Usar tabla HTML para alinear la resta visual de wildcard.
 // ==================================================
 
 import { getTranslation } from './i18n.js';
@@ -31,15 +31,12 @@ export function generateSpecialAddressExplanationHTML(addressTypeKey) { let expl
 
 /**
  * Genera explicación HTML para cálculo de Wildcard.
- * Añadidos console.log para depurar.
+ * CORREGIDO: Usa una tabla para alinear la resta visual.
  * @param {string} subnetMask - La máscara de subred original.
  * @param {string} wildcardMask - La máscara wildcard calculada.
  * @returns {string} El string HTML de la explicación.
  */
 export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
-    // --- DEBUG LOG ---
-    console.log(`generateWildcardExplanationHTML called with mask: ${subnetMask}, wildcard: ${wildcardMask}`);
-    // --- END DEBUG LOG ---
     try {
         const maskOctets = subnetMask.split('.').map(Number);
         const wildcardOctets = wildcardMask.split('.').map(Number);
@@ -48,16 +45,49 @@ export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
         }
 
         let html = `<p>${getTranslation('explanation_wildcard_intro')}</p>`;
-        // Mostrar la resta visual
-        html += `<div style="font-family: monospace; text-align: center; margin: 10px 0; line-height: 1.2;">`;
-        html += `  255 .  255 .  255 .  255<br>`;
-        html += `- ${maskOctets[0].toString().padStart(3, ' ')} . ${maskOctets[1].toString().padStart(3, ' ')} . ${maskOctets[2].toString().padStart(3, ' ')} . ${maskOctets[3].toString().padStart(3, ' ')} (Subnet Mask)<br>`;
-        html += `--------------------------<br>`;
-        html += `= ${wildcardOctets[0].toString().padStart(3, ' ')} . ${wildcardOctets[1].toString().padStart(3, ' ')} . ${wildcardOctets[2].toString().padStart(3, ' ')} . ${wildcardOctets[3].toString().padStart(3, ' ')} (Wildcard Mask)`;
-        html += `</div>`;
 
-        // Añadir la tabla de cálculo detallado
-        html += '<table class="explanation-table">';
+        // --- Usar una tabla para la resta visual ---
+        // Aplicar estilos inline para asegurar alineación derecha y fuente monoespaciada
+        const cellStyle = "padding: 2px 5px; text-align: right; font-family: monospace;";
+        const labelCellStyle = "padding: 2px 5px; text-align: left; font-family: monospace;";
+        const separatorCellStyle = "padding: 0 2px; text-align: center; font-family: monospace;"; // Para los puntos
+        const hrCellStyle = "border-bottom: 1px solid #ccc; height: 1px; padding: 0; margin: 2px 0;"; // Para la línea
+
+        html += `<table style="width: auto; margin: 10px auto; border-collapse: collapse;"><tbody>`;
+        // Fila 1: 255.255.255.255
+        html += `<tr>`;
+        html += `<td style="${cellStyle}"></td>`; // Celda vacía para el signo
+        html += `<td style="${cellStyle}">255</td><td style="${separatorCellStyle}">.</td>`;
+        html += `<td style="${cellStyle}">255</td><td style="${separatorCellStyle}">.</td>`;
+        html += `<td style="${cellStyle}">255</td><td style="${separatorCellStyle}">.</td>`;
+        html += `<td style="${cellStyle}">255</td>`;
+        html += `<td style="${labelCellStyle}"></td>`; // Celda vacía para etiqueta
+        html += `</tr>`;
+        // Fila 2: - subnetMask (Subnet Mask)
+        html += `<tr>`;
+        html += `<td style="${cellStyle}">-</td>`; // Signo de resta
+        html += `<td style="${cellStyle}">${maskOctets[0]}</td><td style="${separatorCellStyle}">.</td>`;
+        html += `<td style="${cellStyle}">${maskOctets[1]}</td><td style="${separatorCellStyle}">.</td>`;
+        html += `<td style="${cellStyle}">${maskOctets[2]}</td><td style="${separatorCellStyle}">.</td>`;
+        html += `<td style="${cellStyle}">${maskOctets[3]}</td>`;
+        html += `<td style="${labelCellStyle}">(Subnet Mask)</td>`; // Etiqueta
+        html += `</tr>`;
+        // Fila 3: Línea separadora (usando colspan)
+        html += `<tr><td colspan="9" style="${hrCellStyle}"></td></tr>`;
+        // Fila 4: = wildcardMask (Wildcard Mask)
+        html += `<tr>`;
+        html += `<td style="${cellStyle}">=</td>`; // Signo de igual
+        html += `<td style="${cellStyle}">${wildcardOctets[0]}</td><td style="${separatorCellStyle}">.</td>`;
+        html += `<td style="${cellStyle}">${wildcardOctets[1]}</td><td style="${separatorCellStyle}">.</td>`;
+        html += `<td style="${cellStyle}">${wildcardOctets[2]}</td><td style="${separatorCellStyle}">.</td>`;
+        html += `<td style="${cellStyle}">${wildcardOctets[3]}</td>`;
+        html += `<td style="${labelCellStyle}">(Wildcard Mask)</td>`; // Etiqueta
+        html += `</tr>`;
+        html += `</tbody></table>`;
+        // --- Fin de la tabla para resta visual ---
+
+        // Añadir la tabla de cálculo detallado octeto por octeto
+        html += '<table class="explanation-table" style="margin-top: 15px;">'; // Añadir margen superior
         html += `<thead><tr><th>${getTranslation('table_header_octet')}</th><th>${getTranslation('table_header_calculation_note')}</th></tr></thead>`;
         html += '<tbody>';
         for (let i = 0; i < 4; i++) {
@@ -69,15 +99,9 @@ export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
         }
         html += '</tbody></table>';
 
-        // --- DEBUG LOG ---
-        console.log("Generated wildcard explanation HTML:", html);
-        // --- END DEBUG LOG ---
         return html;
     } catch (error) {
         console.error("Error generando explicación de wildcard:", error);
-        // --- DEBUG LOG ---
-        console.log("Returning error HTML for wildcard explanation");
-        // --- END DEBUG LOG ---
         return `<p>${getTranslation('explanation_portion_calc_error', { ip: subnetMask, mask: 'N/A' })}</p>`;
     }
 }
