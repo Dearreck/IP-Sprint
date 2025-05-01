@@ -81,6 +81,7 @@
   "question_identify_network_portion": "Dada la IP <strong>{ip}</strong> y su máscara por defecto (<strong>{mask}</strong>), ¿cuál es la porción de red?",
   "question_identify_host_portion": "Dada la IP <strong>{ip}</strong> y su máscara por defecto (<strong>{mask}</strong>), ¿cuál es la porción de host?",
   "question_calculate_address": "Dada la IP <strong>{ip}</strong> y su máscara por defecto (<strong>{mask}</strong>), ¿cuál es su <strong>{addressType}</strong>?",
+  "question_calculate_wildcard": "Dada la máscara de subred: <strong>{subnetMask}</strong><br>¿Cuál es su máscara wildcard correspondiente?",
   "address_type_network": "Dirección de Red",
   "address_type_broadcast": "Dirección de Broadcast",
 
@@ -110,6 +111,8 @@
   "explanation_special_default": "Esta es una dirección con un propósito especial no detallado aquí.",
   "explanation_special_defined_in": "(Definido en <a href=\"{rfcLink}\" target=\"_blank\" rel=\"noopener noreferrer\">{rfcText}</a>).",
   "explanation_rfc1918_class_note": "Aunque el bloque <strong>{blockId}</strong> es classless, las direcciones IP dentro de él caen en el rango original de la <strong>Clase {class}</strong>.",
+  "explanation_wildcard_intro": "La máscara wildcard se calcula restando cada octeto de la máscara de subred de 255:",
+  "explanation_wildcard_calculation": "Cálculo: 255 - {octetValue} = {wildcardOctet}",
   "class_note_multicast": "(Multicast)",
   "class_note_experimental": "(Experimental)",
 
