@@ -1,7 +1,7 @@
 // js/game.js
 // ==================================================
 // Lógica Principal del Juego IP Sprint
-// Añadidos console.log para depurar Game Over
+// Eliminados console.log de depuración
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -163,13 +163,7 @@ function loadNextQuestion() {
  function proceedToNextStep() {
     clearInterval(questionTimerInterval);
     questionsAnswered++;
-    // --- DEBUG LOG ---
-    console.log(`Proceeding: Answered ${questionsAnswered}, Total ${config.TOTAL_QUESTIONS_PER_GAME}`);
-    // --- END DEBUG LOG ---
     if (questionsAnswered >= config.TOTAL_QUESTIONS_PER_GAME) {
-        // --- DEBUG LOG ---
-        console.log("Condition met, calling endGame()");
-        // --- END DEBUG LOG ---
         endGame();
     } else {
         loadNextQuestion();
@@ -225,9 +219,6 @@ function loadNextQuestion() {
 }
 
  function endGame() {
-    // --- DEBUG LOG ---
-    console.log("endGame function started");
-    // --- END DEBUG LOG ---
     clearInterval(questionTimerInterval);
     isFeedbackActive = false;
     lastAnswerCorrect = null;
@@ -264,15 +255,13 @@ function loadNextQuestion() {
         storage.saveHighScore(currentUsername, currentScore, currentLevel, currentGameMode);
         const highScores = storage.loadHighScores();
         ui.displayHighScores(highScores);
-        ui.displayGameOver(currentScore, currentUserData, currentLevel);
+        ui.displayGameOver(currentScore, currentUserData, currentLevel); // Llamada a UI para mostrar pantalla
         currentQuestionData = null;
     } catch (error) {
         console.error("Error en endGame:", error);
-        ui.displayGameOver(currentScore, { error: getTranslation('error_end_game', { message: error.message }) }, currentLevel);
+        // Intenta mostrar Game Over incluso si hubo error guardando, pasando el error
+        ui.displayGameOver(currentScore, currentUserData || { error: true }, currentLevel); // Pasar currentUserData si existe
     }
-    // --- DEBUG LOG ---
-    console.log("endGame function finished");
-    // --- END DEBUG LOG ---
 }
 
 export function handleRestartRound() {
