@@ -1,7 +1,7 @@
 // js/utils.js
 // ==================================================
 // Módulo de Utilidades para IP Sprint
-// CORREGIDO: Descomentada y corregida tabla de explicación wildcard.
+// Añadidos console.log para depurar explicación wildcard.
 // ==================================================
 
 import { getTranslation } from './i18n.js';
@@ -22,6 +22,7 @@ export function calculateWildcardMask(maskString) { try { const maskOctets = mas
 export function calculateBroadcastAddress(networkAddrString, wildcardString) { try { const networkOctets = networkAddrString.split('.').map(Number); const wildcardOctets = wildcardString.split('.').map(Number); if (networkOctets.length !== 4 || wildcardOctets.length !== 4 || networkOctets.some(isNaN) || wildcardOctets.some(isNaN) || networkOctets.some(o => o < 0 || o > 255) || wildcardOctets.some(o => o < 0 || o > 255) ) { throw new Error("Formato Dir. Red o Wildcard inválido"); } const broadcastOctets = networkOctets.map((octet, i) => octet | wildcardOctets[i]); return broadcastOctets.join('.'); } catch (error) { console.error("Error calculando dirección de broadcast:", error); return null; } }
 
 // --- Generadores de Tablas HTML para Explicaciones (Usan i18n) ---
+// (generateClassRangeTableHTML, generateClassMaskTableHTML, generatePrivateRangeTableHTML, generatePortionExplanationHTML, generateSpecialAddressExplanationHTML sin cambios)
 export function generateClassRangeTableHTML(highlightClass = null) { const ranges = [ { class: 'A', range: '1 - 126' }, { class: 'B', range: '128 - 191' }, { class: 'C', range: '192 - 223' }, { class: 'D', range: '224 - 239', note: getTranslation('class_note_multicast') || '(Multicast)' }, { class: 'E', range: '240 - 255', note: getTranslation('class_note_experimental') || '(Experimental)' } ]; let tableHTML = `<p>${getTranslation('explanation_class_range_intro')}</p>`; tableHTML += '<table class="explanation-table">'; tableHTML += `<thead><tr><th>${getTranslation('table_header_class')}</th><th>${getTranslation('table_header_range')}</th><th>${getTranslation('table_header_note')}</th></tr></thead>`; tableHTML += '<tbody>'; ranges.forEach(item => { const highlight = (item.class === highlightClass) ? ' class="highlight-row"' : ''; tableHTML += `<tr${highlight}><td>${item.class}</td><td>${item.range}</td><td>${item.note || ''}</td></tr>`; }); tableHTML += '</tbody></table>'; if (highlightClass === 'A') { tableHTML += `<p style="font-size:0.8em; text-align:center; margin-top:5px;">${getTranslation('explanation_class_range_note_a')}</p>`; } return tableHTML; }
 export function generateClassMaskTableHTML(highlightClass = null) { const data = [ { class: 'A', range: '1 - 126', mask: '255.0.0.0' }, { class: 'B', range: '128 - 191', mask: '255.255.0.0' }, { class: 'C', range: '192 - 223', mask: '255.255.255.0' } ]; let tableHTML = `<p>${getTranslation('explanation_class_mask_intro')}</p>`; tableHTML += '<table class="explanation-table">'; tableHTML += `<thead><tr><th>${getTranslation('table_header_class')}</th><th>${getTranslation('table_header_first_octet_range')}</th><th>${getTranslation('table_header_default_mask')}</th></tr></thead>`; tableHTML += '<tbody>'; data.forEach(item => { const highlight = (item.class === highlightClass) ? ' class="highlight-row"' : ''; tableHTML += `<tr${highlight}><td>${item.class}</td><td>${item.range}</td><td>${item.mask}</td></tr>`; }); tableHTML += '</tbody></table>'; return tableHTML; }
 export function generatePrivateRangeTableHTML(highlightIp = null) { const ranges = [ { cidr: '10.0.0.0/8', range: '10.0.0.0 - 10.255.255.255' }, { cidr: '172.16.0.0/12', range: '172.16.0.0 - 172.31.255.255' }, { cidr: '192.168.0.0/16', range: '192.168.0.0 - 192.168.255.255' } ]; const rfcLink = 'https://datatracker.ietf.org/doc/html/rfc1918'; let highlightCIDR = null; let ipTypeKey = 'unknown'; let ipTypeTranslated = ''; if (highlightIp) { const info = getIpInfo(highlightIp); ipTypeKey = info.typeKey; ipTypeTranslated = info.type; if (ipTypeKey === 'private') { const octets = highlightIp.split('.').map(Number); if(octets[0] === 10) { highlightCIDR = '10.0.0.0/8'; } else if(octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) { highlightCIDR = '172.16.0.0/12'; } else if(octets[0] === 192 && octets[1] === 168) { highlightCIDR = '192.168.0.0/16'; } } } let tableHTML = `<p>${getTranslation('explanation_private_range_intro', { rfcLink: rfcLink })}</p>`; tableHTML += '<table class="explanation-table">'; tableHTML += `<thead><tr><th>${getTranslation('table_header_block_cidr')}</th><th>${getTranslation('table_header_address_range')}</th></tr></thead>`; tableHTML += '<tbody>'; ranges.forEach(item => { const highlight = (item.cidr === highlightCIDR) ? ' class="highlight-row"' : ''; tableHTML += `<tr${highlight}><td>${item.cidr}</td><td>${item.range}</td></tr>`; }); tableHTML += '</tbody></table>'; if (highlightIp) { let noteKey = ''; if (ipTypeKey === 'private' && highlightCIDR) { noteKey = 'explanation_private_range_note_private'; } else if (ipTypeKey === 'public') { noteKey = 'explanation_private_range_note_public'; } else if (ipTypeKey !== 'unknown') { noteKey = 'explanation_private_range_note_other'; } if (noteKey) { tableHTML += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">${getTranslation(noteKey, { ip: highlightIp, ipType: ipTypeTranslated })}</p>`; } } return tableHTML; }
@@ -30,17 +31,20 @@ export function generateSpecialAddressExplanationHTML(addressTypeKey) { let expl
 
 /**
  * Genera explicación HTML para cálculo de Wildcard.
- * CORREGIDO: Muestra la resta y la tabla de cálculo detallado.
+ * Añadidos console.log para depurar.
  * @param {string} subnetMask - La máscara de subred original.
  * @param {string} wildcardMask - La máscara wildcard calculada.
  * @returns {string} El string HTML de la explicación.
  */
 export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
+    // --- DEBUG LOG ---
+    console.log(`generateWildcardExplanationHTML called with mask: ${subnetMask}, wildcard: ${wildcardMask}`);
+    // --- END DEBUG LOG ---
     try {
         const maskOctets = subnetMask.split('.').map(Number);
         const wildcardOctets = wildcardMask.split('.').map(Number);
-        if (maskOctets.length !== 4 || wildcardOctets.length !== 4) {
-            throw new Error("Formato inválido de máscara o wildcard");
+        if (maskOctets.length !== 4 || wildcardOctets.length !== 4 || maskOctets.some(isNaN) || wildcardOctets.some(isNaN)) {
+            throw new Error("Formato inválido de máscara o wildcard al generar explicación");
         }
 
         let html = `<p>${getTranslation('explanation_wildcard_intro')}</p>`;
@@ -52,9 +56,8 @@ export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
         html += `= ${wildcardOctets[0].toString().padStart(3, ' ')} . ${wildcardOctets[1].toString().padStart(3, ' ')} . ${wildcardOctets[2].toString().padStart(3, ' ')} . ${wildcardOctets[3].toString().padStart(3, ' ')} (Wildcard Mask)`;
         html += `</div>`;
 
-        // --- DESCOMENTADO: Añadir la tabla de cálculo detallado ---
+        // Añadir la tabla de cálculo detallado
         html += '<table class="explanation-table">';
-        // Usar nueva clave de traducción para "Octeto"
         html += `<thead><tr><th>${getTranslation('table_header_octet')}</th><th>${getTranslation('table_header_calculation_note')}</th></tr></thead>`;
         html += '<tbody>';
         for (let i = 0; i < 4; i++) {
@@ -62,15 +65,19 @@ export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
                 octetValue: maskOctets[i],
                 wildcardOctet: wildcardOctets[i]
             });
-            // Usar clave traducida y número de octeto
             html += `<tr><td>${getTranslation('table_header_octet')} ${i + 1}</td><td><code>${calculationText}</code></td></tr>`;
         }
         html += '</tbody></table>';
-        // --- FIN DESCOMENTADO ---
 
+        // --- DEBUG LOG ---
+        console.log("Generated wildcard explanation HTML:", html);
+        // --- END DEBUG LOG ---
         return html;
     } catch (error) {
         console.error("Error generando explicación de wildcard:", error);
-        return `<p>${getTranslation('explanation_portion_calc_error', { ip: subnetMask, mask: 'N/A' })}</p>`; // Reutilizar clave de error
+        // --- DEBUG LOG ---
+        console.log("Returning error HTML for wildcard explanation");
+        // --- END DEBUG LOG ---
+        return `<p>${getTranslation('explanation_portion_calc_error', { ip: subnetMask, mask: 'N/A' })}</p>`;
     }
 }
