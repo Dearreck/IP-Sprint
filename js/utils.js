@@ -1,7 +1,7 @@
 // js/utils.js
 // ==================================================
 // Módulo de Utilidades para IP Sprint
-// CORREGIDO: Mejorada la explicación del cálculo de wildcard.
+// CORREGIDO: Descomentada y corregida tabla de explicación wildcard.
 // ==================================================
 
 import { getTranslation } from './i18n.js';
@@ -11,6 +11,7 @@ export function getRandomInt(min, max) { min = Math.ceil(min); max = Math.floor(
 export function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
 
 // --- Utilidades de Direccionamiento IP ---
+// (generateRandomIp, generateRandomPrivateIp, getIpInfo, getIpPortions, generateRandomSubnetMask, calculateNetworkAddress, calculateWildcardMask, calculateBroadcastAddress sin cambios)
 export function generateRandomIp() { let oct1; do { oct1 = getRandomInt(1, 223); } while (oct1 === 127 || oct1 === 169); let oct2 = getRandomInt(0, 255); if (oct1 === 169 && oct2 === 254) { oct2 = getRandomInt(0, 253); } const oct3 = getRandomInt(0, 255); const oct4 = getRandomInt(1, 254); return `${oct1}.${oct2}.${oct3}.${oct4}`; }
 export function generateRandomPrivateIp() { const type = getRandomInt(1, 3); let ip = ''; if (type === 1) { ip = `10.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; } else if (type === 2) { ip = `172.${getRandomInt(16, 31)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; } else { ip = `192.168.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; } return ip; }
 export function getIpInfo(ipString) { const defaultResult = { class: 'N/A', type: 'N/A', typeKey: 'unknown', defaultMask: 'N/A' }; try { if (!ipString || typeof ipString !== 'string') { return defaultResult; } const octets = ipString.split('.').map(Number); if (octets.length !== 4 || octets.some(isNaN) || octets.some(o => o < 0 || o > 255)) { return defaultResult; } const firstOctet = octets[0]; let ipClass = 'N/A'; let ipTypeKey = 'unknown'; let defaultMask = 'N/A'; if (firstOctet >= 1 && firstOctet <= 126) { ipClass = 'A'; defaultMask = '255.0.0.0'; } else if (firstOctet === 127) { ipClass = 'A'; defaultMask = '255.0.0.0'; ipTypeKey = 'loopback'; } else if (firstOctet >= 128 && firstOctet <= 191) { ipClass = 'B'; defaultMask = '255.255.0.0'; } else if (firstOctet >= 192 && firstOctet <= 223) { ipClass = 'C'; defaultMask = '255.255.255.0'; } else if (firstOctet >= 224 && firstOctet <= 239) { ipClass = 'D'; defaultMask = 'N/A'; ipTypeKey = 'multicast'; } else if (firstOctet >= 240 && firstOctet <= 255) { ipClass = 'E'; defaultMask = 'N/A'; ipTypeKey = 'experimental'; } if (ipTypeKey === 'unknown') { if (firstOctet === 10 || (firstOctet === 172 && octets[1] >= 16 && octets[1] <= 31) || (firstOctet === 192 && octets[1] === 168)) { ipTypeKey = 'private'; } else if (firstOctet === 169 && octets[1] === 254) { ipTypeKey = 'apipa'; ipClass = 'B'; defaultMask = 'N/A'; } else { ipTypeKey = 'public'; } } if (ipString === '255.255.255.255') { ipTypeKey = 'limited_broadcast'; ipClass = 'N/A'; defaultMask = 'N/A'; } const ipTypeTranslated = getTranslation(`option_${ipTypeKey}`) || ipTypeKey; return { class: ipClass, type: ipTypeTranslated, typeKey: ipTypeKey, defaultMask: defaultMask }; } catch (error) { console.error("Error en getIpInfo:", error, "IP:", ipString); return defaultResult; } }
@@ -29,7 +30,7 @@ export function generateSpecialAddressExplanationHTML(addressTypeKey) { let expl
 
 /**
  * Genera explicación HTML para cálculo de Wildcard.
- * CORREGIDO: Muestra la resta octeto por octeto.
+ * CORREGIDO: Muestra la resta y la tabla de cálculo detallado.
  * @param {string} subnetMask - La máscara de subred original.
  * @param {string} wildcardMask - La máscara wildcard calculada.
  * @returns {string} El string HTML de la explicación.
@@ -43,7 +44,7 @@ export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
         }
 
         let html = `<p>${getTranslation('explanation_wildcard_intro')}</p>`;
-        // Usar estilos inline para simular la resta alineada
+        // Mostrar la resta visual
         html += `<div style="font-family: monospace; text-align: center; margin: 10px 0; line-height: 1.2;">`;
         html += `  255 .  255 .  255 .  255<br>`;
         html += `- ${maskOctets[0].toString().padStart(3, ' ')} . ${maskOctets[1].toString().padStart(3, ' ')} . ${maskOctets[2].toString().padStart(3, ' ')} . ${maskOctets[3].toString().padStart(3, ' ')} (Subnet Mask)<br>`;
@@ -51,9 +52,9 @@ export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
         html += `= ${wildcardOctets[0].toString().padStart(3, ' ')} . ${wildcardOctets[1].toString().padStart(3, ' ')} . ${wildcardOctets[2].toString().padStart(3, ' ')} . ${wildcardOctets[3].toString().padStart(3, ' ')} (Wildcard Mask)`;
         html += `</div>`;
 
-        // Opcional: Añadir la tabla de cálculo detallado si se prefiere
-        /*
+        // --- DESCOMENTADO: Añadir la tabla de cálculo detallado ---
         html += '<table class="explanation-table">';
+        // Usar nueva clave de traducción para "Octeto"
         html += `<thead><tr><th>${getTranslation('table_header_octet')}</th><th>${getTranslation('table_header_calculation_note')}</th></tr></thead>`;
         html += '<tbody>';
         for (let i = 0; i < 4; i++) {
@@ -61,10 +62,11 @@ export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
                 octetValue: maskOctets[i],
                 wildcardOctet: wildcardOctets[i]
             });
-            html += `<tr><td>Octeto ${i + 1}</td><td><code>${calculationText}</code></td></tr>`;
+            // Usar clave traducida y número de octeto
+            html += `<tr><td>${getTranslation('table_header_octet')} ${i + 1}</td><td><code>${calculationText}</code></td></tr>`;
         }
         html += '</tbody></table>';
-        */
+        // --- FIN DESCOMENTADO ---
 
         return html;
     } catch (error) {
