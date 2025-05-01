@@ -72,6 +72,7 @@
   "question_given_ip_what_class_host_portion": "Given the IP: <strong>{ip}</strong><br>What is its Class and Host Portion (using default mask)?",
   "question_rfc1918_cidr_from_block": "According to {rfcLinkHTML}, what CIDR notation corresponds to the private block starting at <strong>{blockStart}</strong>?",
   "question_rfc1918_range_from_cidr": "According to {rfcLinkHTML}, what address range corresponds to the private block defined as <strong>{cidr}</strong>?",
+  "question_given_ip_what_class_type_mask": "Given the IP: <strong>{ip}</strong><br>What is its Class, Type, and Default Mask?",
   "question_rfc1918_class_from_block": "The private block {rfcLinkHTML} <strong>{blockIdentifier}</strong> uses addresses originally belonging to Class:",
   "question_special_what_type": "The IP address <strong>{ip}</strong> is of type:",
   "question_special_which_is_type": "Which of the following is a <strong>{typeDescription}</strong> address?",
