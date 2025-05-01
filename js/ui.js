@@ -1,7 +1,8 @@
 // js/ui.js
 // ==================================================
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
-// Añadidos console.log para depurar Game Over
+// CORREGIDO: Eliminada llamada a storage en displayGameOver
+// CORREGIDO: Eliminados console.log de depuración
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -204,31 +205,100 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     }
 }
 
+/**
+ * Actualiza la pantalla de Game Over.
+ * CORREGIDO: Eliminada la llamada a storage.getUserData.
+ * @param {number} score - Puntuación final de la ronda.
+ * @param {object} currentUserData - Datos actualizados del usuario (YA contiene las rachas).
+ * @param {string} playedLevel - El nivel que se acaba de jugar.
+ */
 export function displayGameOver(score, currentUserData, playedLevel) {
-    // --- DEBUG LOG ---
-    console.log("displayGameOver function started");
-    // --- END DEBUG LOG ---
+    // Eliminados console.log
+    if (!currentUserData) {
+        console.error("displayGameOver llamado sin currentUserData");
+        // Mostrar un mensaje de error genérico si no hay datos de usuario
+        if(finalScoreDisplay) finalScoreDisplay.textContent = score;
+        if(highScoreMessage) highScoreMessage.textContent = getTranslation('error_end_game', { message: 'Missing user data' });
+        showSection(gameOverSection);
+        return;
+    }
+
     if(finalScoreDisplay) finalScoreDisplay.textContent = score;
     const maxScore = config.PERFECT_SCORE;
-    const scorePercentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
+    const scorePercentage = maxScore > 0 ? (currentScore / maxScore) * 100 : 0;
     const isPerfect = score === maxScore;
     const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK;
     let baseMessage = getTranslation('game_over_base_message', { score: score, maxScore: maxScore, percentage: scorePercentage.toFixed(0) });
     let extraMessage = '';
-    if (playedLevel === 'Entry') { if (isPerfect) { if (currentUserData.unlockedLevels.includes('Associate') && currentUserData.entryPerfectStreak === 0) { extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') }); } else if (!currentUserData.unlockedLevels.includes('Associate')) { extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_entry'), streak: currentUserData.entryPerfectStreak }); } else { extraMessage = getTranslation('game_over_good_round_entry'); } } else { if (storage.getUserData(currentUserData.username || '')?.entryPerfectStreak > 0) { extraMessage = getTranslation('game_over_streak_reset_100'); } } }
-    else if (playedLevel === 'Associate') { if (meetsAssociateThreshold) { if (currentUserData.unlockedLevels.includes('Professional') && currentUserData.associatePerfectStreak === 0) { extraMessage = getTranslation('game_over_level_unlocked_pro'); } else if (!currentUserData.unlockedLevels.includes('Professional')) { extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_associate'), streak: currentUserData.associatePerfectStreak }); } else { extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK }); } } else { if (storage.getUserData(currentUserData.username || '')?.associatePerfectStreak > 0) { extraMessage = getTranslation('game_over_streak_reset_90'); } } }
+
+    // Determinar mensaje extra basado en el nivel jugado y las rachas/desbloqueos
+    // USA currentUserData directamente, que ya fue actualizado en game.js
+    if (playedLevel === 'Entry') {
+        if (isPerfect) {
+            // Comprobar si Associate se acaba de desbloquear en ESTA ronda
+            // (asumimos que si está desbloqueado y la racha es 0 o 3+, se acaba de desbloquear o ya estaba)
+            const justUnlockedAssociate = currentUserData.unlockedLevels.includes('Associate') &&
+                                        (currentUserData.entryPerfectStreak === 0 || currentUserData.entryPerfectStreak >= 3);
+
+            if (justUnlockedAssociate) {
+                extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') });
+            } else if (!currentUserData.unlockedLevels.includes('Associate')) {
+                // Aún no desbloqueado, mostrar progreso
+                extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_entry'), streak: currentUserData.entryPerfectStreak });
+            } else {
+                // Ya desbloqueado, solo buena ronda
+                extraMessage = getTranslation('game_over_good_round_entry');
+            }
+        } else {
+            // Si no fue perfecta, la racha se reseteó a 0 en game.js
+            // Podemos mostrar un mensaje si la racha ANTES de resetear era > 0,
+            // pero necesitaríamos pasar ese dato extra o inferirlo.
+            // Simplificación: No mostrar mensaje de racha reseteada explícitamente aquí.
+            // extraMessage = getTranslation('game_over_streak_reset_100'); // Eliminado
+        }
+    } else if (playedLevel === 'Associate') {
+        if (meetsAssociateThreshold) {
+            const justUnlockedPro = currentUserData.unlockedLevels.includes('Professional') &&
+                                  (currentUserData.associatePerfectStreak === 0 || currentUserData.associatePerfectStreak >= 3);
+
+            if (justUnlockedPro) {
+                extraMessage = getTranslation('game_over_level_unlocked_pro');
+            } else if (!currentUserData.unlockedLevels.includes('Professional')) {
+                extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_associate'), streak: currentUserData.associatePerfectStreak });
+            } else {
+                extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK });
+            }
+        } else {
+            // Racha reseteada a 0 en game.js
+            // extraMessage = getTranslation('game_over_streak_reset_90'); // Eliminado
+        }
+    }
+
     const finalMessage = extraMessage ? `${baseMessage} ${extraMessage}` : baseMessage;
     if(highScoreMessage) highScoreMessage.textContent = finalMessage;
-    if (playAgainButton && currentUserData && currentUserData.unlockedLevels) {
-        if (currentUserData.unlockedLevels.length <= 1) { const levelName = getTranslation(`level_${(currentUserData.unlockedLevels[0] || 'entry').toLowerCase()}`); playAgainButton.textContent = getTranslation('play_again_level_button', { levelName: levelName }); }
-        else { playAgainButton.textContent = getTranslation('play_again_button'); }
+
+    // Ajustar texto del botón "Jugar de Nuevo"
+    if (playAgainButton && currentUserData.unlockedLevels) {
+        if (currentUserData.unlockedLevels.length <= 1) {
+            const levelName = getTranslation(`level_${(currentUserData.unlockedLevels[0] || 'entry').toLowerCase()}`);
+            playAgainButton.textContent = getTranslation('play_again_level_button', { levelName: levelName });
+        } else {
+            playAgainButton.textContent = getTranslation('play_again_button');
+        }
     }
-    try { updateUnlockProgressUI(currentUserData); } catch (error) { console.error("Error en updateUnlockProgressUI desde displayGameOver:", error); }
+
+    // Actualizar estrellas de progreso (si aplica)
+    try {
+        updateUnlockProgressUI(currentUserData);
+    } catch (error) {
+        console.error("Error en updateUnlockProgressUI desde displayGameOver:", error);
+    }
+
+    // Mostrar la sección Game Over
     showSection(gameOverSection);
-    // --- DEBUG LOG ---
-    console.log("displayGameOver function finished");
-    // --- END DEBUG LOG ---
+    // Eliminados console.log
 }
+
 
 export function displayHighScores(scoresData) {
      if(!scoreList) { console.error("Elemento scoreList no encontrado."); return; }
