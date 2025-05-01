@@ -122,6 +122,7 @@
   "table_header_default_mask": "Default Mask",
   "table_header_block_cidr": "Block (CIDR)",
   "table_header_address_range": "Address Range",
+  "table_header_octet": "Octet",
   "table_header_portion": "Portion",
   "table_header_visual_representation": "Visual Representation",
   "table_portion_network": "Network",
