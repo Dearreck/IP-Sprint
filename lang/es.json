@@ -2,7 +2,7 @@
   "app_title": "IP Sprint 🚀",
   "welcome_title": "¡Bienvenidos!",
   "username_label": "Ingresa tu nombre de usuario:",
-  "username_placeholder": "TuNombreDeJugador",
+  "username_placeholder": "usuario",
   "continue_button": "Continuar",
   "choose_level_title": "Elige un Nivel",
   "loading_levels": "Cargando niveles...",
@@ -40,8 +40,7 @@
 
   "play_again_level_button": "Jugar de Nuevo ({levelName})",
 
-  "option_public": "Pública",
-  "option_private": "Privada",
+  "option_public": "Pública",  "option_private": "Privada",
   "option_class_a": "Clase A",
   "option_class_b": "Clase B",
   "option_class_c": "Clase C",
@@ -59,6 +58,9 @@
   "option_network_addr": "Dir. Red {addr}",
   "option_broadcast_addr": "Dir. Broadcast {addr}",
   "option_none": "Ninguna",
+  "option_unknown": "Desconocido",
+  "option_multicast": "Multicast",
+  "option_experimental": "Experimental",
 
   "question_given_ip_what_class": "Dada la IP: <strong>{ip}</strong><br>¿A qué clase pertenece?",
   "question_given_ip_what_type": "Dada la IP: <strong>{ip}</strong><br>¿Es Pública o Privada?",
@@ -73,7 +75,7 @@
   "question_rfc1918_cidr_from_block": "Según {rfcLinkHTML}, ¿qué notación CIDR corresponde al bloque privado que comienza en <strong>{blockStart}</strong>?",
   "question_rfc1918_range_from_cidr": "Según {rfcLinkHTML}, ¿qué rango de direcciones corresponde al bloque privado definido como <strong>{cidr}</strong>?",
   "question_rfc1918_class_from_block": "El bloque privado {rfcLinkHTML} <strong>{blockIdentifier}</strong> utiliza direcciones que originalmente pertenecen a la Clase:",
-  "question_special_what_type": "La dirección IP <strong>{ip}</strong> es una dirección de tipo:",
+  "question_special_what_type": "La dirección IP <strong>{ip}</strong> es de tipo:",
   "question_special_which_is_type": "¿Cuál de las siguientes es una dirección de <strong>{typeDescription}</strong>?",
   "question_identify_network_portion": "Dada la IP <strong>{ip}</strong> y su máscara por defecto (<strong>{mask}</strong>), ¿cuál es la porción de red?",
   "question_identify_host_portion": "Dada la IP <strong>{ip}</strong> y su máscara por defecto (<strong>{mask}</strong>), ¿cuál es la porción de host?",
@@ -107,6 +109,8 @@
   "explanation_special_default": "Esta es una dirección con un propósito especial no detallado aquí.",
   "explanation_special_defined_in": "(Definido en <a href=\"{rfcLink}\" target=\"_blank\" rel=\"noopener noreferrer\">{rfcText}</a>).",
   "explanation_rfc1918_class_note": "Aunque el bloque <strong>{blockId}</strong> es classless, las direcciones IP dentro de él caen en el rango original de la <strong>Clase {class}</strong>.",
+  "class_note_multicast": "(Multicast)",
+  "class_note_experimental": "(Experimental)",
 
   "table_header_concept": "Concepto",
   "table_header_value": "Valor",
