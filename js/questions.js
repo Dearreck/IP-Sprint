@@ -1,7 +1,7 @@
 // js/questions.js
 // ==================================================
 // Módulo Generador de Preguntas para IP Sprint
-// CORREGIDO: Usar typeKey para generar claves i18n
+// Añadida primera pregunta de Nivel Professional
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -15,7 +15,6 @@ import {
 import { getTranslation } from './i18n.js';
 
 // --- Generadores de Preguntas (Nivel Entry) ---
-// (Sin cambios en esta sección)
 function generateClassQuestion() { try { const ip = generateRandomIp(); const info = getIpInfo(ip); if (info.class === 'N/A') return generateClassQuestion(); const question = { key: 'question_given_ip_what_class', replacements: { ip: `<strong>${ip}</strong>` } }; const options = ['A', 'B', 'C', 'D', 'E']; const correct = info.class; const explanationInfo = { generatorName: 'generateClassRangeTableHTML', args: [correct] }; return { question, options, correctAnswer: correct, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassQuestion:", error); return null; } }
 function generateTypeQuestion() { try { let ip, info, attempts = 0; let forcePrivate = Math.random() < 0.4; ip = forcePrivate ? generateRandomPrivateIp() : generateRandomIp(); info = getIpInfo(ip); while ((info.typeKey === 'unknown' || info.typeKey === 'loopback' || info.typeKey === 'apipa' || info.typeKey === 'limited_broadcast') && attempts < 50) { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } if (info.typeKey !== 'public' && info.typeKey !== 'private') { ip = '8.8.8.8'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_type', replacements: { ip: `<strong>${ip}</strong>` } }; const options = ['option_public', 'option_private']; const correct = `option_${info.typeKey}`; const explanationInfo = { generatorName: 'generatePrivateRangeTableHTML', args: [ip] }; return { question, options, correctAnswer: correct, explanation: explanationInfo }; } catch (error) { console.error("Error en generateTypeQuestion:", error); return null; } }
 function generateDefaultMaskQuestion() { try { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100); if (attempts >= 100) { ip = '192.168.1.1'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_mask', replacements: { ip: `<strong>${ip}</strong>`, class: info.class } }; const options = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; const correct = info.defaultMask; const explanationInfo = { generatorName: 'generateClassMaskTableHTML', args: [info.class] }; const finalCorrectAnswer = options.includes(correct) ? correct : options[0]; return { question, options, correctAnswer: finalCorrectAnswer, explanation: explanationInfo }; } catch (error) { console.error("Error en generateDefaultMaskQuestion:", error); return null; } }
@@ -23,101 +22,160 @@ function generateSelectClassQuestion() { try{ const targetClasses = ['A', 'B', '
 function generateSelectPrivateIpQuestion() { try { const question = { key: 'question_select_private_ip' }; let correctIp = generateRandomPrivateIp(); let incorrectIps = []; let attempts = 0; let ipSet = new Set([correctIp]); while (incorrectIps.length < 3 && attempts < 300) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.typeKey === 'public' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; } if(incorrectIps.length < 3) { const fallbacks = ['8.8.8.8', '1.1.1.1', '203.0.113.1', '198.51.100.1', '172.15.1.1', '192.169.1.1']; for (const fb of fallbacks) { if (incorrectIps.length < 3 && !ipSet.has(fb)) { incorrectIps.push(fb); ipSet.add(fb); } } } incorrectIps = incorrectIps.slice(0, 3); const options = [correctIp, ...incorrectIps]; shuffleArray(options); const correct = correctIp; const explanationInfo = { generatorName: 'generatePrivateRangeTableHTML', args: [correct] }; return { question, options, correctAnswer: correct, explanation: explanationInfo }; } catch (error) { console.error("Error en generateSelectPrivateIpQuestion:", error); return null; } }
 function generateSelectIpByDefaultMaskQuestion() { try { const targetMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; const targetMask = targetMasks[getRandomInt(0, targetMasks.length - 1)]; const question = { key: 'question_select_ip_for_mask', replacements: { targetMask: `<strong>${targetMask}</strong>` } }; let correctIp = ''; let incorrectIps = []; let attempts = 0; let ipSet = new Set(); while (!correctIp && attempts < 100) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask === targetMask && info.typeKey !== 'loopback') { correctIp = ip; ipSet.add(ip); } attempts++; } if (!correctIp) { if(targetMask === '255.0.0.0') correctIp = '10.1.1.1'; else if(targetMask === '255.255.0.0') correctIp = '172.16.1.1'; else correctIp = '192.168.1.1'; ipSet.add(correctIp); } attempts = 0; while (incorrectIps.length < 3 && attempts < 300) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask !== 'N/A' && info.defaultMask !== targetMask && info.typeKey !== 'loopback' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; } if(incorrectIps.length < 3) { const fallbacks = ['8.8.8.8', '224.0.0.1', '169.254.1.1', '172.30.1.1', '192.168.5.5', '126.1.1.1', '191.1.1.1']; for (const fb of fallbacks) { let fbInfo = getIpInfo(fb); if (incorrectIps.length < 3 && !ipSet.has(fb) && fbInfo.defaultMask !== targetMask && fbInfo.defaultMask !== 'N/A') { incorrectIps.push(fb); ipSet.add(fb); } } } incorrectIps = incorrectIps.slice(0, 3); const options = [correctIp, ...incorrectIps]; shuffleArray(options); const correct = correctIp; const correctClass = getIpInfo(correct).class; const explanationInfo = { baseTextKey: 'explanation_select_ip_for_mask', replacements: { class: correctClass, mask: targetMask }, generatorName: 'generateClassMaskTableHTML', args: [correctClass] }; return { question, options, correctAnswer: correct, explanation: explanationInfo }; } catch (error) { console.error("Error en generateSelectIpByDefaultMaskQuestion:", error); return null; } }
 
-
 // --- Generadores de Preguntas (Nivel Associate) ---
-
 function generateClassAndTypeQuestion() { try { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100); if (attempts >= 100) { ip = Math.random() < 0.5 ? '172.20.1.1' : '10.10.10.10'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_class_type', replacements: { ip: `<strong>${ip}</strong>` } }; const correctClass = info.class; const correctAnswerObject = { classKey: `option_class_${correctClass.toLowerCase()}`, typeKey: `option_${info.typeKey}` }; let options = []; options.push(correctAnswerObject); const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase()); const possibleTypeKeys = ['option_public', 'option_private'].filter(k => k !== correctAnswerObject.typeKey); if (possibleTypeKeys.length > 0) { options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, typeKey: possibleTypeKeys[0] }); } if (possibleClassesLower.length > 0) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, typeKey: correctAnswerObject.typeKey }); } if (possibleClassesLower.length > 0 && possibleTypeKeys.length > 0) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, typeKey: possibleTypeKeys[0] }); } let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.typeKey}`)); while (options.length < 4) { const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`; const randomTypeKey = ['option_public', 'option_private'][getRandomInt(0, 1)]; const potentialOption = { classKey: randomClassKey, typeKey: randomTypeKey }; const potentialOptionStr = `${potentialOption.classKey},${potentialOption.typeKey}`; if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); } } options = options.slice(0, 4); shuffleArray(options); const explanationInfo = { generators: [ { generatorName: 'generateClassRangeTableHTML', args: [correctClass] }, { generatorName: 'generatePrivateRangeTableHTML', args: [ip] } ], separator: '<hr style="margin: 10px 0;">' }; return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassAndTypeQuestion:", error); return null; } }
 function generateClassAndDefaultMaskQuestion() { try { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100); if (attempts >= 100) { ip = '172.16.50.50'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_class_mask', replacements: { ip: `<strong>${ip}</strong>` } }; const correctClass = info.class; const correctMask = info.defaultMask; const correctAnswerObject = { classKey: `option_class_${correctClass.toLowerCase()}`, maskValue: correctMask }; let options = []; options.push(correctAnswerObject); const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase()); const possibleMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0'].filter(m => m !== correctMask); if (possibleMasks.length > 0) { options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, maskValue: possibleMasks[0] }); } if (possibleClassesLower.length > 0) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, maskValue: correctMask }); } if (possibleClassesLower.length > 0) { let incorrectMaskForIncorrectClass = '255.255.255.255'; if (possibleClassesLower[0] === 'a' && possibleMasks.includes('255.0.0.0')) incorrectMaskForIncorrectClass = '255.0.0.0'; else if (possibleClassesLower[0] === 'b' && possibleMasks.includes('255.255.0.0')) incorrectMaskForIncorrectClass = '255.255.0.0'; else if (possibleClassesLower[0] === 'c' && possibleMasks.includes('255.255.255.0')) incorrectMaskForIncorrectClass = '255.255.255.0'; else if (possibleMasks.length > 0) incorrectMaskForIncorrectClass = possibleMasks[0]; const incorrectCombination = { classKey: `option_class_${possibleClassesLower[0]}`, maskValue: incorrectMaskForIncorrectClass }; if (!options.some(o => o.classKey === incorrectCombination.classKey && o.maskValue === incorrectCombination.maskValue)) { options.push(incorrectCombination); } } let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.maskValue}`)); while (options.length < 4) { const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`; const randomMask = ['255.0.0.0', '255.255.0.0', '255.255.255.0'][getRandomInt(0, 2)]; const potentialOption = { classKey: randomClassKey, maskValue: randomMask }; const potentialOptionStr = `${potentialOption.classKey},${potentialOption.maskValue}`; if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); } } options = options.slice(0, 4); shuffleArray(options); const explanationInfo = { generatorName: 'generateClassMaskTableHTML', args: [correctClass] }; return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassAndDefaultMaskQuestion:", error); return null; } }
 function generateClassAndNetworkPortionQuestion() { try { let ip, info, portions, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); if (info.class === 'A' || info.class === 'B' || info.class === 'C') { portions = getIpPortions(ip, info.defaultMask); } else { portions = null; } attempts++; } while (!portions && attempts < 100); if (!portions) { ip = '192.168.1.100'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask); if (!portions) throw new Error("Fallback IP falló"); } const question = { key: 'question_given_ip_what_class_net_portion', replacements: { ip: `<strong>${ip}</strong>` } }; const correctClass = info.class; const correctNetworkPortion = portions.networkPortion; if (!correctNetworkPortion && correctNetworkPortion !== "") throw new Error(`No se pudo obtener networkPortion para ${ip}`); const correctAnswerObject = { classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_network_portion', portionValue: correctNetworkPortion || 'None' }; let options = []; options.push(correctAnswerObject); const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase()); let randomIpForPortion, randomInfoForPortion, incorrectNetworkPortion = null, portionAttempts = 0; do { randomIpForPortion = generateRandomIp(); randomInfoForPortion = getIpInfo(randomIpForPortion); if (randomInfoForPortion.defaultMask !== 'N/A') { incorrectNetworkPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.networkPortion; } portionAttempts++; } while ((!incorrectNetworkPortion || incorrectNetworkPortion === correctNetworkPortion) && portionAttempts < 50); if (incorrectNetworkPortion && incorrectNetworkPortion !== correctNetworkPortion) { options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_network_portion', portionValue: incorrectNetworkPortion }); } else { let fallbackPortion = (correctClass !== 'A') ? `${getRandomInt(1,126)}` : `${getRandomInt(128,191)}.${getRandomInt(0,255)}`; options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_network_portion', portionValue: fallbackPortion }); } if (possibleClassesLower.length > 0) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_network_portion', portionValue: correctNetworkPortion || 'None' }); } if (possibleClassesLower.length > 0 && incorrectNetworkPortion && incorrectNetworkPortion !== correctNetworkPortion) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_network_portion', portionValue: incorrectNetworkPortion }); } let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.portionKey},${o.portionValue}`)); while (options.length < 4) { const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`; let randomPortion = ''; if (randomClassKey === 'option_class_a') randomPortion = `${getRandomInt(1, 126)}`; else if (randomClassKey === 'option_class_b') randomPortion = `${getRandomInt(128, 191)}.${getRandomInt(0, 255)}`; else randomPortion = `${getRandomInt(192, 223)}.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}`; const potentialOption = { classKey: randomClassKey, portionKey: 'option_network_portion', portionValue: randomPortion }; const potentialOptionStr = `${potentialOption.classKey},${potentialOption.portionKey},${potentialOption.portionValue}`; if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); } } options = options.slice(0, 4); shuffleArray(options); const wildcardMask = calculateWildcardMask(info.defaultMask); const networkAddr = calculateNetworkAddress(ip, info.defaultMask); const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask); const explanationInfo = { generatorName: 'generatePortionExplanationHTML', args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr] }; return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassAndNetworkPortionQuestion:", error); return null; } }
 function generateClassAndHostPortionQuestion() { try { let ip, info, portions, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); if (info.class === 'A' || info.class === 'B' || info.class === 'C') { portions = getIpPortions(ip, info.defaultMask); } else { portions = null; } attempts++; } while (!portions && attempts < 100); if (!portions) { ip = '172.16.10.20'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask); if (!portions) throw new Error("Fallback IP falló"); } const question = { key: 'question_given_ip_what_class_host_portion', replacements: { ip: `<strong>${ip}</strong>` } }; const correctClass = info.class; const correctHostPortion = portions.hostPortion; if (!correctHostPortion && correctHostPortion !== "") throw new Error(`No se pudo obtener hostPortion para ${ip}`); const correctAnswerObject = { classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_host_portion', portionValue: correctHostPortion || 'None' }; let options = []; options.push(correctAnswerObject); const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase()); let randomIpForPortion, randomInfoForPortion, incorrectHostPortion = null, portionAttempts = 0; do { randomIpForPortion = generateRandomIp(); randomInfoForPortion = getIpInfo(randomIpForPortion); if (randomInfoForPortion.defaultMask !== 'N/A') { incorrectHostPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.hostPortion; } portionAttempts++; } while ((!incorrectHostPortion || incorrectHostPortion === correctHostPortion) && portionAttempts < 50); if (incorrectHostPortion && incorrectHostPortion !== correctHostPortion) { options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_host_portion', portionValue: incorrectHostPortion }); } else { let fallbackPortion = (correctClass !== 'C') ? `${getRandomInt(1,254)}` : `${getRandomInt(0,255)}.${getRandomInt(1,254)}`; options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_host_portion', portionValue: fallbackPortion }); } if (possibleClassesLower.length > 0) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_host_portion', portionValue: correctHostPortion || 'None' }); } if (possibleClassesLower.length > 0 && incorrectHostPortion && incorrectHostPortion !== correctHostPortion) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_host_portion', portionValue: incorrectHostPortion }); } let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.portionKey},${o.portionValue}`)); while (options.length < 4) { const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`; let randomPortion = ''; if (randomClassKey === 'option_class_a') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; else if (randomClassKey === 'option_class_b') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; else randomPortion = `${getRandomInt(1, 254)}`; const potentialOption = { classKey: randomClassKey, portionKey: 'option_host_portion', portionValue: randomPortion }; const potentialOptionStr = `${potentialOption.classKey},${potentialOption.portionKey},${potentialOption.portionValue}`; if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); } } options = options.slice(0, 4); shuffleArray(options); const wildcardMask = calculateWildcardMask(info.defaultMask); const networkAddr = calculateNetworkAddress(ip, info.defaultMask); const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask); const explanationInfo = { generatorName: 'generatePortionExplanationHTML', args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr] }; return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassAndHostPortionQuestion:", error); return null; } }
 function generateRfc1918Question() { try { const rfcLink = 'https://datatracker.ietf.org/doc/html/rfc1918'; const rfc1918Blocks = [ { cidr: '/8', range: '10.0.0.0 - 10.255.255.255', blockStart: '10.0.0.0', class: 'A', blockId: '10.0.0.0/8' }, { cidr: '/12', range: '172.16.0.0 - 172.31.255.255', blockStart: '172.16.0.0', class: 'B', blockId: '172.16.0.0/12' }, { cidr: '/16', range: '192.168.0.0 - 192.168.255.255', blockStart: '192.168.0.0', class: 'C', blockId: '192.168.0.0/16' } ]; const otherCidrs = ['/10', '/20', '/24', '/28']; const possibleClasses = ['A', 'B', 'C']; const chosenBlock = rfc1918Blocks[getRandomInt(0, rfc1918Blocks.length - 1)]; let question = {}; let correctAnswer = ''; let options = []; let explanationInfo = {}; const questionType = getRandomInt(0, 2); const rfcLinkHTML = `<a href="${rfcLink}" target="_blank" rel="noopener noreferrer">RFC 1918</a>`; if (questionType === 0) { question = { key: 'question_rfc1918_cidr_from_block', replacements: { rfcLinkHTML: rfcLinkHTML, blockStart: `<strong>${chosenBlock.blockStart}</strong>` } }; correctAnswer = chosenBlock.cidr; options = [correctAnswer]; let incorrectOptions = otherCidrs.filter(c => c !== correctAnswer); shuffleArray(incorrectOptions); options.push(...incorrectOptions.slice(0, 3)); } else if (questionType === 1) { question = { key: 'question_rfc1918_range_from_cidr', replacements: { rfcLinkHTML: rfcLinkHTML, cidr: `<strong>${chosenBlock.cidr}</strong>` } }; correctAnswer = chosenBlock.range; options = [correctAnswer]; let incorrectOptions = rfc1918Blocks.filter(b => b.cidr !== chosenBlock.cidr).map(b => b.range); if (incorrectOptions.length < 3) { incorrectOptions.push('8.8.0.0 - 8.8.255.255'); } options.push(...incorrectOptions.slice(0, 3)); } else { const blockIdentifier = chosenBlock.blockId; question = { key: 'question_rfc1918_class_from_block', replacements: { rfcLinkHTML: rfcLinkHTML, blockIdentifier: `<strong>${blockIdentifier}</strong>` } }; correctAnswer = chosenBlock.class; options = [correctAnswer]; let incorrectOptions = possibleClasses.filter(c => c !== correctAnswer); options.push(...incorrectOptions); } shuffleArray(options); if (options.length > 4) options = options.slice(0, 4); if (!options.includes(correctAnswer)) { options.pop(); options.push(correctAnswer); shuffleArray(options); } explanationInfo = { generatorName: 'generatePrivateRangeTableHTML', args: [chosenBlock.blockStart] }; if (questionType === 2) { explanationInfo.baseTextKey = 'explanation_rfc1918_class_note'; explanationInfo.replacements = { blockId: `<strong>${chosenBlock.blockId}</strong>`, class: `<strong>${chosenBlock.class}</strong>` }; } return { question, options, correctAnswer, explanation: explanationInfo }; } catch (error) { console.error("Error en generateRfc1918Question:", error); return null; } }
-
-/** Genera preguntas sobre direcciones IP especiales (Loopback, APIPA, Broadcast Limitado) */
-function generateSpecialAddressQuestion() {
-    try {
-        const specialAddresses = [
-            { ip: '127.0.0.1', typeKey: 'loopback', descriptionKey: 'option_loopback' },
-            { ip: `169.254.${getRandomInt(1, 254)}.${getRandomInt(1, 254)}`, typeKey: 'apipa', descriptionKey: 'option_apipa' },
-            { ip: '255.255.255.255', typeKey: 'limited_broadcast', descriptionKey: 'option_limited_broadcast' }
-        ];
-        const normalIpTypeKeys = ['option_public', 'option_private']; // Claves i18n para tipos normales
-        const pickSpecial = Math.random() < 0.6;
-        let targetIp = '';
-        let correctAnswerKey = ''; // La clave i18n que representa la respuesta correcta
-        let questionFormat = getRandomInt(0, 1);
-        let explanationInfo = {};
-
-        if (pickSpecial) { // Pregunta sobre IP especial
-            const chosenSpecial = specialAddresses[getRandomInt(0, specialAddresses.length - 1)];
-            targetIp = chosenSpecial.ip;
-            correctAnswerKey = chosenSpecial.descriptionKey; // ej: 'option_loopback'
-            explanationInfo = { generatorName: 'generateSpecialAddressExplanationHTML', args: [chosenSpecial.typeKey] }; // Pasar 'loopback', 'apipa', etc.
-
-            if (questionFormat === 0) { // Dada IP especial, preguntar tipo
-                const question = { key: 'question_special_what_type', replacements: { ip: `<strong>${targetIp}</strong>` } };
-                let options = [correctAnswerKey]; // Opciones son claves i18n
-                // Incorrectas: otros tipos especiales + tipos normales
-                let incorrectOptions = specialAddresses.filter(s => s.typeKey !== chosenSpecial.typeKey).map(s => s.descriptionKey);
-                incorrectOptions.push(...normalIpTypeKeys);
-                shuffleArray(incorrectOptions);
-                options.push(...incorrectOptions.slice(0, 3));
-                shuffleArray(options); if (options.length > 4) options = options.slice(0, 4); if (!options.includes(correctAnswerKey)) { options.pop(); options.push(correctAnswerKey); shuffleArray(options); }
-                return { question, options, correctAnswer: correctAnswerKey, explanation: explanationInfo };
-            } else { // Dado tipo especial, preguntar IP
-                const typeDescription = getTranslation(correctAnswerKey);
-                const question = { key: 'question_special_which_is_type', replacements: { typeDescription: `<strong>${typeDescription}</strong>` } };
-                let options = [targetIp]; // Opciones son IPs
-                let incorrectIps = new Set();
-                while (incorrectIps.size < 2) { let ip = generateRandomIp(); if (getIpInfo(ip).typeKey !== 'loopback' && getIpInfo(ip).typeKey !== 'apipa') { incorrectIps.add(ip); } }
-                let otherSpecial = specialAddresses.find(s => s.typeKey !== chosenSpecial.typeKey);
-                if (otherSpecial) { incorrectIps.add(otherSpecial.ip); } else { while (incorrectIps.size < 3) { let ip = generateRandomIp(); if (getIpInfo(ip).typeKey !== 'loopback' && getIpInfo(ip).typeKey !== 'apipa') { incorrectIps.add(ip); } } }
-                options.push(...Array.from(incorrectIps).slice(0, 3));
-                shuffleArray(options); if (options.length > 4) options = options.slice(0, 4); if (!options.includes(targetIp)) { options.pop(); options.push(targetIp); shuffleArray(options); }
-                return { question, options, correctAnswer: targetIp, explanation: explanationInfo };
-            }
-        } else { // Pregunta sobre IP normal (Pública/Privada)
-            let info;
-            do { // Asegurar que no sea especial por casualidad
-                targetIp = generateRandomIp();
-                info = getIpInfo(targetIp);
-            } while (info.typeKey === 'loopback' || info.typeKey === 'apipa' || info.typeKey === 'limited_broadcast' || info.typeKey === 'unknown');
-
-            // --- CORREGIDO: Usar typeKey para construir la clave ---
-            correctAnswerKey = `option_${info.typeKey}`; // ej: 'option_public'
-            explanationInfo = { generatorName: 'generatePrivateRangeTableHTML', args: [targetIp] }; // Explicación de rangos privados
-
-            const question = { key: 'question_special_what_type', replacements: { ip: `<strong>${targetIp}</strong>` } };
-            let options = [correctAnswerKey]; // Opciones son claves i18n
-            // Incorrectas: todos los tipos especiales
-            let incorrectOptions = specialAddresses.map(s => s.descriptionKey);
-            shuffleArray(incorrectOptions);
-            options.push(...incorrectOptions.slice(0, 3));
-            shuffleArray(options); if (options.length > 4) options = options.slice(0, 4); if (!options.includes(correctAnswerKey)) { options.pop(); options.push(correctAnswerKey); shuffleArray(options); }
-            return { question, options, correctAnswer: correctAnswerKey, explanation: explanationInfo };
-            // --- FIN CORRECCIÓN ---
-        }
-    } catch (error) { console.error("Error en generateSpecialAddressQuestion:", error); return null; }
-}
-
+function generateSpecialAddressQuestion() { try { const specialAddresses = [ { ip: '127.0.0.1', typeKey: 'loopback', descriptionKey: 'option_loopback' }, { ip: `169.254.${getRandomInt(1, 254)}.${getRandomInt(1, 254)}`, typeKey: 'apipa', descriptionKey: 'option_apipa' }, { ip: '255.255.255.255', typeKey: 'limited_broadcast', descriptionKey: 'option_limited_broadcast' } ]; const normalIpTypeKeys = ['option_public', 'option_private']; const pickSpecial = Math.random() < 0.6; let targetIp = ''; let correctAnswerKey = ''; let questionFormat = getRandomInt(0, 1); let explanationInfo = {}; if (pickSpecial) { const chosenSpecial = specialAddresses[getRandomInt(0, specialAddresses.length - 1)]; targetIp = chosenSpecial.ip; correctAnswerKey = chosenSpecial.descriptionKey; explanationInfo = { generatorName: 'generateSpecialAddressExplanationHTML', args: [chosenSpecial.typeKey] }; if (questionFormat === 0) { const question = { key: 'question_special_what_type', replacements: { ip: `<strong>${targetIp}</strong>` } }; let options = [correctAnswerKey]; let incorrectOptions = specialAddresses.filter(s => s.typeKey !== chosenSpecial.typeKey).map(s => s.descriptionKey); incorrectOptions.push(...normalIpTypeKeys); shuffleArray(incorrectOptions); options.push(...incorrectOptions.slice(0, 3)); shuffleArray(options); if (options.length > 4) options = options.slice(0, 4); if (!options.includes(correctAnswerKey)) { options.pop(); options.push(correctAnswerKey); shuffleArray(options); } return { question, options, correctAnswer: correctAnswerKey, explanation: explanationInfo }; } else { const typeDescription = getTranslation(correctAnswerKey); const question = { key: 'question_special_which_is_type', replacements: { typeDescription: `<strong>${typeDescription}</strong>` } }; let options = [targetIp]; let incorrectIps = new Set(); while (incorrectIps.size < 2) { let ip = generateRandomIp(); if (getIpInfo(ip).typeKey !== 'loopback' && getIpInfo(ip).typeKey !== 'apipa') { incorrectIps.add(ip); } } let otherSpecial = specialAddresses.find(s => s.typeKey !== chosenSpecial.typeKey); if (otherSpecial) { incorrectIps.add(otherSpecial.ip); } else { while (incorrectIps.size < 3) { let ip = generateRandomIp(); if (getIpInfo(ip).typeKey !== 'loopback' && getIpInfo(ip).typeKey !== 'apipa') { incorrectIps.add(ip); } } } options.push(...Array.from(incorrectIps).slice(0, 3)); shuffleArray(options); if (options.length > 4) options = options.slice(0, 4); if (!options.includes(targetIp)) { options.pop(); options.push(targetIp); shuffleArray(options); } return { question, options, correctAnswer: targetIp, explanation: explanationInfo }; } } else { let info; do { targetIp = generateRandomIp(); info = getIpInfo(targetIp); } while (info.typeKey === 'loopback' || info.typeKey === 'apipa' || info.typeKey === 'limited_broadcast' || info.typeKey === 'unknown'); correctAnswerKey = `option_${info.typeKey}`; explanationInfo = { generatorName: 'generatePrivateRangeTableHTML', args: [targetIp] }; const question = { key: 'question_special_what_type', replacements: { ip: `<strong>${targetIp}</strong>` } }; let options = [correctAnswerKey]; let incorrectOptions = specialAddresses.map(s => s.descriptionKey); shuffleArray(incorrectOptions); options.push(...incorrectOptions.slice(0, 3)); shuffleArray(options); if (options.length > 4) options = options.slice(0, 4); if (!options.includes(correctAnswerKey)) { options.pop(); options.push(correctAnswerKey); shuffleArray(options); } return { question, options, correctAnswer: correctAnswerKey, explanation: explanationInfo }; } } catch (error) { console.error("Error en generateSpecialAddressQuestion:", error); return null; } }
 function generateIdentifyNetworkPortionQuestion() { try { let ip, info, portions, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); if (info.class === 'A' || info.class === 'B' || info.class === 'C') { portions = getIpPortions(ip, info.defaultMask); } else { portions = null; } attempts++; } while (!portions && attempts < 100); if (!portions) { ip = '192.168.10.50'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask); if (!portions) throw new Error("Fallback IP falló"); } const question = { key: 'question_identify_network_portion', replacements: { ip: `<strong>${ip}</strong>`, mask: `<strong>${info.defaultMask}</strong>` } }; const correctAnswer = portions.networkPortion || getTranslation('option_none'); let options = new Set([correctAnswer]); if (portions.hostPortion && portions.hostPortion !== correctAnswer) { options.add(portions.hostPortion || getTranslation('option_none')); } let randomIpForPortion, randomInfoForPortion, incorrectNetworkPortion = null, incorrectHostPortion = null, portionAttempts = 0; do { randomIpForPortion = generateRandomIp(); randomInfoForPortion = getIpInfo(randomIpForPortion); if (randomInfoForPortion.defaultMask !== 'N/A') { incorrectNetworkPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.networkPortion; incorrectHostPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.hostPortion; } portionAttempts++; } while ((!incorrectNetworkPortion || incorrectNetworkPortion === correctAnswer) && portionAttempts < 50); if (incorrectNetworkPortion && incorrectNetworkPortion !== correctAnswer) { options.add(incorrectNetworkPortion); } if (incorrectHostPortion && incorrectHostPortion !== correctAnswer && !options.has(incorrectHostPortion)) { options.add(incorrectHostPortion || getTranslation('option_none')); } while (options.size < 4) { const randomClass = ['A', 'B', 'C'][getRandomInt(0, 2)]; let randomPortion = ''; if (randomClass === 'A') randomPortion = `${getRandomInt(1, 126)}`; else if (randomClass === 'B') randomPortion = `${getRandomInt(128, 191)}.${getRandomInt(0, 255)}`; else randomPortion = `${getRandomInt(192, 223)}.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}`; if (randomPortion !== correctAnswer) { options.add(randomPortion); } } let optionsArray = Array.from(options); if (!optionsArray.includes(correctAnswer)) { optionsArray.pop(); optionsArray.push(correctAnswer); } optionsArray = optionsArray.slice(0, 4); shuffleArray(optionsArray); const wildcardMask = calculateWildcardMask(info.defaultMask); const networkAddr = calculateNetworkAddress(ip, info.defaultMask); const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask); const explanationInfo = { generatorName: 'generatePortionExplanationHTML', args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr] }; return { question, options: optionsArray, correctAnswer, explanation: explanationInfo }; } catch (error) { console.error("Error en generateIdentifyNetworkPortionQuestion:", error); return null; } }
 function generateIdentifyHostPortionQuestion() { try { let ip, info, portions, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); if (info.class === 'A' || info.class === 'B' || info.class === 'C') { portions = getIpPortions(ip, info.defaultMask); } else { portions = null; } attempts++; } while (!portions && attempts < 100); if (!portions) { ip = '172.25.200.15'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask); if (!portions) throw new Error("Fallback IP falló"); } const question = { key: 'question_identify_host_portion', replacements: { ip: `<strong>${ip}</strong>`, mask: `<strong>${info.defaultMask}</strong>` } }; const correctAnswer = portions.hostPortion || getTranslation('option_none'); let options = new Set([correctAnswer]); if (portions.networkPortion && portions.networkPortion !== correctAnswer) { options.add(portions.networkPortion || getTranslation('option_none')); } let randomIpForPortion, randomInfoForPortion, incorrectHostPortion = null, incorrectNetworkPortion = null, portionAttempts = 0; do { randomIpForPortion = generateRandomIp(); randomInfoForPortion = getIpInfo(randomIpForPortion); if (randomInfoForPortion.defaultMask !== 'N/A') { incorrectHostPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.hostPortion; incorrectNetworkPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.networkPortion; } portionAttempts++; } while ((!incorrectHostPortion || incorrectHostPortion === correctAnswer) && portionAttempts < 50); if (incorrectHostPortion && incorrectHostPortion !== correctAnswer) { options.add(incorrectHostPortion); } if (incorrectNetworkPortion && incorrectNetworkPortion !== correctAnswer && !options.has(incorrectNetworkPortion)) { options.add(incorrectNetworkPortion || getTranslation('option_none')); } while (options.size < 4) { const randomClass = ['A', 'B', 'C'][getRandomInt(0, 2)]; let randomPortion = ''; if (randomClass === 'A') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; else if (randomClass === 'B') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; else randomPortion = `${getRandomInt(1, 254)}`; if (randomPortion !== correctAnswer) { options.add(randomPortion); } } let optionsArray = Array.from(options); if (!optionsArray.includes(correctAnswer)) { optionsArray.pop(); optionsArray.push(correctAnswer); } optionsArray = optionsArray.slice(0, 4); shuffleArray(optionsArray); const wildcardMask = calculateWildcardMask(info.defaultMask); const networkAddr = calculateNetworkAddress(ip, info.defaultMask); const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask); const explanationInfo = { generatorName: 'generatePortionExplanationHTML', args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr] }; return { question, options: optionsArray, correctAnswer, explanation: explanationInfo }; } catch (error) { console.error("Error en generateIdentifyHostPortionQuestion:", error); return null; } }
 function generateNetworkBroadcastAddressQuestion() { try { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100); if (attempts >= 100) { ip = '172.18.120.30'; info = getIpInfo(ip); } const mask = info.defaultMask; const networkAddr = calculateNetworkAddress(ip, mask); const wildcardMask = calculateWildcardMask(mask); const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask); if (!networkAddr || !broadcastAddr || !wildcardMask) { throw new Error("Error calculando direcciones de red/broadcast/wildcard"); } const askForNetwork = Math.random() < 0.5; const questionTypeKey = askForNetwork ? "address_type_network" : "address_type_broadcast"; const correctAnswer = askForNetwork ? networkAddr : broadcastAddr; const question = { key: 'question_calculate_address', replacements: { ip: `<strong>${ip}</strong>`, mask: `<strong>${mask}</strong>`, addressType: `<strong>${getTranslation(questionTypeKey)}</strong>` } }; let options = new Set([correctAnswer]); const otherAddress = askForNetwork ? broadcastAddr : networkAddr; if (otherAddress !== correctAnswer) options.add(otherAddress); if (ip !== correctAnswer && !options.has(ip)) options.add(ip); let randomIp2, randomInfo2, randomNetAddr, randomBroadAddr, attempts2 = 0; do { randomIp2 = generateRandomIp(); randomInfo2 = getIpInfo(randomIp2); attempts2++; } while ((randomInfo2.class !== 'A' && randomInfo2.class !== 'B' && randomInfo2.class !== 'C' || randomInfo2.typeKey === 'loopback') && attempts2 < 50); if (randomInfo2.defaultMask !== 'N/A') { randomNetAddr = calculateNetworkAddress(randomIp2, randomInfo2.defaultMask); const randomWildcard = calculateWildcardMask(randomInfo2.defaultMask); if (randomNetAddr && randomWildcard) { randomBroadAddr = calculateBroadcastAddress(randomNetAddr, randomWildcard); if (randomNetAddr && randomNetAddr !== correctAnswer && !options.has(randomNetAddr)) options.add(randomNetAddr); if (randomBroadAddr && randomBroadAddr !== correctAnswer && !options.has(randomBroadAddr)) options.add(randomBroadAddr); } } while (options.size < 4) { let randomOptionIp = generateRandomIp(); if (randomOptionIp !== correctAnswer && !options.has(randomOptionIp)) { options.add(randomOptionIp); } } let optionsArray = Array.from(options); if (!optionsArray.includes(correctAnswer)) { optionsArray.pop(); optionsArray.push(correctAnswer); } optionsArray = optionsArray.slice(0, 4); shuffleArray(optionsArray); const explanationInfo = { generatorName: 'generatePortionExplanationHTML', args: [ip, mask, wildcardMask, networkAddr, broadcastAddr] }; return { question, options: optionsArray, correctAnswer, explanation: explanationInfo }; } catch (error) { console.error("Error en generateNetworkBroadcastAddressQuestion:", error); return null; } }
 
+// --- Generadores de Preguntas (Nivel Professional) ---
+
+/**
+ * Genera una pregunta para identificar Clase, Tipo y Máscara por Defecto de una IP.
+ */
+function generateClassTypeMaskQuestion() {
+    try {
+        let ip, info, attempts = 0;
+        // Buscar IP de Clase A, B o C (no Loopback)
+        do {
+            ip = generateRandomIp();
+            info = getIpInfo(ip);
+            attempts++;
+        } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100);
+        // Fallback
+        if (attempts >= 100) { ip = '198.18.0.1'; info = getIpInfo(ip); } // Clase C Pública
+
+        const question = { key: 'question_given_ip_what_class_type_mask', replacements: { ip: `<strong>${ip}</strong>` } };
+        const correctClass = info.class;
+        const correctTypeKey = info.typeKey; // 'public' o 'private'
+        const correctMask = info.defaultMask;
+
+        // Objeto respuesta correcta con las claves correctas
+        const correctAnswerObject = {
+            classKey: `option_class_${correctClass.toLowerCase()}`, // ej: option_class_c
+            typeKey: `option_${correctTypeKey}`, // ej: option_public
+            maskValue: correctMask // ej: 255.255.255.0
+        };
+
+        let options = [];
+        options.push(correctAnswerObject); // Añadir la correcta
+
+        // Generar opciones incorrectas variando uno o más atributos
+        const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase());
+        const possibleTypeKeys = ['option_public', 'option_private'].filter(k => k !== `option_${correctTypeKey}`);
+        const possibleMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0'].filter(m => m !== correctMask);
+
+        // Variar solo máscara
+        if (possibleMasks.length > 0) {
+            options.push({ ...correctAnswerObject, maskValue: possibleMasks[0] });
+        }
+        // Variar solo tipo
+        if (possibleTypeKeys.length > 0) {
+            options.push({ ...correctAnswerObject, typeKey: possibleTypeKeys[0] });
+        }
+        // Variar solo clase (asegurando máscara correcta para la clase incorrecta)
+        if (possibleClassesLower.length > 0) {
+            let incorrectMask = '255.255.255.255'; // Fallback
+            if (possibleClassesLower[0] === 'a') incorrectMask = '255.0.0.0';
+            else if (possibleClassesLower[0] === 'b') incorrectMask = '255.255.0.0';
+            else if (possibleClassesLower[0] === 'c') incorrectMask = '255.255.255.0';
+            options.push({ classKey: `option_class_${possibleClassesLower[0]}`, typeKey: correctAnswerObject.typeKey, maskValue: incorrectMask });
+        }
+
+        // Rellenar hasta 4 opciones asegurando unicidad
+        let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.typeKey},${o.maskValue}`));
+        while (options.length < 4 && attempts < 500) { // Añadir límite de intentos
+            const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`;
+            const randomTypeKey = ['option_public', 'option_private'][getRandomInt(0, 1)];
+            const randomMask = ['255.0.0.0', '255.255.0.0', '255.255.255.0'][getRandomInt(0, 2)];
+            const potentialOption = { classKey: randomClassKey, typeKey: randomTypeKey, maskValue: randomMask };
+            const potentialOptionStr = `${potentialOption.classKey},${potentialOption.typeKey},${potentialOption.maskValue}`;
+            if (!existingOptionsStr.has(potentialOptionStr)) {
+                options.push(potentialOption);
+                existingOptionsStr.add(potentialOptionStr);
+            }
+            attempts++;
+        }
+        options = options.slice(0, 4); // Asegurar máximo 4
+        shuffleArray(options);
+        // Asegurar que la correcta esté (si se eliminó por slice)
+        if (!options.some(o => o.classKey === correctAnswerObject.classKey && o.typeKey === correctAnswerObject.typeKey && o.maskValue === correctAnswerObject.maskValue)) {
+             options.pop(); // Quitar la última
+             options.push(correctAnswerObject); // Añadir la correcta
+             shuffleArray(options); // Volver a barajar
+        }
+
+
+        // Info para explicación: combinar las tres tablas relevantes
+        const explanationInfo = {
+            generators: [
+                { generatorName: 'generateClassRangeTableHTML', args: [correctClass] },
+                { generatorName: 'generatePrivateRangeTableHTML', args: [ip] },
+                { generatorName: 'generateClassMaskTableHTML', args: [correctClass] }
+            ],
+            separator: '<hr style="margin: 10px 0;">'
+        };
+
+        return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo };
+
+    } catch (error) {
+        console.error("Error en generateClassTypeMaskQuestion:", error);
+        return null;
+    }
+}
+
 
 // --- Agrupar Generadores por Nivel ---
-const entryQuestionGenerators = [ generateClassQuestion, generateTypeQuestion, generateDefaultMaskQuestion, generateSelectClassQuestion, generateSelectPrivateIpQuestion, generateSelectIpByDefaultMaskQuestion ];
-const associateQuestionGenerators = [ generateClassAndTypeQuestion, generateClassAndDefaultMaskQuestion, generateClassAndNetworkPortionQuestion, generateClassAndHostPortionQuestion, generateRfc1918Question, generateSpecialAddressQuestion, generateIdentifyNetworkPortionQuestion, generateIdentifyHostPortionQuestion, generateNetworkBroadcastAddressQuestion ];
+const entryQuestionGenerators = [
+    generateClassQuestion, generateTypeQuestion, generateDefaultMaskQuestion,
+    generateSelectClassQuestion, generateSelectPrivateIpQuestion, generateSelectIpByDefaultMaskQuestion
+];
+
+const associateQuestionGenerators = [
+    generateClassAndTypeQuestion, generateClassAndDefaultMaskQuestion,
+    generateClassAndNetworkPortionQuestion, generateClassAndHostPortionQuestion,
+    generateRfc1918Question, generateSpecialAddressQuestion,
+    generateIdentifyNetworkPortionQuestion, generateIdentifyHostPortionQuestion,
+    generateNetworkBroadcastAddressQuestion
+];
+
+// --- NUEVO: Array para Nivel Professional ---
+const professionalQuestionGenerators = [
+    generateClassTypeMaskQuestion,
+    // Aquí añadiremos los generadores de subnetting y wildcard más adelante
+];
+// --- FIN NUEVO ---
 
 // --- Función Principal para Obtener Pregunta ---
 export function getNextQuestion(level) {
      let generators = [];
      if (level === 'Entry') { generators = entryQuestionGenerators; }
      else if (level === 'Associate') { generators = associateQuestionGenerators; }
-     else if (level === 'Professional') { console.warn("Generadores de nivel Professional aún no implementados."); return null; }
+     // --- MODIFICADO: Usar array Professional ---
+     else if (level === 'Professional') { generators = professionalQuestionGenerators; }
+     // --- FIN MODIFICADO ---
      else { console.error("Nivel desconocido solicitado:", level); return null; }
-     if (!generators || generators.length === 0) { console.warn(`No hay generadores de preguntas definidos para el nivel: ${level}`); return null; }
+
+     if (!generators || generators.length === 0) {
+         console.warn(`No hay generadores de preguntas definidos para el nivel: ${level}`);
+         // Temporalmente, si no hay preguntas Pro, usar Associate como fallback
+         if (level === 'Professional') {
+             console.warn("Usando preguntas de Associate como fallback para Professional.");
+             generators = associateQuestionGenerators;
+             if (!generators || generators.length === 0) return null; // Salir si Associate tampoco tiene
+         } else {
+             return null;
+         }
+        }
+
      const randomIndex = getRandomInt(0, generators.length - 1);
      const generatorFunction = generators[randomIndex];
+
      if (generatorFunction && typeof generatorFunction === 'function') {
          try {
              const questionData = generatorFunction();
