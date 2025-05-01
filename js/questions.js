@@ -1,7 +1,7 @@
 // js/questions.js
 // ==================================================
 // Módulo Generador de Preguntas para IP Sprint
-// Añadida primera pregunta de Nivel Professional
+// Añadida pregunta de Wildcard Mask a Nivel Professional
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -9,12 +9,15 @@ import {
     getRandomInt, generateRandomIp, generateRandomPrivateIp, getIpInfo, shuffleArray,
     generateClassRangeTableHTML, generateClassMaskTableHTML, generatePrivateRangeTableHTML,
     getIpPortions, generatePortionExplanationHTML, generateSpecialAddressExplanationHTML,
-    calculateNetworkAddress, calculateBroadcastAddress, calculateWildcardMask
+    calculateNetworkAddress, calculateBroadcastAddress, calculateWildcardMask,
+    // Nuevas importaciones
+    generateRandomSubnetMask, generateWildcardExplanationHTML
 } from './utils.js';
 
 import { getTranslation } from './i18n.js';
 
 // --- Generadores de Preguntas (Nivel Entry) ---
+// (Sin cambios)
 function generateClassQuestion() { try { const ip = generateRandomIp(); const info = getIpInfo(ip); if (info.class === 'N/A') return generateClassQuestion(); const question = { key: 'question_given_ip_what_class', replacements: { ip: `<strong>${ip}</strong>` } }; const options = ['A', 'B', 'C', 'D', 'E']; const correct = info.class; const explanationInfo = { generatorName: 'generateClassRangeTableHTML', args: [correct] }; return { question, options, correctAnswer: correct, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassQuestion:", error); return null; } }
 function generateTypeQuestion() { try { let ip, info, attempts = 0; let forcePrivate = Math.random() < 0.4; ip = forcePrivate ? generateRandomPrivateIp() : generateRandomIp(); info = getIpInfo(ip); while ((info.typeKey === 'unknown' || info.typeKey === 'loopback' || info.typeKey === 'apipa' || info.typeKey === 'limited_broadcast') && attempts < 50) { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } if (info.typeKey !== 'public' && info.typeKey !== 'private') { ip = '8.8.8.8'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_type', replacements: { ip: `<strong>${ip}</strong>` } }; const options = ['option_public', 'option_private']; const correct = `option_${info.typeKey}`; const explanationInfo = { generatorName: 'generatePrivateRangeTableHTML', args: [ip] }; return { question, options, correctAnswer: correct, explanation: explanationInfo }; } catch (error) { console.error("Error en generateTypeQuestion:", error); return null; } }
 function generateDefaultMaskQuestion() { try { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100); if (attempts >= 100) { ip = '192.168.1.1'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_mask', replacements: { ip: `<strong>${ip}</strong>`, class: info.class } }; const options = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; const correct = info.defaultMask; const explanationInfo = { generatorName: 'generateClassMaskTableHTML', args: [info.class] }; const finalCorrectAnswer = options.includes(correct) ? correct : options[0]; return { question, options, correctAnswer: finalCorrectAnswer, explanation: explanationInfo }; } catch (error) { console.error("Error en generateDefaultMaskQuestion:", error); return null; } }
@@ -23,6 +26,7 @@ function generateSelectPrivateIpQuestion() { try { const question = { key: 'ques
 function generateSelectIpByDefaultMaskQuestion() { try { const targetMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; const targetMask = targetMasks[getRandomInt(0, targetMasks.length - 1)]; const question = { key: 'question_select_ip_for_mask', replacements: { targetMask: `<strong>${targetMask}</strong>` } }; let correctIp = ''; let incorrectIps = []; let attempts = 0; let ipSet = new Set(); while (!correctIp && attempts < 100) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask === targetMask && info.typeKey !== 'loopback') { correctIp = ip; ipSet.add(ip); } attempts++; } if (!correctIp) { if(targetMask === '255.0.0.0') correctIp = '10.1.1.1'; else if(targetMask === '255.255.0.0') correctIp = '172.16.1.1'; else correctIp = '192.168.1.1'; ipSet.add(correctIp); } attempts = 0; while (incorrectIps.length < 3 && attempts < 300) { let ip = generateRandomIp(); let info = getIpInfo(ip); if (info.defaultMask !== 'N/A' && info.defaultMask !== targetMask && info.typeKey !== 'loopback' && !ipSet.has(ip)) { incorrectIps.push(ip); ipSet.add(ip); } attempts++; } if(incorrectIps.length < 3) { const fallbacks = ['8.8.8.8', '224.0.0.1', '169.254.1.1', '172.30.1.1', '192.168.5.5', '126.1.1.1', '191.1.1.1']; for (const fb of fallbacks) { let fbInfo = getIpInfo(fb); if (incorrectIps.length < 3 && !ipSet.has(fb) && fbInfo.defaultMask !== targetMask && fbInfo.defaultMask !== 'N/A') { incorrectIps.push(fb); ipSet.add(fb); } } } incorrectIps = incorrectIps.slice(0, 3); const options = [correctIp, ...incorrectIps]; shuffleArray(options); const correct = correctIp; const correctClass = getIpInfo(correct).class; const explanationInfo = { baseTextKey: 'explanation_select_ip_for_mask', replacements: { class: correctClass, mask: targetMask }, generatorName: 'generateClassMaskTableHTML', args: [correctClass] }; return { question, options, correctAnswer: correct, explanation: explanationInfo }; } catch (error) { console.error("Error en generateSelectIpByDefaultMaskQuestion:", error); return null; } }
 
 // --- Generadores de Preguntas (Nivel Associate) ---
+// (Sin cambios)
 function generateClassAndTypeQuestion() { try { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100); if (attempts >= 100) { ip = Math.random() < 0.5 ? '172.20.1.1' : '10.10.10.10'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_class_type', replacements: { ip: `<strong>${ip}</strong>` } }; const correctClass = info.class; const correctAnswerObject = { classKey: `option_class_${correctClass.toLowerCase()}`, typeKey: `option_${info.typeKey}` }; let options = []; options.push(correctAnswerObject); const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase()); const possibleTypeKeys = ['option_public', 'option_private'].filter(k => k !== correctAnswerObject.typeKey); if (possibleTypeKeys.length > 0) { options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, typeKey: possibleTypeKeys[0] }); } if (possibleClassesLower.length > 0) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, typeKey: correctAnswerObject.typeKey }); } if (possibleClassesLower.length > 0 && possibleTypeKeys.length > 0) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, typeKey: possibleTypeKeys[0] }); } let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.typeKey}`)); while (options.length < 4) { const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`; const randomTypeKey = ['option_public', 'option_private'][getRandomInt(0, 1)]; const potentialOption = { classKey: randomClassKey, typeKey: randomTypeKey }; const potentialOptionStr = `${potentialOption.classKey},${potentialOption.typeKey}`; if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); } } options = options.slice(0, 4); shuffleArray(options); const explanationInfo = { generators: [ { generatorName: 'generateClassRangeTableHTML', args: [correctClass] }, { generatorName: 'generatePrivateRangeTableHTML', args: [ip] } ], separator: '<hr style="margin: 10px 0;">' }; return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassAndTypeQuestion:", error); return null; } }
 function generateClassAndDefaultMaskQuestion() { try { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100); if (attempts >= 100) { ip = '172.16.50.50'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_class_mask', replacements: { ip: `<strong>${ip}</strong>` } }; const correctClass = info.class; const correctMask = info.defaultMask; const correctAnswerObject = { classKey: `option_class_${correctClass.toLowerCase()}`, maskValue: correctMask }; let options = []; options.push(correctAnswerObject); const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase()); const possibleMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0'].filter(m => m !== correctMask); if (possibleMasks.length > 0) { options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, maskValue: possibleMasks[0] }); } if (possibleClassesLower.length > 0) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, maskValue: correctMask }); } if (possibleClassesLower.length > 0) { let incorrectMaskForIncorrectClass = '255.255.255.255'; if (possibleClassesLower[0] === 'a' && possibleMasks.includes('255.0.0.0')) incorrectMaskForIncorrectClass = '255.0.0.0'; else if (possibleClassesLower[0] === 'b' && possibleMasks.includes('255.255.0.0')) incorrectMaskForIncorrectClass = '255.255.0.0'; else if (possibleClassesLower[0] === 'c' && possibleMasks.includes('255.255.255.0')) incorrectMaskForIncorrectClass = '255.255.255.0'; else if (possibleMasks.length > 0) incorrectMaskForIncorrectClass = possibleMasks[0]; const incorrectCombination = { classKey: `option_class_${possibleClassesLower[0]}`, maskValue: incorrectMaskForIncorrectClass }; if (!options.some(o => o.classKey === incorrectCombination.classKey && o.maskValue === incorrectCombination.maskValue)) { options.push(incorrectCombination); } } let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.maskValue}`)); while (options.length < 4) { const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`; const randomMask = ['255.0.0.0', '255.255.0.0', '255.255.255.0'][getRandomInt(0, 2)]; const potentialOption = { classKey: randomClassKey, maskValue: randomMask }; const potentialOptionStr = `${potentialOption.classKey},${potentialOption.maskValue}`; if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); } } options = options.slice(0, 4); shuffleArray(options); const explanationInfo = { generatorName: 'generateClassMaskTableHTML', args: [correctClass] }; return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassAndDefaultMaskQuestion:", error); return null; } }
 function generateClassAndNetworkPortionQuestion() { try { let ip, info, portions, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); if (info.class === 'A' || info.class === 'B' || info.class === 'C') { portions = getIpPortions(ip, info.defaultMask); } else { portions = null; } attempts++; } while (!portions && attempts < 100); if (!portions) { ip = '192.168.1.100'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask); if (!portions) throw new Error("Fallback IP falló"); } const question = { key: 'question_given_ip_what_class_net_portion', replacements: { ip: `<strong>${ip}</strong>` } }; const correctClass = info.class; const correctNetworkPortion = portions.networkPortion; if (!correctNetworkPortion && correctNetworkPortion !== "") throw new Error(`No se pudo obtener networkPortion para ${ip}`); const correctAnswerObject = { classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_network_portion', portionValue: correctNetworkPortion || 'None' }; let options = []; options.push(correctAnswerObject); const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase()); let randomIpForPortion, randomInfoForPortion, incorrectNetworkPortion = null, portionAttempts = 0; do { randomIpForPortion = generateRandomIp(); randomInfoForPortion = getIpInfo(randomIpForPortion); if (randomInfoForPortion.defaultMask !== 'N/A') { incorrectNetworkPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.networkPortion; } portionAttempts++; } while ((!incorrectNetworkPortion || incorrectNetworkPortion === correctNetworkPortion) && portionAttempts < 50); if (incorrectNetworkPortion && incorrectNetworkPortion !== correctNetworkPortion) { options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_network_portion', portionValue: incorrectNetworkPortion }); } else { let fallbackPortion = (correctClass !== 'A') ? `${getRandomInt(1,126)}` : `${getRandomInt(128,191)}.${getRandomInt(0,255)}`; options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_network_portion', portionValue: fallbackPortion }); } if (possibleClassesLower.length > 0) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_network_portion', portionValue: correctNetworkPortion || 'None' }); } if (possibleClassesLower.length > 0 && incorrectNetworkPortion && incorrectNetworkPortion !== correctNetworkPortion) { options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_network_portion', portionValue: incorrectNetworkPortion }); } let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.portionKey},${o.portionValue}`)); while (options.length < 4) { const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`; let randomPortion = ''; if (randomClassKey === 'option_class_a') randomPortion = `${getRandomInt(1, 126)}`; else if (randomClassKey === 'option_class_b') randomPortion = `${getRandomInt(128, 191)}.${getRandomInt(0, 255)}`; else randomPortion = `${getRandomInt(192, 223)}.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}`; const potentialOption = { classKey: randomClassKey, portionKey: 'option_network_portion', portionValue: randomPortion }; const potentialOptionStr = `${potentialOption.classKey},${potentialOption.portionKey},${potentialOption.portionValue}`; if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); } } options = options.slice(0, 4); shuffleArray(options); const wildcardMask = calculateWildcardMask(info.defaultMask); const networkAddr = calculateNetworkAddress(ip, info.defaultMask); const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask); const explanationInfo = { generatorName: 'generatePortionExplanationHTML', args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr] }; return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassAndNetworkPortionQuestion:", error); return null; } }
@@ -35,96 +39,74 @@ function generateNetworkBroadcastAddressQuestion() { try { let ip, info, attempt
 
 // --- Generadores de Preguntas (Nivel Professional) ---
 
+function generateClassTypeMaskQuestion() { try { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100); if (attempts >= 100) { ip = '198.18.0.1'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_class_type_mask', replacements: { ip: `<strong>${ip}</strong>` } }; const correctClass = info.class; const correctTypeKey = info.typeKey; const correctMask = info.defaultMask; const correctAnswerObject = { classKey: `option_class_${correctClass.toLowerCase()}`, typeKey: `option_${correctTypeKey}`, maskValue: correctMask }; let options = []; options.push(correctAnswerObject); const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase()); const possibleTypeKeys = ['option_public', 'option_private'].filter(k => k !== `option_${correctTypeKey}`); const possibleMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0'].filter(m => m !== correctMask); if (possibleMasks.length > 0) { options.push({ ...correctAnswerObject, maskValue: possibleMasks[0] }); } if (possibleTypeKeys.length > 0) { options.push({ ...correctAnswerObject, typeKey: possibleTypeKeys[0] }); } if (possibleClassesLower.length > 0) { let incorrectMask = '255.255.255.255'; if (possibleClassesLower[0] === 'a') incorrectMask = '255.0.0.0'; else if (possibleClassesLower[0] === 'b') incorrectMask = '255.255.0.0'; else if (possibleClassesLower[0] === 'c') incorrectMask = '255.255.255.0'; options.push({ classKey: `option_class_${possibleClassesLower[0]}`, typeKey: correctAnswerObject.typeKey, maskValue: incorrectMask }); } let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.typeKey},${o.maskValue}`)); while (options.length < 4 && attempts < 500) { const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`; const randomTypeKey = ['option_public', 'option_private'][getRandomInt(0, 1)]; const randomMask = ['255.0.0.0', '255.255.0.0', '255.255.255.0'][getRandomInt(0, 2)]; const potentialOption = { classKey: randomClassKey, typeKey: randomTypeKey, maskValue: randomMask }; const potentialOptionStr = `${potentialOption.classKey},${potentialOption.typeKey},${potentialOption.maskValue}`; if (!existingOptionsStr.has(potentialOptionStr)) { options.push(potentialOption); existingOptionsStr.add(potentialOptionStr); } attempts++; } options = options.slice(0, 4); shuffleArray(options); if (!options.some(o => o.classKey === correctAnswerObject.classKey && o.typeKey === correctAnswerObject.typeKey && o.maskValue === correctAnswerObject.maskValue)) { options.pop(); options.push(correctAnswerObject); shuffleArray(options); } const explanationInfo = { generators: [ { generatorName: 'generateClassRangeTableHTML', args: [correctClass] }, { generatorName: 'generatePrivateRangeTableHTML', args: [ip] }, { generatorName: 'generateClassMaskTableHTML', args: [correctClass] } ], separator: '<hr style="margin: 10px 0;">' }; return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassTypeMaskQuestion:", error); return null; } }
+
 /**
- * Genera una pregunta para identificar Clase, Tipo y Máscara por Defecto de una IP.
+ * --- NUEVO: Genera pregunta sobre cálculo de Wildcard Mask ---
+ * @returns {object|null} Objeto de pregunta o null si hay error.
  */
-function generateClassTypeMaskQuestion() {
+function generateWildcardQuestion() {
     try {
-        let ip, info, attempts = 0;
-        // Buscar IP de Clase A, B o C (no Loopback)
-        do {
-            ip = generateRandomIp();
-            info = getIpInfo(ip);
-            attempts++;
-        } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100);
-        // Fallback
-        if (attempts >= 100) { ip = '198.18.0.1'; info = getIpInfo(ip); } // Clase C Pública
+        // Generar una máscara de subred aleatoria (no necesariamente default)
+        const subnetMask = generateRandomSubnetMask();
+        // Calcular la wildcard correcta
+        const correctAnswer = calculateWildcardMask(subnetMask);
+        if (!correctAnswer) throw new Error("No se pudo calcular la wildcard correcta.");
 
-        const question = { key: 'question_given_ip_what_class_type_mask', replacements: { ip: `<strong>${ip}</strong>` } };
-        const correctClass = info.class;
-        const correctTypeKey = info.typeKey; // 'public' o 'private'
-        const correctMask = info.defaultMask;
+        const question = { key: 'question_calculate_wildcard', replacements: { subnetMask: `<strong>${subnetMask}</strong>` } };
 
-        // Objeto respuesta correcta con las claves correctas
-        const correctAnswerObject = {
-            classKey: `option_class_${correctClass.toLowerCase()}`, // ej: option_class_c
-            typeKey: `option_${correctTypeKey}`, // ej: option_public
-            maskValue: correctMask // ej: 255.255.255.0
-        };
+        let options = new Set([correctAnswer]); // Opciones son wildcards (strings)
 
-        let options = [];
-        options.push(correctAnswerObject); // Añadir la correcta
-
-        // Generar opciones incorrectas variando uno o más atributos
-        const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase());
-        const possibleTypeKeys = ['option_public', 'option_private'].filter(k => k !== `option_${correctTypeKey}`);
-        const possibleMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0'].filter(m => m !== correctMask);
-
-        // Variar solo máscara
-        if (possibleMasks.length > 0) {
-            options.push({ ...correctAnswerObject, maskValue: possibleMasks[0] });
-        }
-        // Variar solo tipo
-        if (possibleTypeKeys.length > 0) {
-            options.push({ ...correctAnswerObject, typeKey: possibleTypeKeys[0] });
-        }
-        // Variar solo clase (asegurando máscara correcta para la clase incorrecta)
-        if (possibleClassesLower.length > 0) {
-            let incorrectMask = '255.255.255.255'; // Fallback
-            if (possibleClassesLower[0] === 'a') incorrectMask = '255.0.0.0';
-            else if (possibleClassesLower[0] === 'b') incorrectMask = '255.255.0.0';
-            else if (possibleClassesLower[0] === 'c') incorrectMask = '255.255.255.0';
-            options.push({ classKey: `option_class_${possibleClassesLower[0]}`, typeKey: correctAnswerObject.typeKey, maskValue: incorrectMask });
-        }
-
-        // Rellenar hasta 4 opciones asegurando unicidad
-        let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.typeKey},${o.maskValue}`));
-        while (options.length < 4 && attempts < 500) { // Añadir límite de intentos
-            const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`;
-            const randomTypeKey = ['option_public', 'option_private'][getRandomInt(0, 1)];
-            const randomMask = ['255.0.0.0', '255.255.0.0', '255.255.255.0'][getRandomInt(0, 2)];
-            const potentialOption = { classKey: randomClassKey, typeKey: randomTypeKey, maskValue: randomMask };
-            const potentialOptionStr = `${potentialOption.classKey},${potentialOption.typeKey},${potentialOption.maskValue}`;
-            if (!existingOptionsStr.has(potentialOptionStr)) {
-                options.push(potentialOption);
-                existingOptionsStr.add(potentialOptionStr);
+        // Generar opciones incorrectas
+        let attempts = 0;
+        while (options.size < 4 && attempts < 50) {
+            // Generar otra máscara aleatoria
+            const randomMask = generateRandomSubnetMask();
+            if (randomMask !== subnetMask) {
+                const incorrectWildcard = calculateWildcardMask(randomMask);
+                // Añadir si es válida y diferente a la correcta
+                if (incorrectWildcard && incorrectWildcard !== correctAnswer) {
+                    options.add(incorrectWildcard);
+                }
+            }
+            // Añadir la propia máscara de subred como opción incorrecta común
+            if (subnetMask !== correctAnswer && options.size < 4) {
+                options.add(subnetMask);
+            }
+            // Añadir una máscara default como incorrecta (si es diferente)
+            const defaultMasks = ['255.0.0.0', '255.255.0.0', '255.255.255.0'];
+            const randomDefault = defaultMasks[getRandomInt(0, defaultMasks.length - 1)];
+            const incorrectDefaultWildcard = calculateWildcardMask(randomDefault);
+            if (incorrectDefaultWildcard && incorrectDefaultWildcard !== correctAnswer && options.size < 4) {
+                options.add(incorrectDefaultWildcard);
             }
             attempts++;
         }
-        options = options.slice(0, 4); // Asegurar máximo 4
-        shuffleArray(options);
-        // Asegurar que la correcta esté (si se eliminó por slice)
-        if (!options.some(o => o.classKey === correctAnswerObject.classKey && o.typeKey === correctAnswerObject.typeKey && o.maskValue === correctAnswerObject.maskValue)) {
-             options.pop(); // Quitar la última
-             options.push(correctAnswerObject); // Añadir la correcta
-             shuffleArray(options); // Volver a barajar
+        // Rellenar con wildcards simples si aún faltan opciones
+        const simpleWildcards = ['0.0.0.0', '0.0.0.255', '0.0.255.255', '0.255.255.255'];
+        shuffleArray(simpleWildcards);
+        for(const wc of simpleWildcards) {
+            if (options.size < 4 && wc !== correctAnswer) {
+                options.add(wc);
+            }
         }
 
+        let optionsArray = Array.from(options);
+        // Asegurar que la correcta esté y que haya 4 opciones
+        if (!optionsArray.includes(correctAnswer)) { optionsArray.pop(); optionsArray.push(correctAnswer); }
+        optionsArray = optionsArray.slice(0, 4);
+        shuffleArray(optionsArray);
 
-        // Info para explicación: combinar las tres tablas relevantes
+        // Info para la explicación
         const explanationInfo = {
-            generators: [
-                { generatorName: 'generateClassRangeTableHTML', args: [correctClass] },
-                { generatorName: 'generatePrivateRangeTableHTML', args: [ip] },
-                { generatorName: 'generateClassMaskTableHTML', args: [correctClass] }
-            ],
-            separator: '<hr style="margin: 10px 0;">'
+            generatorName: 'generateWildcardExplanationHTML',
+            args: [subnetMask, correctAnswer] // Pasar máscara y wildcard
         };
 
-        return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo };
+        return { question, options: optionsArray, correctAnswer, explanation: explanationInfo };
 
     } catch (error) {
-        console.error("Error en generateClassTypeMaskQuestion:", error);
+        console.error("Error en generateWildcardQuestion:", error);
         return null;
     }
 }
@@ -144,30 +126,26 @@ const associateQuestionGenerators = [
     generateNetworkBroadcastAddressQuestion
 ];
 
-// --- NUEVO: Array para Nivel Professional ---
 const professionalQuestionGenerators = [
     generateClassTypeMaskQuestion,
-    // Aquí añadiremos los generadores de subnetting y wildcard más adelante
+    generateWildcardQuestion // <-- Añadida la nueva pregunta
+    // Aquí añadiremos los generadores de subnetting más adelante
 ];
-// --- FIN NUEVO ---
 
 // --- Función Principal para Obtener Pregunta ---
 export function getNextQuestion(level) {
      let generators = [];
      if (level === 'Entry') { generators = entryQuestionGenerators; }
      else if (level === 'Associate') { generators = associateQuestionGenerators; }
-     // --- MODIFICADO: Usar array Professional ---
      else if (level === 'Professional') { generators = professionalQuestionGenerators; }
-     // --- FIN MODIFICADO ---
      else { console.error("Nivel desconocido solicitado:", level); return null; }
 
      if (!generators || generators.length === 0) {
          console.warn(`No hay generadores de preguntas definidos para el nivel: ${level}`);
-         // Temporalmente, si no hay preguntas Pro, usar Associate como fallback
          if (level === 'Professional') {
              console.warn("Usando preguntas de Associate como fallback para Professional.");
              generators = associateQuestionGenerators;
-             if (!generators || generators.length === 0) return null; // Salir si Associate tampoco tiene
+             if (!generators || generators.length === 0) return null;
          } else {
              return null;
          }
