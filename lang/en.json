@@ -137,6 +137,10 @@
   "explanation_subnet_calc_step3": "3. Subnet Bits (s):",
   "explanation_subnet_calc_step4": "4. Number of Subnets:",
   "explanation_subnet_calc_formula": "2<sup>s</sup> = 2<sup>{subnetBits}</sup> = {numSubnets}",
+  "explanation_host_calc_step1": "1. Subnet Mask Used:",
+  "explanation_host_calc_step2": "2. Host Bits (h):",
+  "explanation_host_calc_step3": "3. Usable Hosts:",
+  "explanation_host_calc_formula": "2<sup>h</sup> - 2 = 2<sup>{hostBits}</sup> - 2 = {usableHosts}",
   "class_note_multicast": "(Multicast)",
   "class_note_experimental": "(Experimental)",
 
