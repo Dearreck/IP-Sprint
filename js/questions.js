@@ -1,7 +1,7 @@
 // js/questions.js
 // ==================================================
 // Módulo Generador de Preguntas para IP Sprint
-// CORREGIDO: Generación de opciones numéricas para pregunta de # subredes.
+// CORREGIDO: Generación de opciones numéricas para preguntas de subnetting.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -17,6 +17,7 @@ import {
 import { getTranslation } from './i18n.js';
 
 // --- Generadores de Preguntas (Nivel Entry) ---
+// (Sin cambios)
 function generateClassQuestion() { try { const ip = generateRandomIp(); const info = getIpInfo(ip); if (info.class === 'N/A') return generateClassQuestion(); const question = { key: 'question_given_ip_what_class', replacements: { ip: `<strong>${ip}</strong>` } }; const options = ['A', 'B', 'C', 'D', 'E']; const correct = info.class; const explanationInfo = { generatorName: 'generateClassRangeTableHTML', args: [correct] }; return { question, options, correctAnswer: correct, explanation: explanationInfo }; } catch (error) { console.error("Error en generateClassQuestion:", error); return null; } }
 function generateTypeQuestion() { try { let ip, info, attempts = 0; let forcePrivate = Math.random() < 0.4; ip = forcePrivate ? generateRandomPrivateIp() : generateRandomIp(); info = getIpInfo(ip); while ((info.typeKey === 'unknown' || info.typeKey === 'loopback' || info.typeKey === 'apipa' || info.typeKey === 'limited_broadcast') && attempts < 50) { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } if (info.typeKey !== 'public' && info.typeKey !== 'private') { ip = '8.8.8.8'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_type', replacements: { ip: `<strong>${ip}</strong>` } }; const options = ['option_public', 'option_private']; const correct = `option_${info.typeKey}`; const explanationInfo = { generatorName: 'generatePrivateRangeTableHTML', args: [ip] }; return { question, options, correctAnswer: correct, explanation: explanationInfo }; } catch (error) { console.error("Error en generateTypeQuestion:", error); return null; } }
 function generateDefaultMaskQuestion() { try { let ip, info, attempts = 0; do { ip = generateRandomIp(); info = getIpInfo(ip); attempts++; } while ((info.class !== 'A' && info.class !== 'B' && info.class !== 'C' || info.typeKey === 'loopback') && attempts < 100); if (attempts >= 100) { ip = '192.168.1.1'; info = getIpInfo(ip); } const question = { key: 'question_given_ip_what_mask', replacements: { ip: `<strong>${ip}</strong>`, class: info.class } }; const options = ['255.0.0.0', '255.255.0.0', '255.255.255.0']; const correct = info.defaultMask; const explanationInfo = { generatorName: 'generateClassMaskTableHTML', args: [info.class] }; const finalCorrectAnswer = options.includes(correct) ? correct : options[0]; return { question, options, correctAnswer: finalCorrectAnswer, explanation: explanationInfo }; } catch (error) { console.error("Error en generateDefaultMaskQuestion:", error); return null; } }
@@ -41,7 +42,7 @@ function generateWildcardQuestion() { try { const subnetMask = generateRandomSub
 
 /**
  * Genera preguntas de cálculo de subnetting.
- * CORREGIDO: Generación de opciones numéricas para # subredes.
+ * CORREGIDO: Generación de opciones numéricas.
  * @returns {object|null} Objeto de pregunta o null si hay error.
  */
 function generateSubnettingQuestion() {
@@ -78,7 +79,7 @@ function generateSubnettingQuestion() {
         // 3. Elegir qué preguntar
         const questionType = getRandomInt(0, 3);
         let questionKey = '';
-        let correctAnswer;
+        let correctAnswer; // Puede ser string (IP) o número
         let options = new Set();
 
         switch (questionType) {
@@ -94,60 +95,48 @@ function generateSubnettingQuestion() {
                 break;
             case 2: // Hosts Utilizables
                 questionKey = 'question_subnetting_calculate_usable_hosts'; correctAnswer = usableHosts;
-                options.add(correctAnswer);
+                options.add(correctAnswer); // Añadir el número correcto
                 const hostBits = 32 - prefixLength;
-                if (hostBits >= 2) options.add(Number(BigInt(2) ** BigInt(hostBits)));
-                if (hostBits > 2) options.add(Number(BigInt(2) ** BigInt(hostBits - 1) - BigInt(2)));
-                if (hostBits < 30 && prefixLength > originalPrefix) options.add(Number(BigInt(2) ** BigInt(hostBits + 1) - BigInt(2)));
+                if (hostBits >= 2) options.add(Number(BigInt(2) ** BigInt(hostBits))); // Total hosts
+                if (hostBits > 2) options.add(Number(BigInt(2) ** BigInt(hostBits - 1) - BigInt(2))); // Hosts de /+1
+                if (hostBits < 30 && prefixLength > originalPrefix) options.add(Number(BigInt(2) ** BigInt(hostBits + 1) - BigInt(2))); // Hosts de /-1
                 break;
             case 3: // Número de Subredes
                 questionKey = 'question_subnetting_calculate_num_subnets'; correctAnswer = numSubnets;
-                options.add(correctAnswer);
+                options.add(correctAnswer); // Añadir el número correcto
                 const subnetBits = prefixLength - originalPrefix;
-                // --- CORRECCIÓN OPCIONES ---
-                // Añadir potencias de 2 cercanas como opciones incorrectas
-                if (subnetBits > 0) {
-                    const lowerPower = Number(BigInt(2) ** BigInt(subnetBits - 1));
-                    if (lowerPower >= 1 && lowerPower !== correctAnswer) options.add(lowerPower);
-                }
-                 // Calcular siguiente potencia de 2 (si es válida dentro de los 32 bits)
+                if (subnetBits > 0) { const lowerPower = Number(BigInt(2) ** BigInt(subnetBits - 1)); if (lowerPower >= 1 && lowerPower !== correctAnswer) options.add(lowerPower); }
                 const nextSubnetBits = subnetBits + 1;
-                if ((originalPrefix + nextSubnetBits) <= 30) { // Asegurar que no exceda /30
-                    const higherPower = Number(BigInt(2) ** BigInt(nextSubnetBits));
-                     if (higherPower !== correctAnswer) options.add(higherPower);
-                }
-                // Añadir el número de bits de subred como opción incorrecta
+                if ((originalPrefix + nextSubnetBits) <= 30) { const higherPower = Number(BigInt(2) ** BigInt(nextSubnetBits)); if (higherPower !== correctAnswer) options.add(higherPower); }
                 if (subnetBits > 0 && subnetBits !== correctAnswer) options.add(subnetBits);
-                // Añadir el prefijo como opción incorrecta
-                 if (prefixLength !== correctAnswer) options.add(prefixLength);
-                 // --- FIN CORRECCIÓN OPCIONES ---
+                if (prefixLength !== correctAnswer) options.add(prefixLength);
                 break;
         }
 
-        // Rellenar opciones numéricas si faltan (para hosts y subredes)
+        // Rellenar opciones hasta 4
         let fillAttempts = 0;
-        while(options.size < 4 && questionType >= 2 && fillAttempts < 50) {
-            let randomNumOption;
-            // Generar números cercanos a la respuesta correcta
-            if (correctAnswer > 4) {
-                randomNumOption = getRandomInt(Math.max(1, correctAnswer - Math.floor(correctAnswer / 2)), correctAnswer + Math.ceil(correctAnswer / 2) + 5);
-            } else {
-                randomNumOption = getRandomInt(1, 10); // Rango pequeño para respuestas pequeñas
-            }
-             if (randomNumOption !== correctAnswer && !options.has(randomNumOption)) {
-                 options.add(randomNumOption);
+        while(options.size < 4 && fillAttempts < 50) {
+             if (questionType <= 1) { // Direcciones IP
+                 let randomIpOption = generateRandomIp();
+                 if (randomIpOption !== correctAnswer && !options.has(randomIpOption)) { options.add(randomIpOption); }
+             } else { // Números
+                 let randomNumOption;
+                 const base = correctAnswer > 4 ? correctAnswer : 2; // Evitar rango negativo o muy pequeño
+                 const range = Math.max(10, Math.ceil(base / 2));
+                 randomNumOption = getRandomInt(Math.max(1, base - range), base + range);
+                 // Asegurar que no sea 0 si la respuesta correcta no es 0
+                 if (correctAnswer !== 0 && randomNumOption === 0) randomNumOption = 1;
+                 if (randomNumOption !== correctAnswer && !options.has(randomNumOption)) { options.add(randomNumOption); }
              }
              fillAttempts++;
         }
-         // Rellenar opciones de IP si faltan
-        while(options.size < 4 && questionType <= 1 && fillAttempts < 50) {
-             let randomIpOption = generateRandomIp();
-             if (randomIpOption !== correctAnswer && !options.has(randomIpOption)) { options.add(randomIpOption); }
-             fillAttempts++;
-        }
 
-
+        // Convertir Set a Array, asegurar correcta y 4 opciones, barajar
         let optionsArray = Array.from(options);
+        // Convertir números a string para consistencia (los botones muestran texto)
+        optionsArray = optionsArray.map(opt => opt.toString());
+        correctAnswer = correctAnswer.toString(); // Convertir respuesta correcta a string también
+
         if (!optionsArray.includes(correctAnswer)) { optionsArray.pop(); optionsArray.push(correctAnswer); }
         optionsArray = optionsArray.slice(0, 4);
         shuffleArray(optionsArray);
@@ -162,7 +151,6 @@ function generateSubnettingQuestion() {
         return null;
     }
 }
-
 
 // --- Agrupar Generadores por Nivel ---
 const entryQuestionGenerators = [ generateClassQuestion, generateTypeQuestion, generateDefaultMaskQuestion, generateSelectClassQuestion, generateSelectPrivateIpQuestion, generateSelectIpByDefaultMaskQuestion ];
