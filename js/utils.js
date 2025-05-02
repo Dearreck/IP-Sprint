@@ -1,7 +1,7 @@
 // js/utils.js
 // ==================================================
 // Módulo de Utilidades para IP Sprint
-// CORREGIDO: Mejorada explicación de subnetting con proceso ANDing binario.
+// CORREGIDO: Reintroducida explicación ANDing y añadida explicación paso a paso para # subredes.
 // ==================================================
 
 import { getTranslation } from './i18n.js';
@@ -9,23 +9,9 @@ import { getTranslation } from './i18n.js';
 // --- Utilidades Generales ---
 export function getRandomInt(min, max) { min = Math.ceil(min); max = Math.floor(max); return Math.floor(Math.random() * (max - min + 1)) + min; }
 export function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } }
-
-// --- NUEVO: Helper para convertir decimal a binario de 8 bits ---
-/**
- * Convierte un número decimal (0-255) a su representación binaria de 8 bits.
- * @param {number} decimal - El número decimal del octeto.
- * @returns {string} El string binario de 8 bits (ej. '11000000' para 192).
- */
-function decimalToBinaryPadded(decimal) {
-    if (isNaN(decimal) || decimal < 0 || decimal > 255) {
-        return '........'; // Retornar puntos si el valor no es válido
-    }
-    return decimal.toString(2).padStart(8, '0');
-}
-// --- FIN NUEVO ---
+function decimalToBinaryPadded(decimal) { if (isNaN(decimal) || decimal < 0 || decimal > 255) { return '........'; } return decimal.toString(2).padStart(8, '0'); }
 
 // --- Utilidades de Direccionamiento IP ---
-// (generateRandomIp, generateRandomPrivateIp, getIpInfo, getIpPortions, generateRandomSubnetMask, calculateNetworkAddress, calculateWildcardMask, calculateBroadcastAddress sin cambios)
 export function generateRandomIp() { let oct1; do { oct1 = getRandomInt(1, 223); } while (oct1 === 127 || oct1 === 169); let oct2 = getRandomInt(0, 255); if (oct1 === 169 && oct2 === 254) { oct2 = getRandomInt(0, 253); } const oct3 = getRandomInt(0, 255); const oct4 = getRandomInt(1, 254); return `${oct1}.${oct2}.${oct3}.${oct4}`; }
 export function generateRandomPrivateIp() { const type = getRandomInt(1, 3); let ip = ''; if (type === 1) { ip = `10.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; } else if (type === 2) { ip = `172.${getRandomInt(16, 31)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; } else { ip = `192.168.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`; } return ip; }
 export function getIpInfo(ipString) { const defaultResult = { class: 'N/A', type: 'N/A', typeKey: 'unknown', defaultMask: 'N/A' }; try { if (!ipString || typeof ipString !== 'string') { return defaultResult; } const octets = ipString.split('.').map(Number); if (octets.length !== 4 || octets.some(isNaN) || octets.some(o => o < 0 || o > 255)) { return defaultResult; } const firstOctet = octets[0]; let ipClass = 'N/A'; let ipTypeKey = 'unknown'; let defaultMask = 'N/A'; if (firstOctet >= 1 && firstOctet <= 126) { ipClass = 'A'; defaultMask = '255.0.0.0'; } else if (firstOctet === 127) { ipClass = 'A'; defaultMask = '255.0.0.0'; ipTypeKey = 'loopback'; } else if (firstOctet >= 128 && firstOctet <= 191) { ipClass = 'B'; defaultMask = '255.255.0.0'; } else if (firstOctet >= 192 && firstOctet <= 223) { ipClass = 'C'; defaultMask = '255.255.255.0'; } else if (firstOctet >= 224 && firstOctet <= 239) { ipClass = 'D'; defaultMask = 'N/A'; ipTypeKey = 'multicast'; } else if (firstOctet >= 240 && firstOctet <= 255) { ipClass = 'E'; defaultMask = 'N/A'; ipTypeKey = 'experimental'; } if (ipTypeKey === 'unknown') { if (firstOctet === 10 || (firstOctet === 172 && octets[1] >= 16 && octets[1] <= 31) || (firstOctet === 192 && octets[1] === 168)) { ipTypeKey = 'private'; } else if (firstOctet === 169 && octets[1] === 254) { ipTypeKey = 'apipa'; ipClass = 'B'; defaultMask = 'N/A'; } else { ipTypeKey = 'public'; } } if (ipString === '255.255.255.255') { ipTypeKey = 'limited_broadcast'; ipClass = 'N/A'; defaultMask = 'N/A'; } const ipTypeTranslated = getTranslation(`option_${ipTypeKey}`) || ipTypeKey; return { class: ipClass, type: ipTypeTranslated, typeKey: ipTypeKey, defaultMask: defaultMask }; } catch (error) { console.error("Error en getIpInfo:", error, "IP:", ipString); return defaultResult; } }
@@ -48,7 +34,7 @@ export function generateWildcardExplanationHTML(subnetMask, wildcardMask) { try 
 
 /**
  * Genera explicación HTML para cálculos de Subnetting.
- * CORREGIDO: Añadida explicación detallada del ANDing binario.
+ * CORREGIDO: Muestra ANDing binario Y cálculo de # subredes paso a paso.
  * @param {string} ip - IP original.
  * @param {string} mask - Máscara de subred usada.
  * @param {string} networkAddr - Dirección de subred calculada.
@@ -64,75 +50,77 @@ export function generateSubnettingExplanationHTML(ip, mask, networkAddr, broadca
         const hostBits = 32 - prefixLength;
         const originalPrefix = getMaskPrefixLength(originalClassMask);
         const subnetBits = prefixLength - originalPrefix;
+        const ipInfo = getIpInfo(ip); // Obtener info de la IP para la clase
 
-        if (prefixLength === null || originalPrefix === null) {
-            throw new Error("Máscara inválida para explicación de subnetting");
+        if (prefixLength === null || originalPrefix === null || ipInfo.class === 'N/A') {
+            throw new Error("Máscara o IP inválida para explicación de subnetting");
         }
 
-        // --- Generar explicación ANDing ---
+        let html = `<p>${getTranslation('explanation_subnetting_intro', { ip: `<strong>${ip}</strong>`, mask: `<strong>${mask}</strong>`, prefixLength: prefixLength })}</p>`;
+
+        // --- 1. Explicación ANDing binario ---
         const ipOctets = ip.split('.').map(Number);
         const maskOctets = mask.split('.').map(Number);
         const networkOctets = networkAddr.split('.').map(Number);
 
         let andingHtml = `<p style="margin-top: 15px;"><strong>${getTranslation('explanation_anding_process')}</strong></p>`;
-        const cellStyle = "padding: 2px 5px; text-align: right; font-family: monospace;";
-        const labelCellStyle = "padding: 2px 5px; text-align: left; font-family: monospace; white-space: nowrap;"; // Evitar salto de línea en etiquetas
-        const separatorCellStyle = "padding: 0 2px; text-align: center; font-family: monospace;";
-        const hrCellStyle = "border-bottom: 1px solid #ccc; height: 1px; padding: 0; margin: 2px 0;";
+        const cellStyle = "padding: 1px 4px; text-align: center; font-family: monospace; font-size: 0.9em;"; // Ajustar padding/size
+        const labelCellStyle = "padding: 1px 4px; text-align: left; font-family: monospace; white-space: nowrap; font-size: 0.9em;";
+        const separatorCellStyle = "padding: 0 1px; text-align: center; font-family: monospace; font-size: 0.9em;";
+        const hrCellStyle = "border-bottom: 1px solid #ccc; height: 1px; padding: 0; margin: 1px 0;";
 
         andingHtml += `<table style="width: auto; margin: 5px auto; border-collapse: collapse;"><tbody>`;
         // Fila 1: IP Binario
         andingHtml += `<tr>`;
         andingHtml += `<td style="${labelCellStyle}">${getTranslation('explanation_ip_binary')}</td>`;
-        for (let i = 0; i < 4; i++) {
-            andingHtml += `<td style="${cellStyle}">${decimalToBinaryPadded(ipOctets[i])}</td>`;
-            if (i < 3) andingHtml += `<td style="${separatorCellStyle}">.</td>`;
-        }
+        for (let i = 0; i < 4; i++) { andingHtml += `<td style="${cellStyle}">${decimalToBinaryPadded(ipOctets[i])}</td>`; if (i < 3) andingHtml += `<td style="${separatorCellStyle}">.</td>`; }
         andingHtml += `</tr>`;
         // Fila 2: Mask Binario
         andingHtml += `<tr>`;
         andingHtml += `<td style="${labelCellStyle}">${getTranslation('explanation_mask_binary')}</td>`;
-        for (let i = 0; i < 4; i++) {
-            andingHtml += `<td style="${cellStyle}">${decimalToBinaryPadded(maskOctets[i])}</td>`;
-            if (i < 3) andingHtml += `<td style="${separatorCellStyle}">.</td>`;
-        }
+        for (let i = 0; i < 4; i++) { andingHtml += `<td style="${cellStyle}">${decimalToBinaryPadded(maskOctets[i])}</td>`; if (i < 3) andingHtml += `<td style="${separatorCellStyle}">.</td>`; }
         andingHtml += `</tr>`;
-        // Fila 3: Línea separadora
-        andingHtml += `<tr><td colspan="${4 * 2}"></td></tr>`; // Colspan ajustado
-        andingHtml += `<tr><td style="${labelCellStyle}"><strong>AND</strong></td><td colspan="${4 * 2 - 1}" style="${hrCellStyle}"></td></tr>`; // Línea con etiqueta AND
-        andingHtml += `<tr><td colspan="${4 * 2}"></td></tr>`; // Espacio
+        // Fila 3: Línea separadora con AND
+        andingHtml += `<tr><td style="${labelCellStyle}"><strong>AND</strong></td><td colspan="${4 * 2 - 1}" style="${hrCellStyle}"></td></tr>`;
         // Fila 4: Resultado AND Binario
         andingHtml += `<tr>`;
         andingHtml += `<td style="${labelCellStyle}">${getTranslation('explanation_and_result')}</td>`;
-        for (let i = 0; i < 4; i++) {
-            andingHtml += `<td style="${cellStyle}">${decimalToBinaryPadded(networkOctets[i])}</td>`;
-            if (i < 3) andingHtml += `<td style="${separatorCellStyle}">.</td>`;
-        }
+        for (let i = 0; i < 4; i++) { andingHtml += `<td style="${cellStyle}">${decimalToBinaryPadded(networkOctets[i])}</td>`; if (i < 3) andingHtml += `<td style="${separatorCellStyle}">.</td>`; }
         andingHtml += `</tr>`;
         andingHtml += `</tbody></table>`;
-        // --- Fin explicación ANDing ---
+        // Añadir resultado decimal
+        andingHtml += `<p style="text-align: center; font-family: monospace; font-size: 0.9em; margin-top: 5px;">${getTranslation('explanation_network_address_decimal')} <code>${networkAddr}</code></p>`;
 
-
-        // --- Tabla principal de resultados ---
-        let html = `<p>${getTranslation('explanation_subnetting_intro', { ip: `<strong>${ip}</strong>`, mask: `<strong>${mask}</strong>`, prefixLength: prefixLength })}</p>`;
-        html += '<table class="explanation-table">';
-        html += `<thead><tr><th>${getTranslation('table_header_concept')}</th><th>${getTranslation('table_header_value')}</th><th>${getTranslation('table_header_calculation')}</th></tr></thead>`;
-        html += '<tbody>';
-        // Añadir fila de Dirección de Subred con el resultado decimal
-        html += `<tr><td>${getTranslation('explanation_network_address_decimal')}</td><td><code>${networkAddr}</code></td><td>(${getTranslation('explanation_ip_binary')} <strong>AND</strong> ${getTranslation('explanation_mask_binary')})</td></tr>`;
-        // Añadir el HTML del proceso ANDing
-        html += `<tr><td colspan="3">${andingHtml}</td></tr>`;
-        // Resto de filas
-        html += `<tr><td>${getTranslation('explanation_subnetting_broad_addr')}</td><td><code>${broadcastAddr}</code></td><td>(NetAddr <strong>OR</strong> Wildcard)</td></tr>`;
-        html += `<tr><td>${getTranslation('explanation_subnetting_host_bits')}</td><td>${hostBits}</td><td>(32 - ${prefixLength})</td></tr>`;
-        html += `<tr><td>${getTranslation('explanation_subnetting_usable_hosts')}</td><td>${usableHosts}</td><td><code>${getTranslation('explanation_subnetting_calc_usable_hosts', { hostBits: hostBits, usableHosts: usableHosts })}</code></td></tr>`;
+        // --- 2. Explicación paso a paso para Número de Subredes (si aplica) ---
+        let subnetCalcHtml = '';
         if (subnetBits > 0) {
-            html += `<tr><td>${getTranslation('explanation_subnetting_subnet_bits')}</td><td>${subnetBits}</td><td>(${prefixLength} - ${originalPrefix})</td></tr>`;
-            html += `<tr><td>${getTranslation('explanation_subnetting_num_subnets')}</td><td>${numSubnets}</td><td><code>${getTranslation('explanation_subnetting_calc_num_subnets', { subnetBits: subnetBits, numSubnets: numSubnets })}</code></td></tr>`;
-        } else {
-             html += `<tr><td>${getTranslation('explanation_subnetting_num_subnets')}</td><td>1</td><td>(${getTranslation('no_subnetting_performed')})</td></tr>`;
+            subnetCalcHtml += `<div style="margin-top: 15px; padding: 10px; border-top: 1px dashed #ddd;">`; // Separador visual
+            subnetCalcHtml += `<p><strong>${getTranslation('explanation_subnetting_num_subnets')}</strong></p>`;
+            subnetCalcHtml += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em;">`;
+            subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step1', { class: ipInfo.class })} <code>${originalClassMask}</code> (/${originalPrefix})</li>`;
+            subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step2')} <code>${mask}</code> (/${prefixLength})</li>`;
+            subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step3')} ${prefixLength} - ${originalPrefix} = <strong>${subnetBits}</strong></li>`;
+            subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step4')} <code>${getTranslation('explanation_subnet_calc_formula', { subnetBits: subnetBits, numSubnets: numSubnets })}</code></li>`;
+            subnetCalcHtml += `</ol></div>`;
         }
-        html += '</tbody></table>';
+
+        // --- 3. Tabla principal con otros resultados ---
+        let resultsTableHtml = '<table class="explanation-table" style="margin-top: 15px;">'; // Añadir margen
+        resultsTableHtml += `<thead><tr><th>${getTranslation('table_header_concept')}</th><th>${getTranslation('table_header_value')}</th><th>${getTranslation('table_header_calculation')}</th></tr></thead>`;
+        resultsTableHtml += '<tbody>';
+        // Nota: Ya no mostramos Dir Red aquí, se ve en el ANDing
+        resultsTableHtml += `<tr><td>${getTranslation('explanation_subnetting_broad_addr')}</td><td><code>${broadcastAddr}</code></td><td>(NetAddr <strong>OR</strong> Wildcard)</td></tr>`;
+        resultsTableHtml += `<tr><td>${getTranslation('explanation_subnetting_host_bits')}</td><td>${hostBits}</td><td>(32 - ${prefixLength})</td></tr>`;
+        resultsTableHtml += `<tr><td>${getTranslation('explanation_subnetting_usable_hosts')}</td><td>${usableHosts}</td><td><code>${getTranslation('explanation_subnetting_calc_usable_hosts', { hostBits: hostBits, usableHosts: usableHosts })}</code></td></tr>`;
+        // Si no hubo subnetting, indicarlo aquí
+        if (subnetBits === 0) {
+             resultsTableHtml += `<tr><td>${getTranslation('explanation_subnetting_num_subnets')}</td><td>1</td><td>(${getTranslation('no_subnetting_performed')})</td></tr>`;
+        }
+        resultsTableHtml += '</tbody></table>';
+
+        // Combinar todo
+        html += andingHtml + subnetCalcHtml + resultsTableHtml;
+
         return html;
     } catch (error) {
         console.error("Error generando explicación de subnetting:", error);
