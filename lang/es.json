@@ -130,6 +130,11 @@
   "table_header_calculation": "Cálculo",
   "class_note_multicast": "(Multicast)",
   "class_note_experimental": "(Experimental)",
+  "explanation_anding_process": "Proceso ANDing para Dirección de Subred:",
+  "explanation_ip_binary": "IP (Binario):",
+  "explanation_mask_binary": "Máscara (Binario):",
+  "explanation_and_result": "Resultado AND:",
+  "explanation_network_address_decimal": "Dirección Subred (Decimal):",
 
   "table_header_concept": "Concepto",
   "table_header_value": "Valor",
