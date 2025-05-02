@@ -80,6 +80,11 @@
   "question_identify_host_portion": "Given the IP <strong>{ip}</strong> and its default mask (<strong>{mask}</strong>), what is the host portion?",
   "question_calculate_address": "Given the IP <strong>{ip}</strong> and its default mask (<strong>{mask}</strong>), what is its <strong>{addressType}</strong>?",
   "question_calculate_wildcard": "Given the subnet mask: <strong>{subnetMask}</strong><br>What is its corresponding wildcard mask?",
+  "question_subnetting_calculate_network": "Given the IP <strong>{ip}</strong> and mask <strong>{mask}</strong> (/{prefixLength}), what is the <strong>Subnet Address</strong>?",
+  "question_subnetting_calculate_broadcast": "Given the IP <strong>{ip}</strong> and mask <strong>{mask}</strong> (/{prefixLength}), what is the <strong>Broadcast Address</strong> of that subnet?",
+  "question_subnetting_calculate_usable_hosts": "Given the IP <strong>{ip}</strong> and mask <strong>{mask}</strong> (/{prefixLength}), how many <strong>usable hosts</strong> are in that subnet?",
+  "question_subnetting_calculate_num_subnets": "Given the IP <strong>{ip}</strong> (Class {class}) and subnet mask <strong>{mask}</strong> (/{prefixLength}), how many <strong>subnets</strong> were created from the default mask?",
+  "no_subnetting_performed": "No subnetting performed",
   "address_type_network": "Network Address",
   "address_type_broadcast": "Broadcast Address",
 
