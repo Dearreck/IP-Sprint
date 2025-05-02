@@ -126,6 +126,11 @@
   "explanation_subnetting_num_subnets": "Number of Subnets:",
   "explanation_subnetting_calc_num_subnets": "2<sup>s</sup> = 2<sup>{subnetBits}</sup> = {numSubnets}",
   "table_header_calculation": "Calculation",
+  "explanation_anding_process": "ANDing Process for Subnet Address:",
+  "explanation_ip_binary": "IP (Binary):",
+  "explanation_mask_binary": "Mask (Binary):",
+  "explanation_and_result": "AND Result:",
+  "explanation_network_address_decimal": "Subnet Address (Decimal):",
   
   "table_header_concept": "Concept",
   "table_header_value": "Value",
