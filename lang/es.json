@@ -82,6 +82,11 @@
   "question_identify_host_portion": "Dada la IP <strong>{ip}</strong> y su máscara por defecto (<strong>{mask}</strong>), ¿cuál es la porción de host?",
   "question_calculate_address": "Dada la IP <strong>{ip}</strong> y su máscara por defecto (<strong>{mask}</strong>), ¿cuál es su <strong>{addressType}</strong>?",
   "question_calculate_wildcard": "Dada la máscara de subred: <strong>{subnetMask}</strong><br>¿Cuál es su máscara wildcard correspondiente?",
+  "question_subnetting_calculate_network": "Dada la IP <strong>{ip}</strong> y la máscara <strong>{mask}</strong> (/{prefixLength}), ¿cuál es la <strong>Dirección de Subred</strong>?",
+  "question_subnetting_calculate_broadcast": "Dada la IP <strong>{ip}</strong> y la máscara <strong>{mask}</strong> (/{prefixLength}), ¿cuál es la <strong>Dirección de Broadcast</strong> de esa subred?",
+  "question_subnetting_calculate_usable_hosts": "Dada la IP <strong>{ip}</strong> y la máscara <strong>{mask}</strong> (/{prefixLength}), ¿cuántos <strong>hosts utilizables</strong> hay en esa subred?",
+  "question_subnetting_calculate_num_subnets": "Dada la IP <strong>{ip}</strong> (Clase {class}) y la máscara de subred <strong>{mask}</strong> (/{prefixLength}), ¿cuántas <strong>subredes</strong> se crearon a partir de la máscara por defecto?",
+  "no_subnetting_performed": "No se realizó subnetting",
   "address_type_network": "Dirección de Red",
   "address_type_broadcast": "Dirección de Broadcast",
 
