@@ -2,6 +2,7 @@
 // ==================================================
 // Generadores de Preguntas - Nivel Associate
 // CORREGIDO: generateClassAndHostPortionQuestion para devolver objetos completos en opciones/respuesta.
+// CORREGIDO: generateClassAndNetworkPortionQuestion para usar porción de host como distractor.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -155,6 +156,7 @@ export function generateClassAndDefaultMaskQuestion() {
     }
 }
 
+// *** CORRECTED Function (Options Logic) ***
 export function generateClassAndNetworkPortionQuestion() {
     try {
         let ip, info, portions, attempts = 0;
@@ -176,63 +178,80 @@ export function generateClassAndNetworkPortionQuestion() {
 
         const question = { key: 'question_given_ip_what_class_net_portion', replacements: { ip: `<strong>${ip}</strong>` } };
         const correctClass = info.class;
-        const correctNetworkPortion = portions.networkPortion;
-        if (correctNetworkPortion === undefined || correctNetworkPortion === null) throw new Error(`Could not get networkPortion for ${ip}`);
+        const correctNetworkPortion = portions.networkPortion || getTranslation('option_none');
+        const hostPortion = portions.hostPortion || getTranslation('option_none'); // Get host portion for distractor
 
+        // --- Define Correct Answer Object ---
         const correctAnswerObject = {
             classKey: `option_class_${correctClass.toLowerCase()}`,
             portionKey: 'option_network_portion',
-            portionValue: correctNetworkPortion || getTranslation('option_none') // Use 'None' if empty string
+            portionValue: correctNetworkPortion
         };
-        let options = [];
-        options.push(correctAnswerObject);
 
-        // Generate incorrect options
+        // --- Generate Options (as objects) ---
+        let options = [];
+        options.push(correctAnswerObject); // 1. Add the correct answer object
+
+        // Generate incorrect options by varying class or network portion
         const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase());
 
-        // Option: Correct Class, Incorrect Network Portion
-        let randomIpForPortion, randomInfoForPortion, incorrectNetworkPortion = null, portionAttempts = 0;
-        do {
-            randomIpForPortion = generateRandomIp();
-            randomInfoForPortion = getIpInfo(randomIpForPortion);
-            if (randomInfoForPortion.defaultMask !== 'N/A') {
-                incorrectNetworkPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.networkPortion;
-            }
-            portionAttempts++;
-        } while ((!incorrectNetworkPortion || incorrectNetworkPortion === correctNetworkPortion) && portionAttempts < 50);
-        if (incorrectNetworkPortion && incorrectNetworkPortion !== correctNetworkPortion) {
-            options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_network_portion', portionValue: incorrectNetworkPortion });
-        } else { // Fallback incorrect portion
-            let fallbackPortion = (correctClass !== 'A') ? `${getRandomInt(1,126)}` : `${getRandomInt(128,191)}.${getRandomInt(0,255)}`;
-            options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_network_portion', portionValue: fallbackPortion });
+        // 2. Option: Correct Class, Incorrect Network Portion (use host portion as distractor)
+        if (hostPortion !== correctNetworkPortion && options.length < 4) {
+             options.push({
+                 classKey: `option_class_${correctClass.toLowerCase()}`,
+                 portionKey: 'option_network_portion', // Still asking for network portion
+                 portionValue: hostPortion // But providing host portion value
+             });
         }
 
-        // Option: Incorrect Class, Correct Network Portion
-        if (possibleClassesLower.length > 0) {
-            options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_network_portion', portionValue: correctNetworkPortion || getTranslation('option_none') });
+        // 3. Option: Incorrect Class, Correct Network Portion
+        if (possibleClassesLower.length > 0 && options.length < 4) {
+            options.push({
+                classKey: `option_class_${possibleClassesLower[0]}`,
+                portionKey: 'option_network_portion',
+                portionValue: correctNetworkPortion
+            });
         }
 
-        // Option: Incorrect Class, Incorrect Network Portion
-        if (possibleClassesLower.length > 0 && incorrectNetworkPortion && incorrectNetworkPortion !== correctNetworkPortion) {
-            options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_network_portion', portionValue: incorrectNetworkPortion });
+        // 4. Option: Incorrect Class, Incorrect Network Portion (use host portion)
+        if (possibleClassesLower.length > 0 && hostPortion !== correctNetworkPortion && options.length < 4) {
+             // Check if this combination already exists
+             const exists = options.some(opt => opt.classKey === `option_class_${possibleClassesLower[0]}` && opt.portionValue === hostPortion);
+             if (!exists) {
+                 options.push({
+                     classKey: `option_class_${possibleClassesLower[0]}`,
+                     portionKey: 'option_network_portion',
+                     portionValue: hostPortion
+                 });
+             }
         }
 
-        // Ensure 4 options, avoid duplicates
-        let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.portionKey},${o.portionValue}`));
+        // --- Fallback: Ensure 4 options with random combinations if needed ---
+        let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.portionValue}`)); // Check based on class and value
         while (options.length < 4) {
             const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`;
+            // Generate a random portion string that's likely incorrect
             let randomPortion = '';
-            if (randomClassKey === 'option_class_a') randomPortion = `${getRandomInt(1, 126)}`;
-            else if (randomClassKey === 'option_class_b') randomPortion = `${getRandomInt(128, 191)}.${getRandomInt(0, 255)}`;
-            else randomPortion = `${getRandomInt(192, 223)}.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}`;
-            const potentialOption = { classKey: randomClassKey, portionKey: 'option_network_portion', portionValue: randomPortion };
-            const potentialOptionStr = `${potentialOption.classKey},${potentialOption.portionKey},${potentialOption.portionValue}`;
-            if (!existingOptionsStr.has(potentialOptionStr)) {
+             if (randomClassKey === 'option_class_a') randomPortion = `${getRandomInt(1, 126)}`;
+             else if (randomClassKey === 'option_class_b') randomPortion = `${getRandomInt(128, 191)}.${getRandomInt(0, 255)}`;
+             else randomPortion = `${getRandomInt(192, 223)}.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}`;
+
+            const potentialOption = {
+                classKey: randomClassKey,
+                portionKey: 'option_network_portion',
+                portionValue: randomPortion
+            };
+            const potentialOptionStr = `${potentialOption.classKey},${potentialOption.portionValue}`;
+
+            // Add if it's different from correct/host portion and not already present
+            if (randomPortion !== correctNetworkPortion && randomPortion !== hostPortion && !existingOptionsStr.has(potentialOptionStr)) {
                 options.push(potentialOption);
                 existingOptionsStr.add(potentialOptionStr);
             }
         }
-        options = options.slice(0, 4);
+        // --- End Fallback ---
+
+        options = options.slice(0, 4); // Ensure exactly 4 options
         shuffleArray(options);
 
         // Calculate values needed for the explanation table
@@ -268,7 +287,7 @@ export function generateClassAndNetworkPortionQuestion() {
     }
 }
 
-// *** CORRECTED Function ***
+
 export function generateClassAndHostPortionQuestion() {
     try {
         let ip, info, portions, attempts = 0;
