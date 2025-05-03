@@ -1,23 +1,26 @@
 // js/ui.js
 // ==================================================
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
-// CORREGIDO: Eliminada importación de función inexistente.
+// Añadido mapeo para generateMaskForHostsExplanationHTML
 // ==================================================
 
 // --- Importaciones de Módulos ---
 import * as config from './config.js';
 import { handleAnswerClick } from './game.js';
 import { getTranslation } from './i18n.js';
-// --- CORREGIDO: Eliminar generateClassMaskTableHTML de la importación ---
 import {
     generateClassRangeTableHTML,
-    // generateClassMaskTableHTML, // <--- ELIMINAR ESTA LÍNEA
     generatePrivateRangeTableHTML,
     generatePortionExplanationHTML,
     generateSpecialAddressExplanationHTML,
-    generateWildcardExplanationHTML
+    generateWildcardExplanationHTML,
+    generateSubnettingExplanationHTML,
+    generateIpTypeExplanationHTML,
+    generateBitsForSubnetsExplanationHTML,
+    generateBitsForHostsExplanationHTML,
+    // Nueva importación
+    generateMaskForHostsExplanationHTML
 } from './utils.js';
-// --- FIN CORRECCIÓN ---
 
 // --- Selección de Elementos del DOM ---
 // (Sin cambios)
@@ -49,15 +52,23 @@ export const highScoreMessage = document.getElementById('high-score-message');
 export const playAgainButton = document.getElementById('play-again-button');
 export const scoreList = document.getElementById('score-list');
 
+
 // Mapa para llamar a los generadores de utils.js
 const explanationGenerators = {
     generateClassRangeTableHTML,
-    // generateClassMaskTableHTML, // No es necesario aquí tampoco
     generatePrivateRangeTableHTML,
     generatePortionExplanationHTML,
     generateSpecialAddressExplanationHTML,
-    generateWildcardExplanationHTML
+    generateWildcardExplanationHTML,
+    generateSubnettingExplanationHTML,
+    generateIpTypeExplanationHTML,
+    generateBitsForSubnetsExplanationHTML,
+    generateBitsForHostsExplanationHTML,
+    // --- NUEVO MAPEADO ---
+    generateMaskForHostsExplanationHTML
+    // --- FIN NUEVO MAPEADO ---
 };
+
 
 // --- Funciones de Manipulación de la UI ---
 // (Resto del archivo sin cambios...)
@@ -72,3 +83,4 @@ export function displayGameOver(score, currentUserData, playedLevel) { if (!curr
 export function displayHighScores(scoresData) { if(!scoreList) { console.error("Elemento scoreList no encontrado."); return; } scoreList.innerHTML = ''; if (!scoresData || scoresData.length === 0) { scoreList.innerHTML = `<li>${getTranslation('no_scores')}</li>`; return; } try { scoresData.forEach(userData => { const userEntry = document.createElement('li'); userEntry.classList.add('score-entry'); const userNameElement = document.createElement('div'); userNameElement.classList.add('score-username'); userNameElement.textContent = userData.name; userEntry.appendChild(userNameElement); const levelScoresContainer = document.createElement('div'); levelScoresContainer.classList.add('level-scores'); const displayOrder = [ { key: 'Entry-standard', labelKey: 'level_entry_standard' }, { key: 'Entry-mastery', labelKey: 'level_entry_mastery' }, { key: 'Associate-standard', labelKey: 'level_associate' }, { key: 'Professional-standard', labelKey: 'level_professional' } ]; let hasScores = false; displayOrder.forEach(levelInfo => { if (userData.scores && userData.scores[levelInfo.key] !== undefined) { const levelScoreElement = document.createElement('span'); levelScoreElement.classList.add('level-score-item'); const label = getTranslation(levelInfo.labelKey); levelScoreElement.innerHTML = `${label}: <strong>${userData.scores[levelInfo.key]}</strong>`; levelScoresContainer.appendChild(levelScoreElement); hasScores = true; } }); if(hasScores) { userEntry.appendChild(levelScoresContainer); } else { const noScoreMsg = document.createElement('div'); noScoreMsg.textContent = `(${getTranslation('no_scores_recorded')})`; noScoreMsg.style.fontSize = "0.8em"; noScoreMsg.style.color = "#888"; userEntry.appendChild(noScoreMsg); } scoreList.appendChild(userEntry); }); } catch (error) { console.error("Error generando la lista de high scores:", error); scoreList.innerHTML = `<li>${getTranslation('error_displaying_scores')}</li>`; } }
 export function updateTimerDisplay(timeLeftValue) { if (!timerDisplayDiv || !timeLeftSpan) return; timeLeftSpan.textContent = timeLeftValue; if (timeLeftValue <= 5) { timerDisplayDiv.classList.add('low-time'); } else { timerDisplayDiv.classList.remove('low-time'); } }
 export function showTimerDisplay(show) { if (timerDisplayDiv) { timerDisplayDiv.style.display = show ? 'block' : 'none'; } }
+
