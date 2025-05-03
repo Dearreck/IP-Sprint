@@ -2,7 +2,7 @@
 // ==================================================
 // Módulo de Utilidades para IP Sprint
 // CORREGIDO: Simplificada explicación de subnetting para enfocarse en ANDing cuando aplica.
-// MODIFICADO: generatePortionExplanationHTML para aceptar parámetro highlightRowKey.
+// MODIFICADO: generatePortionExplanationHTML para aceptar parámetro highlightRowKey y mostrar rango utilizable.
 // ==================================================
 
 import { getTranslation } from './i18n.js';
@@ -592,21 +592,22 @@ export function generatePrivateRangeTableHTML(highlightIp = null) {
 }
 
 /**
- * Genera tabla HTML de cálculo IP/Mask/Wildcard/Red/Broadcast.
+ * Genera tabla HTML de cálculo IP/Mask/Wildcard/Red/Broadcast/Usable Range.
  * @param {string} ipString - IP original.
  * @param {string} maskString - Máscara de subred.
  * @param {string} wildcardString - Máscara wildcard.
  * @param {string} networkAddr - Dirección de red/subred calculada.
  * @param {string} broadcastAddr - Dirección de broadcast calculada.
- * @param {string|null} [highlightRowKey=null] - Clave de la fila a resaltar ('ip', 'mask', 'wildcard', 'netaddr', 'broadaddr').
+ * @param {string|null} [firstUsable=null] - Primera IP utilizable.
+ * @param {string|null} [lastUsable=null] - Última IP utilizable.
+ * @param {string|null} [highlightRowKey=null] - Clave de la fila a resaltar ('ip', 'mask', 'wildcard', 'netaddr', 'broadaddr', 'usable').
  * @returns {string} El string HTML de la tabla de explicación.
  */
-export function generatePortionExplanationHTML(ipString, maskString, wildcardString, networkAddr, broadcastAddr, highlightRowKey = null) {
+export function generatePortionExplanationHTML(ipString, maskString, wildcardString, networkAddr, broadcastAddr, firstUsable = null, lastUsable = null, highlightRowKey = null) {
     try {
         if (!ipString || !maskString || !wildcardString || !networkAddr || !broadcastAddr) {
             throw new Error("Faltan datos para generar explicación de cálculo.");
         }
-        // Construir HTML de la tabla
         let html = '<table class="explanation-table" style="margin-top: 15px;">'; // Añadir margen superior
         html += `<thead><tr><th>${getTranslation('table_header_concept')}</th><th>${getTranslation('table_header_value')}</th><th>${getTranslation('table_header_calculation_note')}</th></tr></thead>`;
         html += '<tbody>';
@@ -615,6 +616,15 @@ export function generatePortionExplanationHTML(ipString, maskString, wildcardStr
         html += `<tr${highlightRowKey === 'mask' ? ' class="highlight-row"' : ''}><td>${getTranslation('explanation_portion_table_mask')}</td><td><code>${maskString}</code></td><td>${getTranslation('explanation_portion_table_calc_mask')}</td></tr>`;
         html += `<tr${highlightRowKey === 'wildcard' ? ' class="highlight-row"' : ''}><td>${getTranslation('explanation_portion_table_wildcard')}</td><td><code>${wildcardString}</code></td><td>${getTranslation('explanation_portion_table_calc_wildcard')}</td></tr>`;
         html += `<tr${highlightRowKey === 'netaddr' ? ' class="highlight-row"' : ''}><td>${getTranslation('explanation_portion_table_netaddr')}</td><td><code>${networkAddr}</code></td><td>${getTranslation('explanation_portion_table_calc_netaddr')}</td></tr>`;
+
+        // --- NUEVA FILA: Rango Utilizable ---
+        if (firstUsable && lastUsable) {
+            const usableRangeText = `${firstUsable} - ${lastUsable}`;
+            // Resaltar si highlightRowKey es 'usable'
+            html += `<tr${highlightRowKey === 'usable' ? ' class="highlight-row"' : ''}><td>${getTranslation('explanation_portion_table_usable_range')}</td><td><code>${usableRangeText}</code></td><td>${getTranslation('explanation_portion_table_calc_usable_range')}</td></tr>`;
+        }
+        // --- FIN NUEVA FILA ---
+
         html += `<tr${highlightRowKey === 'broadaddr' ? ' class="highlight-row"' : ''}><td>${getTranslation('explanation_portion_table_broadaddr')}</td><td><code>${broadcastAddr}</code></td><td>${getTranslation('explanation_portion_table_calc_broadaddr')}</td></tr>`;
         html += '</tbody></table>';
         return html;
@@ -624,6 +634,7 @@ export function generatePortionExplanationHTML(ipString, maskString, wildcardStr
         return `<p>${getTranslation('explanation_portion_calc_error', { ip: ipString, mask: maskString })}</p>`;
     }
 }
+
 
 /**
  * Genera un párrafo HTML explicando el propósito de direcciones IP especiales (Loopback, APIPA, Broadcast Limitado).
@@ -732,8 +743,10 @@ export function generateSubnettingExplanationHTML(ip, mask, networkAddr, broadca
         let html = ''; // Empezar vacío
 
         // --- 1. Reutilizar tabla de porciones para Red/Broadcast ---
-        // Resaltar Dir. Red y Dir. Broadcast en esta tabla
-        html += generatePortionExplanationHTML(ip, mask, wildcardMask, networkAddr, broadcastAddr, null); // No resaltar nada aquí inicialmente
+        // Calcular rango utilizable para incluirlo
+        const firstUsable = getFirstUsableHost(networkAddr, mask);
+        const lastUsable = getLastUsableHost(broadcastAddr, mask);
+        html += generatePortionExplanationHTML(ip, mask, wildcardMask, networkAddr, broadcastAddr, firstUsable, lastUsable, null); // No resaltar nada aquí inicialmente
 
         // --- 2. Explicación ANDing binario ---
         const ipOctets = ip.split('.').map(Number);
@@ -938,7 +951,7 @@ export function generateMaskForHostsExplanationHTML(requiredHosts, hostBits, pre
         const requiredTotal = requiredHosts + 2;
         html += `<li>${getTranslation('explanation_bits_for_hosts_step1', { requiredHosts: formatNumber(requiredHosts) })}</li>`; // Paso 1: 2^h - 2 >= req
         html += `<li>${getTranslation('explanation_bits_for_hosts_step2', { requiredHosts: formatNumber(requiredHosts), requiredTotal: formatNumber(requiredTotal) })}</li>`; // Paso 2: 2^h >= req + 2 -> h = hostBits
-        // html += `<li>${getTranslation('explanation_bits_for_hosts_step4', { hostBits: hostBits })}</li>`; // Paso 3: Concluir bits de host
+        // html += `<li>${getTranslation('explanation_bits_for_hosts_step4', { hostBits: hostBits })}</li>`; // Paso 3: Concluir bits de host (implícito en paso 2)
         // Paso 4: Calcular prefijo
         html += `<li>${getTranslation('explanation_mask_for_hosts_step3', { hostBits: hostBits, prefixLength: prefixLength })}</li>`; // 32 - h = prefix
         // Paso 5: Convertir prefijo a máscara
@@ -950,3 +963,4 @@ export function generateMaskForHostsExplanationHTML(requiredHosts, hostBits, pre
         return `<p>Error al generar la explicación.</p>`;
     }
 }
+
