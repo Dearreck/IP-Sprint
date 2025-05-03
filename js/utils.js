@@ -1,7 +1,7 @@
 // js/utils.js
 // ==================================================
 // Módulo de Utilidades para IP Sprint
-// Añadidas funciones para calcular máscara desde hosts y su explicación.
+// CORREGIDO: Simplificada explicación de subnetting para enfocarse en ANDing cuando aplica.
 // ==================================================
 
 import { getTranslation } from './i18n.js';
@@ -26,71 +26,129 @@ export function calculateUsableHosts(maskString) { const prefixLength = getMaskP
 export function calculateNumberOfSubnets(originalClassMask, subnetMask) { const originalPrefix = getMaskPrefixLength(originalClassMask); const subnetPrefix = getMaskPrefixLength(subnetMask); if (originalPrefix === null || subnetPrefix === null || subnetPrefix < originalPrefix) { return null; } const subnetBits = subnetPrefix - originalPrefix; if (subnetBits === 0) return 1; return Number(BigInt(2) ** BigInt(subnetBits)); }
 export function getFirstUsableHost(networkAddrString, maskString) { const prefixLength = getMaskPrefixLength(maskString); if (prefixLength === null || prefixLength >= 31) { return null; } try { const networkOctets = networkAddrString.split('.').map(Number); if (networkOctets.length !== 4 || networkOctets.some(isNaN)) return null; networkOctets[3] += 1; for (let i = 3; i > 0; i--) { if (networkOctets[i] > 255) { networkOctets[i] = 0; networkOctets[i - 1] += 1; } } return networkOctets.join('.'); } catch (e) { console.error("Error in getFirstUsableHost:", e); return null; } }
 export function getLastUsableHost(broadcastAddrString, maskString) { const prefixLength = getMaskPrefixLength(maskString); if (prefixLength === null || prefixLength >= 31) { return null; } try { const broadcastOctets = broadcastAddrString.split('.').map(Number); if (broadcastOctets.length !== 4 || broadcastOctets.some(isNaN)) return null; broadcastOctets[3] -= 1; for (let i = 3; i > 0; i--) { if (broadcastOctets[i] < 0) { broadcastOctets[i] = 255; broadcastOctets[i - 1] -= 1; } } if (broadcastOctets.some(o => o < 0)) return null; return broadcastOctets.join('.'); } catch (e) { console.error("Error in getLastUsableHost:", e); return null; } }
-
-/**
- * --- NUEVO: Convierte una longitud de prefijo CIDR a máscara de subred ---
- * @param {number} prefixLength - La longitud del prefijo (ej. 24).
- * @returns {string|null} La máscara de subred (ej. "255.255.255.0") o null si el prefijo es inválido.
- */
-export function prefixToMaskString(prefixLength) {
-    if (isNaN(prefixLength) || prefixLength < 0 || prefixLength > 32) {
-        return null;
-    }
-    let mask = '';
-    let bits = prefixLength;
-    for(let i = 0; i < 4; i++){
-        let octetValue = 0;
-        if(bits >= 8){
-            octetValue = 255;
-            bits -= 8;
-        } else if(bits > 0){
-            octetValue = 256 - Math.pow(2, 8 - bits);
-            bits = 0;
-        } else {
-            octetValue = 0;
-        }
-        mask += octetValue + (i < 3 ? '.' : '');
-    }
-    return mask;
-}
-// --- FIN NUEVO ---
-
+export function prefixToMaskString(prefixLength) { if (isNaN(prefixLength) || prefixLength < 0 || prefixLength > 32) { return null; } let mask = ''; let bits = prefixLength; for(let i = 0; i < 4; i++){ let octetValue = 0; if(bits >= 8){ octetValue = 255; bits -= 8; } else if(bits > 0){ octetValue = 256 - Math.pow(2, 8 - bits); bits = 0; } else { octetValue = 0; } mask += octetValue + (i < 3 ? '.' : ''); } return mask; }
 
 // --- Generadores de Tablas HTML para Explicaciones (Usan i18n) ---
 export function generateClassRangeTableHTML(highlightClass = null) { const classData = [ { class: 'A', range: '1 - 126', mask: '255.0.0.0', note: getTranslation('explanation_class_range_note_a') || '(Nota: 127.x.x.x es Loopback)'}, { class: 'B', range: '128 - 191', mask: '255.255.0.0', note: '' }, { class: 'C', range: '192 - 223', mask: '255.255.255.0', note: '' }, { class: 'D', range: '224 - 239', mask: 'N/A', note: getTranslation('class_note_multicast') || '(Multicast)' }, { class: 'E', range: '240 - 255', mask: 'N/A', note: getTranslation('class_note_experimental') || '(Experimental)' } ]; let tableHTML = `<p>${getTranslation('explanation_class_mask_intro')}</p>`; tableHTML += '<table class="explanation-table">'; tableHTML += `<thead><tr><th>${getTranslation('table_header_class')}</th><th>${getTranslation('table_header_first_octet_range')}</th><th>${getTranslation('table_header_default_mask')}</th><th>${getTranslation('table_header_note')}</th></tr></thead>`; tableHTML += '<tbody>'; classData.forEach(item => { const highlight = (item.class === highlightClass) ? ' class="highlight-row"' : ''; tableHTML += `<tr${highlight}><td>${item.class}</td><td>${item.range}</td><td><code>${item.mask}</code></td><td>${item.note || ''}</td></tr>`; }); tableHTML += '</tbody></table>'; return tableHTML; }
 export function generatePrivateRangeTableHTML(highlightIp = null) { const ranges = [ { cidr: '10.0.0.0/8', range: '10.0.0.0 - 10.255.255.255' }, { cidr: '172.16.0.0/12', range: '172.16.0.0 - 172.31.255.255' }, { cidr: '192.168.0.0/16', range: '192.168.0.0 - 192.168.255.255' } ]; const rfcLink = 'https://datatracker.ietf.org/doc/html/rfc1918'; let highlightCIDR = null; let ipTypeKey = 'unknown'; let ipTypeTranslated = ''; if (highlightIp) { const info = getIpInfo(highlightIp); ipTypeKey = info.typeKey; ipTypeTranslated = info.type; if (ipTypeKey === 'private') { const octets = highlightIp.split('.').map(Number); if(octets[0] === 10) { highlightCIDR = '10.0.0.0/8'; } else if(octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) { highlightCIDR = '172.16.0.0/12'; } else if(octets[0] === 192 && octets[1] === 168) { highlightCIDR = '192.168.0.0/16'; } } } let tableHTML = `<p>${getTranslation('explanation_private_range_intro', { rfcLink: rfcLink })}</p>`; tableHTML += '<table class="explanation-table">'; tableHTML += `<thead><tr><th>${getTranslation('table_header_block_cidr')}</th><th>${getTranslation('table_header_address_range')}</th></tr></thead>`; tableHTML += '<tbody>'; ranges.forEach(item => { const highlight = (item.cidr === highlightCIDR) ? ' class="highlight-row"' : ''; tableHTML += `<tr${highlight}><td>${item.cidr}</td><td>${item.range}</td></tr>`; }); tableHTML += '</tbody></table>'; if (highlightIp) { let noteKey = ''; if (ipTypeKey === 'private' && highlightCIDR) { noteKey = 'explanation_private_range_note_private'; } else if (ipTypeKey === 'public') { noteKey = 'explanation_private_range_note_public'; } else if (ipTypeKey !== 'unknown') { noteKey = 'explanation_private_range_note_other'; } if (noteKey) { tableHTML += `<p style="font-size:0.9em; text-align:center; margin-top:5px;">${getTranslation(noteKey, { ip: highlightIp, ipType: ipTypeTranslated })}</p>`; } } return tableHTML; }
-export function generatePortionExplanationHTML(ipString, maskString, wildcardString, networkAddr, broadcastAddr) { try { if (!ipString || !maskString || !wildcardString || !networkAddr || !broadcastAddr) { throw new Error("Faltan datos para generar explicación de cálculo."); } let html = `<p>${getTranslation('explanation_portion_intro', { ip: `<strong>${ipString}</strong>`, mask: `<strong>${maskString}</strong>` })}</p>`; html += '<table class="explanation-table">'; html += `<thead><tr><th>${getTranslation('table_header_concept')}</th><th>${getTranslation('table_header_value')}</th><th>${getTranslation('table_header_calculation_note')}</th></tr></thead>`; html += '<tbody>'; html += `<tr><td>${getTranslation('explanation_portion_table_ip')}</td><td><code>${ipString}</code></td><td>-</td></tr>`; html += `<tr><td>${getTranslation('explanation_portion_table_mask')}</td><td><code>${maskString}</code></td><td>${getTranslation('explanation_portion_table_calc_mask')}</td></tr>`; html += `<tr><td>${getTranslation('explanation_portion_table_wildcard')}</td><td><code>${wildcardString}</code></td><td>${getTranslation('explanation_portion_table_calc_wildcard')}</td></tr>`; html += `<tr><td>${getTranslation('explanation_portion_table_netaddr')}</td><td><code>${networkAddr}</code></td><td>${getTranslation('explanation_portion_table_calc_netaddr')}</td></tr>`; html += `<tr><td>${getTranslation('explanation_portion_table_broadaddr')}</td><td><code>${broadcastAddr}</code></td><td>${getTranslation('explanation_portion_table_calc_broadaddr')}</td></tr>`; html += '</tbody></table>'; return html; } catch (error) { console.error("Error generando explicación de cálculo:", error); return `<p>${getTranslation('explanation_portion_calc_error', { ip: ipString, mask: maskString })}</p>`; } }
-export function generateSpecialAddressExplanationHTML(addressTypeKey) { let explanationKey = ''; let rfcLink = ''; let rfcText = ''; switch (addressTypeKey) { case 'loopback': explanationKey = 'explanation_special_loopback'; rfcLink = 'https://datatracker.ietf.org/doc/html/rfc1122#section-3.2.1.3'; rfcText = 'RFC 1122 (Sec 3.2.1.3)'; break; case 'apipa': explanationKey = 'explanation_special_apipa'; rfcLink = 'https://datatracker.ietf.org/doc/html/rfc3927#section-2.1'; rfcText = 'RFC 3927 (Sec 2.1)'; break; case 'limited_broadcast': explanationKey = 'explanation_special_limited_broadcast'; rfcLink = 'https://datatracker.ietf.org/doc/html/rfc919#section-7'; rfcText = 'RFC 919 (Sec 7)'; break; default: explanationKey = 'explanation_special_default'; break; } let explanation = getTranslation(explanationKey); if (rfcLink && rfcText) { explanation += ` ${getTranslation('explanation_special_defined_in', { rfcLink: rfcLink, rfcText: rfcText })}`; } return `<p>${explanation}</p>`; }
-export function generateWildcardExplanationHTML(subnetMask, wildcardMask) { try { const maskOctets = subnetMask.split('.').map(Number); const wildcardOctets = wildcardMask.split('.').map(Number); if (maskOctets.length !== 4 || wildcardOctets.length !== 4 || maskOctets.some(isNaN) || wildcardOctets.some(isNaN)) { throw new Error("Formato inválido de máscara o wildcard al generar explicación"); } let html = `<p>${getTranslation('explanation_wildcard_intro')}</p>`; const cellStyle = "padding: 2px 5px; text-align: right; font-family: monospace;"; const labelCellStyle = "padding: 2px 5px; text-align: left; font-family: monospace;"; const separatorCellStyle = "padding: 0 2px; text-align: center; font-family: monospace;"; const hrCellStyle = "border-bottom: 1px solid #ccc; height: 1px; padding: 0; margin: 2px 0;"; html += `<table style="width: auto; margin: 10px auto; border-collapse: collapse;"><tbody>`; html += `<tr><td style="${cellStyle}"></td><td style="${cellStyle}">255</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">255</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">255</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">255</td><td style="${labelCellStyle}"></td></tr>`; html += `<tr><td style="${cellStyle}">-</td><td style="${cellStyle}">${maskOctets[0]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${maskOctets[1]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${maskOctets[2]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${maskOctets[3]}</td><td style="${labelCellStyle}">(Subnet Mask)</td></tr>`; html += `<tr><td colspan="9" style="${hrCellStyle}"></td></tr>`; html += `<tr><td style="${cellStyle}">=</td><td style="${cellStyle}">${wildcardOctets[0]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${wildcardOctets[1]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${wildcardOctets[2]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${wildcardOctets[3]}</td><td style="${labelCellStyle}">(Wildcard Mask)</td></tr>`; html += `</tbody></table>`; return html; } catch (error) { console.error("Error generando explicación de wildcard:", error); return `<p>${getTranslation('explanation_portion_calc_error', { ip: subnetMask, mask: 'N/A' })}</p>`; } }
-export function generateSubnettingExplanationHTML(ip, mask, networkAddr, broadcastAddr, usableHosts, numSubnets, originalClassMask) { try { const prefixLength = getMaskPrefixLength(mask); const hostBits = 32 - prefixLength; const originalPrefix = getMaskPrefixLength(originalClassMask); const subnetBits = prefixLength - originalPrefix; const ipInfo = getIpInfo(ip); const wildcardMask = calculateWildcardMask(mask); if (prefixLength === null || originalPrefix === null || ipInfo.class === 'N/A' || wildcardMask === null) { throw new Error("Datos inválidos para explicación de subnetting"); } let html = `<p>${getTranslation('explanation_subnetting_intro', { ip: `<strong>${ip}</strong>`, mask: `<strong>${mask}</strong>`, prefixLength: prefixLength })}</p>`; html += generatePortionExplanationHTML(ip, mask, wildcardMask, networkAddr, broadcastAddr); let subnetCalcHtml = ''; if (subnetBits > 0) { subnetCalcHtml += `<div style="margin-top: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #fdfdfd;">`; subnetCalcHtml += `<p style="margin-top:0; margin-bottom: 5px;"><strong>${getTranslation('explanation_subnetting_num_subnets')}</strong></p>`; subnetCalcHtml += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`; subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step1', { class: ipInfo.class })} <code>${originalClassMask}</code> (/${originalPrefix})</li>`; subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step2')} <code>${mask}</code> (/${prefixLength})</li>`; subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step3')} ${prefixLength} - ${originalPrefix} = <strong>${subnetBits}</strong></li>`; subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step4')} <code>${getTranslation('explanation_subnet_calc_formula', { subnetBits: subnetBits, numSubnets: formatNumber(numSubnets) })}</code></li>`; subnetCalcHtml += `</ol></div>`; } else { subnetCalcHtml += `<p style="font-size: 0.9em; margin-top: 15px;"><em>(${getTranslation('no_subnetting_performed')})</em></p>`; } let hostCalcHtml = ''; hostCalcHtml += `<div style="margin-top: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #fdfdfd;">`; hostCalcHtml += `<p style="margin-top:0; margin-bottom: 5px;"><strong>${getTranslation('explanation_subnetting_usable_hosts')}</strong></p>`; hostCalcHtml += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`; hostCalcHtml += `<li>${getTranslation('explanation_host_calc_step1')} <code>${mask}</code> (/${prefixLength})</li>`; hostCalcHtml += `<li>${getTranslation('explanation_host_calc_step2')} 32 - ${prefixLength} = <strong>${hostBits}</strong></li>`; hostCalcHtml += `<li>${getTranslation('explanation_host_calc_step3')} <code>${getTranslation('explanation_host_calc_formula', { hostBits: hostBits, usableHosts: formatNumber(usableHosts) })}</code></li>`; hostCalcHtml += `</ol></div>`; html += subnetCalcHtml + hostCalcHtml; return html; } catch (error) { console.error("Error generando explicación de subnetting:", error); return `<p>${getTranslation('explanation_portion_calc_error', { ip: ip, mask: mask })}</p>`; } }
-export function generateIpTypeExplanationHTML(targetIp, ipType, networkAddr, broadcastAddr, prefixLength) { let explanationKey = ''; let replacements = { targetIp: `<strong>${targetIp}</strong>`, networkAddr: `<code>${networkAddr}</code>`, broadcastAddr: `<code>${broadcastAddr}</code>`, prefixLength: prefixLength }; switch (ipType) { case 'network': explanationKey = 'explanation_ip_type_net'; break; case 'broadcast': explanationKey = 'explanation_ip_type_broad'; break; case 'usable': explanationKey = 'explanation_ip_type_usable'; break; case 'outside': explanationKey = 'explanation_ip_type_outside'; break; default: return `<p>Error: Tipo de IP desconocido '${ipType}'</p>`; } let html = `<p>${getTranslation(explanationKey, replacements)}</p>`; return html; }
-export function generateBitsForSubnetsExplanationHTML(requiredSubnets, subnetBits, resultingSubnets) { try { let html = `<p>${getTranslation('explanation_bits_for_subnets_intro', { requiredSubnets: formatNumber(requiredSubnets) })}</p>`; html += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`; html += `<li>${getTranslation('explanation_bits_for_subnets_step1', { requiredSubnets: formatNumber(requiredSubnets) })}</li>`; let calculationSteps = ''; for (let s = Math.max(0, subnetBits - 2); s <= subnetBits + 1; s++) { const powerOf2 = formatNumber(Number(BigInt(2) ** BigInt(s))); const isCorrect = s === subnetBits; calculationSteps += `2<sup>${s}</sup> = ${powerOf2}`; if (isCorrect) { calculationSteps += ` (&ge; ${formatNumber(requiredSubnets)})`; calculationSteps = `<strong>${calculationSteps}</strong>`; } else { calculationSteps += ` (&lt; ${formatNumber(requiredSubnets)})`; } calculationSteps += '<br>'; } html += `<li>${getTranslation('explanation_bits_for_subnets_step2', { calculationSteps: calculationSteps })}</li>`; html += `<li>${getTranslation('explanation_bits_for_subnets_step3', { subnetBits: subnetBits })}</li>`; html += `</ol>`; return html; } catch (error) { console.error("Error generando explicación de bits para subredes:", error); return `<p>Error al generar la explicación.</p>`; } }
-export function generateBitsForHostsExplanationHTML(requiredHosts, hostBits, resultingHosts) { try { let html = `<p>${getTranslation('explanation_bits_for_hosts_intro', { requiredHosts: formatNumber(requiredHosts) })}</p>`; html += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`; html += `<li>${getTranslation('explanation_bits_for_hosts_step1', { requiredHosts: formatNumber(requiredHosts) })}</li>`; html += `<li>${getTranslation('explanation_bits_for_hosts_step2', { requiredHosts: formatNumber(requiredHosts), requiredTotal: formatNumber(requiredHosts + 2) })}</li>`; let calculationSteps = ''; const requiredTotal = BigInt(requiredHosts) + BigInt(2); for (let h = Math.max(2, hostBits - 2); h <= hostBits + 1; h++) { const powerOf2 = BigInt(2) ** BigInt(h); const usable = formatNumber(Number(powerOf2 - BigInt(2))); const total = formatNumber(Number(powerOf2)); const isCorrect = h === hostBits; calculationSteps += `2<sup>${h}</sup> = ${total}`; if (h >= 2) { calculationSteps += `  =>  ${usable} usable hosts`; if (powerOf2 >= requiredTotal) { calculationSteps += ` (&ge; ${formatNumber(requiredHosts)})`; } else { calculationSteps += ` (&lt; ${formatNumber(requiredHosts)})`; } } else { calculationSteps += ` (Not enough bits for usable hosts)`; } if (isCorrect) { calculationSteps = `<strong>${calculationSteps}</strong>`; } calculationSteps += '<br>'; } html += `<li>${getTranslation('explanation_bits_for_hosts_step3', { calculationSteps: calculationSteps })}</li>`; html += `<li>${getTranslation('explanation_bits_for_hosts_step4', { hostBits: hostBits })}</li>`; html += `</ol>`; return html; } catch (error) { console.error("Error generando explicación de bits para hosts:", error); return `<p>Error al generar la explicación.</p>`; } }
-
-/**
- * --- NUEVO: Genera explicación HTML para Máscara necesaria para X Hosts ---
- * @param {number} requiredHosts - El número mínimo de hosts requerido.
- * @param {number} hostBits - El número mínimo de bits de host calculado (h).
- * @param {number} prefixLength - La longitud de prefijo calculada (32 - h).
- * @param {string} subnetMask - La máscara de subred resultante.
- * @returns {string} El string HTML de la explicación.
- */
-export function generateMaskForHostsExplanationHTML(requiredHosts, hostBits, prefixLength, subnetMask) {
+/** Genera tabla HTML de cálculo Red/Broadcast/Wildcard. */
+export function generatePortionExplanationHTML(ipString, maskString, wildcardString, networkAddr, broadcastAddr) {
     try {
-        let html = `<p>${getTranslation('explanation_mask_for_hosts_intro', { requiredHosts: formatNumber(requiredHosts) })}</p>`;
-        html += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`;
-        // Reutilizar pasos de cálculo de bits de host
-        html += `<li>${getTranslation('explanation_bits_for_hosts_step1', { requiredHosts: formatNumber(requiredHosts) })}</li>`;
-        html += `<li>${getTranslation('explanation_bits_for_hosts_step2', { requiredHosts: formatNumber(requiredHosts), requiredTotal: formatNumber(requiredHosts + 2) })}</li>`;
-        html += `<li>${getTranslation('explanation_bits_for_hosts_step4', { hostBits: hostBits })}</li>`; // Reusar el paso 4 de bits para hosts
-        // Calcular prefijo
-        html += `<li>${getTranslation('explanation_mask_for_hosts_step3', { hostBits: hostBits, prefixLength: prefixLength })}</li>`;
-        // Mostrar máscara final
-        html += `<li>${getTranslation('explanation_mask_for_hosts_step4', { prefixLength: prefixLength, subnetMask: `<code>${subnetMask}</code>` })}</li>`;
-        html += `</ol>`;
+        if (!ipString || !maskString || !wildcardString || !networkAddr || !broadcastAddr) {
+            throw new Error("Faltan datos para generar explicación de cálculo.");
+        }
+        // --- ELIMINADO: Párrafo introductorio duplicado ---
+        // let html = `<p>${getTranslation('explanation_portion_intro', { ip: `<strong>${ipString}</strong>`, mask: `<strong>${maskString}</strong>` })}</p>`;
+        let html = '<table class="explanation-table" style="margin-top: 15px;">'; // Añadir margen
+        html += `<thead><tr><th>${getTranslation('table_header_concept')}</th><th>${getTranslation('table_header_value')}</th><th>${getTranslation('table_header_calculation_note')}</th></tr></thead>`;
+        html += '<tbody>';
+        html += `<tr><td>${getTranslation('explanation_portion_table_ip')}</td><td><code>${ipString}</code></td><td>-</td></tr>`;
+        html += `<tr><td>${getTranslation('explanation_portion_table_mask')}</td><td><code>${maskString}</code></td><td>${getTranslation('explanation_portion_table_calc_mask')}</td></tr>`;
+        html += `<tr><td>${getTranslation('explanation_portion_table_wildcard')}</td><td><code>${wildcardString}</code></td><td>${getTranslation('explanation_portion_table_calc_wildcard')}</td></tr>`;
+        html += `<tr><td>${getTranslation('explanation_portion_table_netaddr')}</td><td><code>${networkAddr}</code></td><td>${getTranslation('explanation_portion_table_calc_netaddr')}</td></tr>`;
+        html += `<tr><td>${getTranslation('explanation_portion_table_broadaddr')}</td><td><code>${broadcastAddr}</code></td><td>${getTranslation('explanation_portion_table_calc_broadaddr')}</td></tr>`;
+        html += '</tbody></table>';
         return html;
     } catch (error) {
-        console.error("Error generando explicación de máscara para hosts:", error);
-        return `<p>Error al generar la explicación.</p>`;
+        console.error("Error generando explicación de cálculo:", error);
+        return `<p>${getTranslation('explanation_portion_calc_error', { ip: ipString, mask: maskString })}</p>`;
     }
 }
+export function generateSpecialAddressExplanationHTML(addressTypeKey) { let explanationKey = ''; let rfcLink = ''; let rfcText = ''; switch (addressTypeKey) { case 'loopback': explanationKey = 'explanation_special_loopback'; rfcLink = 'https://datatracker.ietf.org/doc/html/rfc1122#section-3.2.1.3'; rfcText = 'RFC 1122 (Sec 3.2.1.3)'; break; case 'apipa': explanationKey = 'explanation_special_apipa'; rfcLink = 'https://datatracker.ietf.org/doc/html/rfc3927#section-2.1'; rfcText = 'RFC 3927 (Sec 2.1)'; break; case 'limited_broadcast': explanationKey = 'explanation_special_limited_broadcast'; rfcLink = 'https://datatracker.ietf.org/doc/html/rfc919#section-7'; rfcText = 'RFC 919 (Sec 7)'; break; default: explanationKey = 'explanation_special_default'; break; } let explanation = getTranslation(explanationKey); if (rfcLink && rfcText) { explanation += ` ${getTranslation('explanation_special_defined_in', { rfcLink: rfcLink, rfcText: rfcText })}`; } return `<p>${explanation}</p>`; }
+export function generateWildcardExplanationHTML(subnetMask, wildcardMask) { try { const maskOctets = subnetMask.split('.').map(Number); const wildcardOctets = wildcardMask.split('.').map(Number); if (maskOctets.length !== 4 || wildcardOctets.length !== 4 || maskOctets.some(isNaN) || wildcardOctets.some(isNaN)) { throw new Error("Formato inválido de máscara o wildcard al generar explicación"); } let html = `<p>${getTranslation('explanation_wildcard_intro')}</p>`; const cellStyle = "padding: 2px 5px; text-align: right; font-family: monospace;"; const labelCellStyle = "padding: 2px 5px; text-align: left; font-family: monospace;"; const separatorCellStyle = "padding: 0 2px; text-align: center; font-family: monospace;"; const hrCellStyle = "border-bottom: 1px solid #ccc; height: 1px; padding: 0; margin: 2px 0;"; html += `<table style="width: auto; margin: 10px auto; border-collapse: collapse;"><tbody>`; html += `<tr><td style="${cellStyle}"></td><td style="${cellStyle}">255</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">255</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">255</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">255</td><td style="${labelCellStyle}"></td></tr>`; html += `<tr><td style="${cellStyle}">-</td><td style="${cellStyle}">${maskOctets[0]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${maskOctets[1]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${maskOctets[2]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${maskOctets[3]}</td><td style="${labelCellStyle}">(Subnet Mask)</td></tr>`; html += `<tr><td colspan="9" style="${hrCellStyle}"></td></tr>`; html += `<tr><td style="${cellStyle}">=</td><td style="${cellStyle}">${wildcardOctets[0]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${wildcardOctets[1]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${wildcardOctets[2]}</td><td style="${separatorCellStyle}">.</td><td style="${cellStyle}">${wildcardOctets[3]}</td><td style="${labelCellStyle}">(Wildcard Mask)</td></tr>`; html += `</tbody></table>`; return html; } catch (error) { console.error("Error generando explicación de wildcard:", error); return `<p>${getTranslation('explanation_portion_calc_error', { ip: subnetMask, mask: 'N/A' })}</p>`; } }
+
+/**
+ * Genera explicación HTML para cálculos de Subnetting.
+ * CORREGIDO: Reintroducida explicación ANDing y eliminada línea duplicada.
+ * @param {string} ip - IP original.
+ * @param {string} mask - Máscara de subred usada.
+ * @param {string} networkAddr - Dirección de subred calculada.
+ * @param {string} broadcastAddr - Dirección de broadcast calculada.
+ * @param {number} usableHosts - Número de hosts utilizables calculado.
+ * @param {number} numSubnets - Número de subredes calculado.
+ * @param {string} originalClassMask - Máscara de clase original.
+ * @returns {string} El string HTML de la explicación.
+ */
+export function generateSubnettingExplanationHTML(ip, mask, networkAddr, broadcastAddr, usableHosts, numSubnets, originalClassMask) {
+    try {
+        const prefixLength = getMaskPrefixLength(mask);
+        const hostBits = 32 - prefixLength;
+        const originalPrefix = getMaskPrefixLength(originalClassMask);
+        const subnetBits = prefixLength - originalPrefix;
+        const ipInfo = getIpInfo(ip);
+        const wildcardMask = calculateWildcardMask(mask);
+
+        if (prefixLength === null || originalPrefix === null || ipInfo.class === 'N/A' || wildcardMask === null) {
+            throw new Error("Datos inválidos para explicación de subnetting");
+        }
+
+        let html = ''; // Empezar vacío
+
+        // --- 1. Reutilizar tabla de porciones para Red/Broadcast ---
+        // Esta tabla ya incluye la línea introductoria "Cálculos para IP..."
+        html += generatePortionExplanationHTML(ip, mask, wildcardMask, networkAddr, broadcastAddr);
+
+        // --- 2. Explicación ANDing binario ---
+        const ipOctets = ip.split('.').map(Number);
+        const maskOctets = mask.split('.').map(Number);
+        const networkOctets = networkAddr.split('.').map(Number);
+        let andingHtml = `<div style="margin-top: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #fdfdfd;">`;
+        andingHtml += `<p style="margin-top:0; margin-bottom: 5px;"><strong>${getTranslation('explanation_anding_process')}</strong></p>`;
+        const cellStyle = "padding: 1px 4px; text-align: center; font-family: monospace; font-size: 0.9em;";
+        const labelCellStyle = "padding: 1px 4px; text-align: left; font-family: monospace; white-space: nowrap; font-size: 0.9em;";
+        const separatorCellStyle = "padding: 0 1px; text-align: center; font-family: monospace; font-size: 0.9em;";
+        const hrCellStyle = "border-bottom: 1px solid #ccc; height: 1px; padding: 0; margin: 1px 0;";
+        andingHtml += `<table style="width: auto; margin: 5px auto; border-collapse: collapse;"><tbody>`;
+        andingHtml += `<tr><td style="${labelCellStyle}">${getTranslation('explanation_ip_binary')}</td>`;
+        for (let i = 0; i < 4; i++) { andingHtml += `<td style="${cellStyle}">${decimalToBinaryPadded(ipOctets[i])}</td>`; if (i < 3) andingHtml += `<td style="${separatorCellStyle}">.</td>`; }
+        andingHtml += `</tr>`;
+        andingHtml += `<tr><td style="${labelCellStyle}">${getTranslation('explanation_mask_binary')}</td>`;
+        for (let i = 0; i < 4; i++) { andingHtml += `<td style="${cellStyle}">${decimalToBinaryPadded(maskOctets[i])}</td>`; if (i < 3) andingHtml += `<td style="${separatorCellStyle}">.</td>`; }
+        andingHtml += `</tr>`;
+        andingHtml += `<tr><td style="${labelCellStyle}"><strong>AND</strong></td><td colspan="${4 * 2 - 1}" style="${hrCellStyle}"></td></tr>`;
+        andingHtml += `<tr><td style="${labelCellStyle}">${getTranslation('explanation_and_result')}</td>`;
+        for (let i = 0; i < 4; i++) { andingHtml += `<td style="${cellStyle}">${decimalToBinaryPadded(networkOctets[i])}</td>`; if (i < 3) andingHtml += `<td style="${separatorCellStyle}">.</td>`; }
+        andingHtml += `</tr>`;
+        andingHtml += `</tbody></table>`;
+        // No añadir la dirección decimal aquí, ya está en la tabla de porciones
+        andingHtml += `</div>`;
+
+        // --- 3. Explicación paso a paso para Número de Subredes (si aplica) ---
+        let subnetCalcHtml = '';
+        if (subnetBits > 0) {
+            subnetCalcHtml += `<div style="margin-top: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #fdfdfd;">`;
+            subnetCalcHtml += `<p style="margin-top:0; margin-bottom: 5px;"><strong>${getTranslation('explanation_subnetting_num_subnets')}</strong></p>`;
+            subnetCalcHtml += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`;
+            subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step1', { class: ipInfo.class })} <code>${originalClassMask}</code> (/${originalPrefix})</li>`;
+            subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step2')} <code>${mask}</code> (/${prefixLength})</li>`;
+            subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step3')} ${prefixLength} - ${originalPrefix} = <strong>${subnetBits}</strong></li>`;
+            subnetCalcHtml += `<li>${getTranslation('explanation_subnet_calc_step4')} <code>${getTranslation('explanation_subnet_calc_formula', { subnetBits: subnetBits, numSubnets: formatNumber(numSubnets) })}</code></li>`;
+            subnetCalcHtml += `</ol></div>`;
+        } else {
+            subnetCalcHtml += `<p style="font-size: 0.9em; margin-top: 15px;"><em>(${getTranslation('no_subnetting_performed')})</em></p>`;
+        }
+
+        // --- 4. Explicación paso a paso para Hosts Utilizables ---
+        let hostCalcHtml = '';
+        hostCalcHtml += `<div style="margin-top: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #fdfdfd;">`;
+        hostCalcHtml += `<p style="margin-top:0; margin-bottom: 5px;"><strong>${getTranslation('explanation_subnetting_usable_hosts')}</strong></p>`;
+        hostCalcHtml += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`;
+        hostCalcHtml += `<li>${getTranslation('explanation_host_calc_step1')} <code>${mask}</code> (/${prefixLength})</li>`;
+        hostCalcHtml += `<li>${getTranslation('explanation_host_calc_step2')} 32 - ${prefixLength} = <strong>${hostBits}</strong></li>`;
+        hostCalcHtml += `<li>${getTranslation('explanation_host_calc_step3')} <code>${getTranslation('explanation_host_calc_formula', { hostBits: hostBits, usableHosts: formatNumber(usableHosts) })}</code></li>`;
+        hostCalcHtml += `</ol></div>`;
+
+        // Combinar todo
+        html += andingHtml + subnetCalcHtml + hostCalcHtml;
+
+        return html;
+    } catch (error) {
+        console.error("Error generando explicación de subnetting:", error);
+        return `<p>${getTranslation('explanation_portion_calc_error', { ip: ip, mask: mask })}</p>`;
+    }
+}
+export function generateIpTypeExplanationHTML(targetIp, ipType, networkAddr, broadcastAddr, prefixLength) { let explanationKey = ''; let replacements = { targetIp: `<strong>${targetIp}</strong>`, networkAddr: `<code>${networkAddr}</code>`, broadcastAddr: `<code>${broadcastAddr}</code>`, prefixLength: prefixLength }; switch (ipType) { case 'network': explanationKey = 'explanation_ip_type_net'; break; case 'broadcast': explanationKey = 'explanation_ip_type_broad'; break; case 'usable': explanationKey = 'explanation_ip_type_usable'; break; case 'outside': explanationKey = 'explanation_ip_type_outside'; break; default: return `<p>Error: Tipo de IP desconocido '${ipType}'</p>`; } let html = `<p>${getTranslation(explanationKey, replacements)}</p>`; return html; }
+export function generateBitsForSubnetsExplanationHTML(requiredSubnets, subnetBits, resultingSubnets) { try { let html = `<p>${getTranslation('explanation_bits_for_subnets_intro', { requiredSubnets: formatNumber(requiredSubnets) })}</p>`; html += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`; html += `<li>${getTranslation('explanation_bits_for_subnets_step1', { requiredSubnets: formatNumber(requiredSubnets) })}</li>`; let calculationStepsHTML = ''; calculationStepsHTML += `<div style="margin-left: -10px; margin-top: 5px; margin-bottom: 5px;">${getTranslation('explanation_bits_for_subnets_step2')}</div>`; calculationStepsHTML += `<ul style="list-style: none; padding-left: 10px; margin-top: 0;">`; for (let s = Math.max(0, subnetBits - 2); s <= subnetBits + 1; s++) { const powerOf2BigInt = BigInt(2) ** BigInt(s); const powerOf2Num = Number(powerOf2BigInt); const isCorrect = s === subnetBits; const comparison = (powerOf2Num >= requiredSubnets) ? '&ge;' : '&lt;'; let line = `2<sup>${s}</sup> = ${formatNumber(powerOf2Num)}`; line += ` (${comparison} ${formatNumber(requiredSubnets)})`; if (isCorrect) { line = `<strong>${line}</strong>`; } calculationStepsHTML += `<li><code>${line}</code></li>`; } calculationStepsHTML += `</ul>`; html += `<li>${calculationStepsHTML}</li>`; html += `<li>${getTranslation('explanation_bits_for_subnets_step3', { subnetBits: subnetBits })}</li>`; html += `</ol>`; return html; } catch (error) { console.error("Error generando explicación de bits para subredes:", error); return `<p>Error al generar la explicación.</p>`; } }
+export function generateBitsForHostsExplanationHTML(requiredHosts, hostBits, resultingHosts) { try { let html = `<p>${getTranslation('explanation_bits_for_hosts_intro', { requiredHosts: formatNumber(requiredHosts) })}</p>`; html += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`; html += `<li>${getTranslation('explanation_bits_for_hosts_step1', { requiredHosts: formatNumber(requiredHosts) })}</li>`; const requiredTotal = BigInt(requiredHosts) + BigInt(2); html += `<li>${getTranslation('explanation_bits_for_hosts_step2', { requiredHosts: formatNumber(requiredHosts), requiredTotal: formatNumber(Number(requiredTotal)) })}</li>`; let calculationStepsHTML = ''; calculationStepsHTML += `<div style="margin-left: -10px; margin-top: 5px; margin-bottom: 5px;">${getTranslation('explanation_bits_for_hosts_step3')}</div>`; calculationStepsHTML += `<ul style="list-style: none; padding-left: 10px; margin-top: 0;">`; for (let h = Math.max(2, hostBits - 2); h <= hostBits + 1; h++) { const powerOf2 = BigInt(2) ** BigInt(h); const usable = (h >= 2) ? Number(powerOf2 - BigInt(2)) : 0; const isCorrect = h === hostBits; const comparison = (powerOf2 >= requiredTotal) ? '&ge;' : '&lt;'; let line = getTranslation('explanation_bits_for_hosts_calculation_line', { exponent: h, powerOf2: formatNumber(Number(powerOf2)), usableHosts: formatNumber(usable), comparison: comparison, requiredHosts: formatNumber(requiredHosts) }); if (isCorrect) { line = `<strong>${line}</strong>`; } calculationStepsHTML += `<li><code>${line}</code></li>`; } calculationStepsHTML += `</ul>`; html += `<li>${calculationStepsHTML}</li>`; html += `<li>${getTranslation('explanation_bits_for_hosts_step4', { hostBits: hostBits })}</li>`; html += `</ol>`; return html; } catch (error) { console.error("Error generando explicación de bits para hosts:", error); return `<p>Error al generar la explicación.</p>`; } }
+export function generateMaskForHostsExplanationHTML(requiredHosts, hostBits, prefixLength, subnetMask) { try { let html = `<p>${getTranslation('explanation_mask_for_hosts_intro', { requiredHosts: formatNumber(requiredHosts) })}</p>`; html += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`; const requiredTotal = requiredHosts + 2; html += `<li>${getTranslation('explanation_bits_for_hosts_step1', { requiredHosts: formatNumber(requiredHosts) })}</li>`; html += `<li>${getTranslation('explanation_bits_for_hosts_step2', { requiredHosts: formatNumber(requiredHosts), requiredTotal: formatNumber(requiredTotal) })}</li>`; html += `<li>${getTranslation('explanation_bits_for_hosts_step4', { hostBits: hostBits })}</li>`; html += `<li>${getTranslation('explanation_mask_for_hosts_step3', { hostBits: hostBits, prefixLength: prefixLength })}</li>`; html += `<li>${getTranslation('explanation_mask_for_hosts_step4', { prefixLength: prefixLength, subnetMask: `<code>${subnetMask}</code>` })}</li>`; html += `</ol>`; return html; } catch (error) { console.error("Error generando explicación de máscara para hosts:", error); return `<p>Error al generar la explicación.</p>`; } }
+
