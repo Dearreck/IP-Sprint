@@ -4,6 +4,7 @@
 // CORREGIDO: Error 'Assignment to constant variable' en generateIdentifyIpTypeQuestion.
 // MODIFICADO: generateSpecialAddressQuestion para incluir IPs Privadas/Públicas como objetivo.
 // MODIFICADO: generateClassAndNetworkPortionQuestion para añadir tabla de clases y resaltar Dir. Red en explicación.
+// MODIFICADO: generateIdentifyHostPortionQuestion para añadir tabla de clases, rango utilizable y usar combinaciones de octetos como opciones.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -497,6 +498,8 @@ function generateClassAndNetworkPortionQuestion() {
         const wildcardMask = calculateWildcardMask(info.defaultMask);
         const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
         const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
+        const firstUsable = getFirstUsableHost(networkAddr, info.defaultMask);
+        const lastUsable = getLastUsableHost(broadcastAddr, info.defaultMask);
 
         // *** MODIFIED Explanation Info ***
         const explanationInfo = {
@@ -510,7 +513,7 @@ function generateClassAndNetworkPortionQuestion() {
                     // Generator 2: Portion Calculation Table
                     generatorName: 'generatePortionExplanationHTML',
                     // Pass 'netaddr' as the key to highlight the Network Address row
-                    args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr, 'netaddr']
+                    args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr, firstUsable, lastUsable, 'netaddr']
                 }
             ],
             // Optional visual separator between tables
@@ -523,103 +526,153 @@ function generateClassAndNetworkPortionQuestion() {
     }
 }
 
+// *** MODIFIED Function (Options Logic) ***
 function generateClassAndHostPortionQuestion() {
     try {
         let ip, info, portions, attempts = 0;
-        // Get a valid A, B, or C IP and calculate portions
+        // Get valid A, B, C IP and portions using default mask
         do {
             ip = generateRandomIp();
             info = getIpInfo(ip);
             if (info.class === 'A' || info.class === 'B' || info.class === 'C') {
+                // Use getIpPortions which expects simple masks (0 or 255 octets)
                 portions = getIpPortions(ip, info.defaultMask);
-            } else {
-                portions = null;
-            }
+            } else { portions = null; }
             attempts++;
-        } while (!portions && attempts < 100);
+        } while (!portions && attempts < 100); // Ensure getIpPortions worked
+
         if (!portions) { // Fallback
-            ip = '172.16.10.20'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask);
-            if (!portions) throw new Error("Fallback IP failed for portions");
+             ip = '172.25.200.15'; // Class B
+             info = getIpInfo(ip);
+             portions = getIpPortions(ip, info.defaultMask); // Should be 172.25 (Net) / 200.15 (Host)
+             if (!portions) throw new Error("Fallback IP failed for portions");
         }
 
         const question = { key: 'question_given_ip_what_class_host_portion', replacements: { ip: `<strong>${ip}</strong>` } };
-        const correctClass = info.class;
-        const correctHostPortion = portions.hostPortion;
-        if (correctHostPortion === undefined || correctHostPortion === null) throw new Error(`Could not get hostPortion for ${ip}`);
+        const correctClass = info.class; // Get class for explanation
+        const correctAnswer = portions.hostPortion || getTranslation('option_none'); // Correct host portion
+        const networkPortion = portions.networkPortion || getTranslation('option_none'); // Network portion
 
-        const correctAnswerObject = {
-            classKey: `option_class_${correctClass.toLowerCase()}`,
-            portionKey: 'option_host_portion',
-            portionValue: correctHostPortion || getTranslation('option_none') // Use 'None' if empty string
-        };
-        let options = [];
-        options.push(correctAnswerObject);
+        // --- Generar Opciones ---
+        let options = new Set();
+        options.add(correctAnswer); // 1. Add the correct host portion
 
-        // Generate incorrect options
-        const possibleClassesLower = ['a', 'b', 'c'].filter(c => c !== correctClass.toLowerCase());
-
-        // Option: Correct Class, Incorrect Host Portion
-        let randomIpForPortion, randomInfoForPortion, incorrectHostPortion = null, portionAttempts = 0;
-        do {
-            randomIpForPortion = generateRandomIp();
-            randomInfoForPortion = getIpInfo(randomIpForPortion);
-            if (randomInfoForPortion.defaultMask !== 'N/A') {
-                incorrectHostPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.hostPortion;
-            }
-            portionAttempts++;
-        } while ((!incorrectHostPortion || incorrectHostPortion === correctHostPortion) && portionAttempts < 50);
-        if (incorrectHostPortion && incorrectHostPortion !== correctHostPortion) {
-            options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_host_portion', portionValue: incorrectHostPortion });
-        } else { // Fallback incorrect portion
-            let fallbackPortion = (correctClass !== 'C') ? `${getRandomInt(1,254)}` : `${getRandomInt(0,255)}.${getRandomInt(1,254)}`;
-            options.push({ classKey: `option_class_${correctClass.toLowerCase()}`, portionKey: 'option_host_portion', portionValue: fallbackPortion });
+        // 2. Add the network portion as a distractor
+        if (networkPortion !== correctAnswer && options.size < 4) {
+            options.add(networkPortion);
         }
 
-        // Option: Incorrect Class, Correct Host Portion
-        if (possibleClassesLower.length > 0) {
-            options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_host_portion', portionValue: correctHostPortion || getTranslation('option_none') });
-        }
+        // 3. Generate adjacent octet combinations from the original IP as distractors
+        const ipOctets = ip.split('.');
+        let potentialDistractors = [];
 
-        // Option: Incorrect Class, Incorrect Host Portion
-        if (possibleClassesLower.length > 0 && incorrectHostPortion && incorrectHostPortion !== correctHostPortion) {
-            options.push({ classKey: `option_class_${possibleClassesLower[0]}`, portionKey: 'option_host_portion', portionValue: incorrectHostPortion });
-        }
+        // Determine where the host portion starts based on class/default mask
+        let hostStartIndex = -1;
+        if (info.class === 'A') hostStartIndex = 1; // Host is .X.Y.Z
+        else if (info.class === 'B') hostStartIndex = 2; // Host is .Y.Z
+        else if (info.class === 'C') hostStartIndex = 3; // Host is .Z
 
-        // Ensure 4 options, avoid duplicates
-        let existingOptionsStr = new Set(options.map(o => `${o.classKey},${o.portionKey},${o.portionValue}`));
-        while (options.length < 4) {
-            const randomClassKey = `option_class_${['a', 'b', 'c'][getRandomInt(0, 2)]}`;
-            let randomPortion = '';
-            if (randomClassKey === 'option_class_a') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`;
-            else if (randomClassKey === 'option_class_b') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`;
-            else randomPortion = `${getRandomInt(1, 254)}`;
-            const potentialOption = { classKey: randomClassKey, portionKey: 'option_host_portion', portionValue: randomPortion };
-            const potentialOptionStr = `${potentialOption.classKey},${potentialOption.portionKey},${potentialOption.portionValue}`;
-            if (!existingOptionsStr.has(potentialOptionStr)) {
-                options.push(potentialOption);
-                existingOptionsStr.add(potentialOptionStr);
+        if (hostStartIndex !== -1) {
+            // Combinations involving adjacent octets
+            if (ipOctets.length === 4) {
+                // Two octet combos
+                if (hostStartIndex <= 1 && ipOctets[1] && ipOctets[2]) potentialDistractors.push(`${ipOctets[1]}.${ipOctets[2]}`); // e.g., from A: 2nd.3rd
+                if (hostStartIndex <= 2 && ipOctets[2] && ipOctets[3]) potentialDistractors.push(`${ipOctets[2]}.${ipOctets[3]}`); // e.g., from A/B: 3rd.4th
+                if (hostStartIndex >= 1 && ipOctets[0] && ipOctets[1]) potentialDistractors.push(`${ipOctets[0]}.${ipOctets[1]}`); // e.g., from B/C: 1st.2nd
+                if (hostStartIndex >= 2 && ipOctets[1] && ipOctets[2]) potentialDistractors.push(`${ipOctets[1]}.${ipOctets[2]}`); // e.g., from C: 2nd.3rd
+
+                // Single octet combos (from host part mostly)
+                if (hostStartIndex <= 1 && ipOctets[1]) potentialDistractors.push(ipOctets[1]); // 2nd octet
+                if (hostStartIndex <= 2 && ipOctets[2]) potentialDistractors.push(ipOctets[2]); // 3rd octet
+                if (hostStartIndex <= 3 && ipOctets[3]) potentialDistractors.push(ipOctets[3]); // 4th octet
+
+                // Three octet combos (less common, but possible)
+                if (hostStartIndex <= 1 && ipOctets[1] && ipOctets[2] && ipOctets[3]) potentialDistractors.push(`${ipOctets[1]}.${ipOctets[2]}.${ipOctets[3]}`); // Correct for Class A
+                if (hostStartIndex >= 1 && ipOctets[0] && ipOctets[1] && ipOctets[2]) potentialDistractors.push(`${ipOctets[0]}.${ipOctets[1]}.${ipOctets[2]}`); // Network portion for C
             }
         }
-        options = options.slice(0, 4);
-        shuffleArray(options);
 
-        // Calculate values needed for the explanation table
-        const wildcardMask = calculateWildcardMask(info.defaultMask);
+        // Filter out duplicates and the correct answer/network portion from potential distractors
+        potentialDistractors = potentialDistractors.filter(d => d !== correctAnswer && d !== networkPortion && d !== ip);
+        shuffleArray(potentialDistractors); // Shuffle before adding
+
+        // Add unique distractors until we have 4 options
+        for (const distractor of potentialDistractors) {
+            if (options.size < 4) {
+                options.add(distractor);
+            } else {
+                break;
+            }
+        }
+
+        // --- Fallback: If still not 4 options, add Net/Broadcast Addr ---
         const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
-        const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
+        const broadcastAddr = calculateBroadcastAddress(networkAddr, calculateWildcardMask(info.defaultMask));
 
-        // Explanation uses the standard portion calculation table
+        if (options.size < 4 && networkAddr && networkAddr !== correctAnswer && !options.has(networkAddr)) {
+            options.add(networkAddr);
+        }
+        if (options.size < 4 && broadcastAddr && broadcastAddr !== correctAnswer && !options.has(broadcastAddr)) {
+            options.add(broadcastAddr);
+        }
+        // --- End Fallback ---
+
+        let optionsArray = Array.from(options);
+        // Ensure exactly 4 options, prioritizing the generated ones
+         while (optionsArray.length < 4) {
+             // Add a simple placeholder if absolutely necessary
+             optionsArray.push(`${getRandomInt(1,254)}`);
+         }
+        optionsArray = optionsArray.slice(0, 4);
+
+        // Final check for correct answer and shuffle
+        if (!optionsArray.includes(correctAnswer)) {
+             console.warn("Correct answer missing in host portion options, re-adding:", correctAnswer);
+             optionsArray.pop(); // Remove last added distractor
+             optionsArray.push(correctAnswer);
+        }
+        shuffleArray(optionsArray);
+
+
+        // --- Explanation Structure (using previous modifications) ---
+        const wildcardMask = calculateWildcardMask(info.defaultMask);
+        // Recalculate networkAddr and broadcastAddr if not done in fallback
+        const finalNetworkAddr = networkAddr || calculateNetworkAddress(ip, info.defaultMask);
+        const finalBroadcastAddr = broadcastAddr || calculateBroadcastAddress(finalNetworkAddr, wildcardMask);
+        const firstUsable = getFirstUsableHost(finalNetworkAddr, info.defaultMask);
+        const lastUsable = getLastUsableHost(finalBroadcastAddr, info.defaultMask);
+
         const explanationInfo = {
-             generatorName: 'generatePortionExplanationHTML',
-             // Highlight the host portion row
-             args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr, 'host'] // <-- Pass 'host' to highlight
+            generators: [
+                {
+                    generatorName: 'generateClassRangeTableHTML',
+                    args: [correctClass]
+                },
+                {
+                    generatorName: 'generatePortionExplanationHTML',
+                    args: [ip, info.defaultMask, wildcardMask, finalNetworkAddr, finalBroadcastAddr, firstUsable, lastUsable, 'usable'] // Highlight usable range
+                }
+            ],
+            separator: '<hr style="margin: 15px 0; border-color: #eee;">'
         };
-        return { question, options, correctAnswer: correctAnswerObject, explanation: explanationInfo };
+
+        // Construct the final object to return, including the correct answer object structure if needed
+        const finalCorrectAnswerObject = {
+            classKey: `option_class_${correctClass.toLowerCase()}`, // Include class if needed by answer handler
+            portionKey: 'option_host_portion',
+            portionValue: correctAnswer
+        };
+
+        // Note: The 'correctAnswer' field passed back should match the format of the options.
+        // Here, options are strings, so correctAnswer should also be the string value.
+        return { question, options: optionsArray, correctAnswer: correctAnswer, explanation: explanationInfo };
+
     } catch (error) {
         console.error("Error en generateClassAndHostPortionQuestion:", error);
         return null;
     }
 }
+
 
 function generateRfc1918Question() {
     try {
@@ -809,58 +862,81 @@ function generateIdentifyNetworkPortionQuestion() {
 
         const question = { key: 'question_identify_network_portion', replacements: { ip: `<strong>${ip}</strong>`, mask: `<strong>${info.defaultMask}</strong>` } };
         const correctAnswer = portions.networkPortion || getTranslation('option_none');
-        let options = new Set([correctAnswer]);
+        const hostPortion = portions.hostPortion || getTranslation('option_none'); // Get host portion for distractor
 
-        // Add host portion as an incorrect option
-        if (portions.hostPortion && portions.hostPortion !== correctAnswer) {
-            options.add(portions.hostPortion || getTranslation('option_none'));
+        // --- Generate Options ---
+        let options = new Set();
+        options.add(correctAnswer); // 1. Correct network portion
+
+        // 2. Host portion as distractor
+        if (hostPortion !== correctAnswer && options.size < 4) {
+            options.add(hostPortion);
         }
 
-        // Add network/host portions from another random IP as incorrect options
-        let randomIpForPortion, randomInfoForPortion, incorrectNetworkPortion = null, incorrectHostPortion = null, portionAttempts = 0;
-        do {
-            randomIpForPortion = generateRandomIp();
-            randomInfoForPortion = getIpInfo(randomIpForPortion);
-            if (randomInfoForPortion.defaultMask !== 'N/A') {
-                incorrectNetworkPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.networkPortion;
-                incorrectHostPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.hostPortion;
-            }
-            portionAttempts++;
-        } while ((!incorrectNetworkPortion || incorrectNetworkPortion === correctAnswer) && portionAttempts < 50); // Ensure generated incorrect portion is different
+        // 3. Generate adjacent octet combinations from the original IP as distractors
+        const ipOctets = ip.split('.');
+        let potentialDistractors = [];
+        let networkStartIndex = -1;
+        if (info.class === 'A') networkStartIndex = 0; // Network is X.
+        else if (info.class === 'B') networkStartIndex = 1; // Network is X.Y.
+        else if (info.class === 'C') networkStartIndex = 2; // Network is X.Y.Z.
 
-        if (incorrectNetworkPortion && incorrectNetworkPortion !== correctAnswer) {
-            options.add(incorrectNetworkPortion);
-        }
-        if (incorrectHostPortion && incorrectHostPortion !== correctAnswer && !options.has(incorrectHostPortion)) {
-            options.add(incorrectHostPortion || getTranslation('option_none'));
+        if (networkStartIndex !== -1 && ipOctets.length === 4) {
+             // Single octets (from network part mostly)
+             if (networkStartIndex >= 0 && ipOctets[0]) potentialDistractors.push(ipOctets[0]);
+             if (networkStartIndex >= 1 && ipOctets[1]) potentialDistractors.push(ipOctets[1]);
+             if (networkStartIndex >= 2 && ipOctets[2]) potentialDistractors.push(ipOctets[2]);
+
+             // Two octet combos
+             if (networkStartIndex >= 1 && ipOctets[0] && ipOctets[1]) potentialDistractors.push(`${ipOctets[0]}.${ipOctets[1]}`); // Correct for Class B
+             if (networkStartIndex >= 2 && ipOctets[1] && ipOctets[2]) potentialDistractors.push(`${ipOctets[1]}.${ipOctets[2]}`);
+             if (networkStartIndex <= 1 && ipOctets[2] && ipOctets[3]) potentialDistractors.push(`${ipOctets[2]}.${ipOctets[3]}`); // Host part for B
+
+             // Three octet combos
+             if (networkStartIndex >= 2 && ipOctets[0] && ipOctets[1] && ipOctets[2]) potentialDistractors.push(`${ipOctets[0]}.${ipOctets[1]}.${ipOctets[2]}`); // Correct for Class C
+             if (networkStartIndex <= 0 && ipOctets[1] && ipOctets[2] && ipOctets[3]) potentialDistractors.push(`${ipOctets[1]}.${ipOctets[2]}.${ipOctets[3]}`); // Host part for A
         }
 
-        // Fill remaining options if needed
-        while (options.size < 4) {
-            const randomClass = ['A', 'B', 'C'][getRandomInt(0, 2)];
-            let randomPortion = '';
-            if (randomClass === 'A') randomPortion = `${getRandomInt(1, 126)}`;
-            else if (randomClass === 'B') randomPortion = `${getRandomInt(128, 191)}.${getRandomInt(0, 255)}`;
-            else randomPortion = `${getRandomInt(192, 223)}.${getRandomInt(0, 255)}.${getRandomInt(0, 255)}`;
-            if (randomPortion !== correctAnswer) {
-                options.add(randomPortion);
-            }
+        // Filter out duplicates and the correct/host portions
+        potentialDistractors = potentialDistractors.filter(d => d !== correctAnswer && d !== hostPortion && d !== ip);
+        shuffleArray(potentialDistractors);
+
+        // Add unique distractors until 4 options
+        for (const distractor of potentialDistractors) {
+            if (options.size < 4) { options.add(distractor); } else { break; }
         }
+
+        // --- Fallback: Add Net/Broadcast Addr if still needed ---
+        const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
+        const broadcastAddr = calculateBroadcastAddress(networkAddr, calculateWildcardMask(info.defaultMask));
+        if (options.size < 4 && networkAddr && networkAddr !== correctAnswer && !options.has(networkAddr)) {
+            options.add(networkAddr);
+        }
+        if (options.size < 4 && broadcastAddr && broadcastAddr !== correctAnswer && !options.has(broadcastAddr)) {
+            options.add(broadcastAddr);
+        }
+        // --- End Fallback ---
 
         let optionsArray = Array.from(options);
-        if (!optionsArray.includes(correctAnswer)) { // Ensure correct answer is present
+         while (optionsArray.length < 4) { optionsArray.push(`${getRandomInt(1,254)}`); } // Final simple fallback
+        optionsArray = optionsArray.slice(0, 4);
+
+        if (!optionsArray.includes(correctAnswer)) { // Ensure correct is present
              optionsArray.pop(); optionsArray.push(correctAnswer);
         }
-        optionsArray = optionsArray.slice(0, 4); // Limit to 4 options
         shuffleArray(optionsArray);
 
-        // Calculate values for explanation
+        // --- Explanation ---
         const wildcardMask = calculateWildcardMask(info.defaultMask);
-        const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
-        const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
+        const firstUsable = getFirstUsableHost(networkAddr, info.defaultMask);
+        const lastUsable = getLastUsableHost(broadcastAddr, info.defaultMask);
+        const correctClass = info.class;
         const explanationInfo = {
-            generatorName: 'generatePortionExplanationHTML',
-            args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr, 'netaddr'] // Highlight network addr row
+            generators: [
+                { generatorName: 'generateClassRangeTableHTML', args: [correctClass] },
+                { generatorName: 'generatePortionExplanationHTML', args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr, firstUsable, lastUsable, 'netaddr'] } // Highlight netaddr
+            ],
+            separator: '<hr style="margin: 15px 0; border-color: #eee;">'
         };
         return { question, options: optionsArray, correctAnswer, explanation: explanationInfo };
     } catch (error) {
@@ -869,86 +945,146 @@ function generateIdentifyNetworkPortionQuestion() {
     }
 }
 
+// *** MODIFIED Function (Options Logic + Explanation Structure) ***
 function generateIdentifyHostPortionQuestion() {
     try {
         let ip, info, portions, attempts = 0;
-        // Get valid A, B, C IP and portions
+        // Get valid A, B, C IP and portions using default mask
         do {
             ip = generateRandomIp();
             info = getIpInfo(ip);
             if (info.class === 'A' || info.class === 'B' || info.class === 'C') {
+                // Use getIpPortions which expects simple masks (0 or 255 octets)
                 portions = getIpPortions(ip, info.defaultMask);
-            } else {
-                portions = null;
-            }
+            } else { portions = null; }
             attempts++;
-        } while (!portions && attempts < 100);
+        } while (!portions && attempts < 100); // Ensure getIpPortions worked
+
         if (!portions) { // Fallback
-             ip = '172.25.200.15'; info = getIpInfo(ip); portions = getIpPortions(ip, info.defaultMask);
+             ip = '172.25.200.15'; // Class B
+             info = getIpInfo(ip);
+             portions = getIpPortions(ip, info.defaultMask); // Should be 172.25 (Net) / 200.15 (Host)
              if (!portions) throw new Error("Fallback IP failed for portions");
         }
 
         const question = { key: 'question_identify_host_portion', replacements: { ip: `<strong>${ip}</strong>`, mask: `<strong>${info.defaultMask}</strong>` } };
-        const correctAnswer = portions.hostPortion || getTranslation('option_none');
-        let options = new Set([correctAnswer]);
+        const correctAnswer = portions.hostPortion || getTranslation('option_none'); // Correct host portion
+        const networkPortion = portions.networkPortion || getTranslation('option_none'); // Network portion
 
-        // Add network portion as an incorrect option
-        if (portions.networkPortion && portions.networkPortion !== correctAnswer) {
-            options.add(portions.networkPortion || getTranslation('option_none'));
+        // --- Generar Opciones ---
+        let options = new Set();
+        options.add(correctAnswer); // 1. Add the correct host portion
+
+        // 2. Add the network portion as a distractor
+        if (networkPortion !== correctAnswer && options.size < 4) {
+            options.add(networkPortion);
         }
 
-        // Add network/host portions from another random IP as incorrect options
-        let randomIpForPortion, randomInfoForPortion, incorrectHostPortion = null, incorrectNetworkPortion = null, portionAttempts = 0;
-        do {
-            randomIpForPortion = generateRandomIp();
-            randomInfoForPortion = getIpInfo(randomIpForPortion);
-            if (randomInfoForPortion.defaultMask !== 'N/A') {
-                incorrectHostPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.hostPortion;
-                incorrectNetworkPortion = getIpPortions(randomIpForPortion, randomInfoForPortion.defaultMask)?.networkPortion;
+        // 3. Generate adjacent octet combinations from the original IP as distractors
+        const ipOctets = ip.split('.');
+        let potentialDistractors = [];
+
+        // Determine where the host portion starts based on class/default mask
+        let hostStartIndex = -1;
+        if (info.class === 'A') hostStartIndex = 1; // Host is .X.Y.Z
+        else if (info.class === 'B') hostStartIndex = 2; // Host is .Y.Z
+        else if (info.class === 'C') hostStartIndex = 3; // Host is .Z
+
+        if (hostStartIndex !== -1) {
+            // Combinations involving adjacent octets
+            if (ipOctets.length === 4) {
+                // Two octet combos
+                if (hostStartIndex <= 1 && ipOctets[1] && ipOctets[2]) potentialDistractors.push(`${ipOctets[1]}.${ipOctets[2]}`); // e.g., from A: 2nd.3rd
+                if (hostStartIndex <= 2 && ipOctets[2] && ipOctets[3]) potentialDistractors.push(`${ipOctets[2]}.${ipOctets[3]}`); // e.g., from A/B: 3rd.4th
+                if (hostStartIndex >= 1 && ipOctets[0] && ipOctets[1]) potentialDistractors.push(`${ipOctets[0]}.${ipOctets[1]}`); // e.g., from B/C: 1st.2nd
+                if (hostStartIndex >= 2 && ipOctets[1] && ipOctets[2]) potentialDistractors.push(`${ipOctets[1]}.${ipOctets[2]}`); // e.g., from C: 2nd.3rd
+
+                // Single octet combos (from host part mostly)
+                if (hostStartIndex <= 1 && ipOctets[1]) potentialDistractors.push(ipOctets[1]); // 2nd octet
+                if (hostStartIndex <= 2 && ipOctets[2]) potentialDistractors.push(ipOctets[2]); // 3rd octet
+                if (hostStartIndex <= 3 && ipOctets[3]) potentialDistractors.push(ipOctets[3]); // 4th octet
+
+                // Three octet combos (less common, but possible)
+                if (hostStartIndex <= 1 && ipOctets[1] && ipOctets[2] && ipOctets[3]) potentialDistractors.push(`${ipOctets[1]}.${ipOctets[2]}.${ipOctets[3]}`); // Correct for Class A
+                if (hostStartIndex >= 1 && ipOctets[0] && ipOctets[1] && ipOctets[2]) potentialDistractors.push(`${ipOctets[0]}.${ipOctets[1]}.${ipOctets[2]}`); // Network portion for C
             }
-            portionAttempts++;
-        } while ((!incorrectHostPortion || incorrectHostPortion === correctAnswer) && portionAttempts < 50); // Ensure generated incorrect portion is different
-
-        if (incorrectHostPortion && incorrectHostPortion !== correctAnswer) {
-            options.add(incorrectHostPortion);
-        }
-        if (incorrectNetworkPortion && incorrectNetworkPortion !== correctAnswer && !options.has(incorrectNetworkPortion)) {
-            options.add(incorrectNetworkPortion || getTranslation('option_none'));
         }
 
-        // Fill remaining options if needed
-        while (options.size < 4) {
-            const randomClass = ['A', 'B', 'C'][getRandomInt(0, 2)];
-            let randomPortion = '';
-            if (randomClass === 'A') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`;
-            else if (randomClass === 'B') randomPortion = `${getRandomInt(0, 255)}.${getRandomInt(1, 254)}`;
-            else randomPortion = `${getRandomInt(1, 254)}`;
-            if (randomPortion !== correctAnswer) {
-                options.add(randomPortion);
+        // Filter out duplicates and the correct answer/network portion from potential distractors
+        potentialDistractors = potentialDistractors.filter(d => d !== correctAnswer && d !== networkPortion && d !== ip);
+        shuffleArray(potentialDistractors); // Shuffle before adding
+
+        // Add unique distractors until we have 4 options
+        for (const distractor of potentialDistractors) {
+            if (options.size < 4) {
+                options.add(distractor);
+            } else {
+                break;
             }
         }
+
+        // --- Fallback: If still not 4 options, add Net/Broadcast Addr ---
+        const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
+        const broadcastAddr = calculateBroadcastAddress(networkAddr, calculateWildcardMask(info.defaultMask));
+
+        if (options.size < 4 && networkAddr && networkAddr !== correctAnswer && !options.has(networkAddr)) {
+            options.add(networkAddr);
+        }
+        if (options.size < 4 && broadcastAddr && broadcastAddr !== correctAnswer && !options.has(broadcastAddr)) {
+            options.add(broadcastAddr);
+        }
+        // --- End Fallback ---
 
         let optionsArray = Array.from(options);
-        if (!optionsArray.includes(correctAnswer)) { // Ensure correct answer is present
-             optionsArray.pop(); optionsArray.push(correctAnswer);
+        // Ensure exactly 4 options, prioritizing the generated ones
+         while (optionsArray.length < 4) {
+             // Add a simple placeholder if absolutely necessary
+             optionsArray.push(`${getRandomInt(1,254)}`);
+         }
+        optionsArray = optionsArray.slice(0, 4);
+
+        // Final check for correct answer and shuffle
+        if (!optionsArray.includes(correctAnswer)) {
+             console.warn("Correct answer missing in host portion options, re-adding:", correctAnswer);
+             optionsArray.pop(); // Remove last added distractor
+             optionsArray.push(correctAnswer);
         }
-        optionsArray = optionsArray.slice(0, 4); // Limit to 4 options
         shuffleArray(optionsArray);
 
-        // Calculate values for explanation
+
+        // --- Explanation Structure (using previous modifications) ---
         const wildcardMask = calculateWildcardMask(info.defaultMask);
-        const networkAddr = calculateNetworkAddress(ip, info.defaultMask);
-        const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
+        // Recalculate networkAddr and broadcastAddr if not done in fallback
+        const finalNetworkAddr = networkAddr || calculateNetworkAddress(ip, info.defaultMask);
+        const finalBroadcastAddr = broadcastAddr || calculateBroadcastAddress(finalNetworkAddr, wildcardMask);
+        const firstUsable = getFirstUsableHost(finalNetworkAddr, info.defaultMask);
+        const lastUsable = getLastUsableHost(finalBroadcastAddr, info.defaultMask);
+        const correctClass = info.class;
+
         const explanationInfo = {
-            generatorName: 'generatePortionExplanationHTML',
-            args: [ip, info.defaultMask, wildcardMask, networkAddr, broadcastAddr, 'host'] // Highlight host addr row
+            generators: [
+                {
+                    generatorName: 'generateClassRangeTableHTML',
+                    args: [correctClass]
+                },
+                {
+                    generatorName: 'generatePortionExplanationHTML',
+                    args: [ip, info.defaultMask, wildcardMask, finalNetworkAddr, finalBroadcastAddr, firstUsable, lastUsable, 'usable'] // Highlight usable range
+                }
+            ],
+            separator: '<hr style="margin: 15px 0; border-color: #eee;">'
         };
-        return { question, options: optionsArray, correctAnswer, explanation: explanationInfo };
+
+        // Note: The 'correctAnswer' field passed back should match the format of the options.
+        // Here, options are strings, so correctAnswer should also be the string value.
+        return { question, options: optionsArray, correctAnswer: correctAnswer, explanation: explanationInfo };
+
     } catch (error) {
         console.error("Error en generateIdentifyHostPortionQuestion:", error);
         return null;
     }
 }
+
 
 function generateNetworkBroadcastAddressQuestion() {
     try {
@@ -1028,10 +1164,13 @@ function generateNetworkBroadcastAddressQuestion() {
         optionsArray = optionsArray.slice(0, 4); // Limit to 4 options
         shuffleArray(optionsArray);
 
+        // --- Explanation ---
+        const firstUsable = getFirstUsableHost(networkAddr, mask);
+        const lastUsable = getLastUsableHost(broadcastAddr, mask);
         const explanationInfo = {
             generatorName: 'generatePortionExplanationHTML',
-            // Highlight the correct answer type (network or broadcast)
-            args: [ip, mask, wildcardMask, networkAddr, broadcastAddr, askForNetwork ? 'netaddr' : 'broadaddr']
+            // Highlight the correct answer type (network or broadcast) and show usable range
+            args: [ip, mask, wildcardMask, networkAddr, broadcastAddr, firstUsable, lastUsable, askForNetwork ? 'netaddr' : 'broadaddr']
         };
         return { question, options: optionsArray, correctAnswer, explanation: explanationInfo };
     } catch (error) {
@@ -1652,7 +1791,7 @@ const associateQuestionGenerators = [
     generateRfc1918Question,
     generateSpecialAddressQuestion, // Modified
     generateIdentifyNetworkPortionQuestion,
-    generateIdentifyHostPortionQuestion,
+    generateIdentifyHostPortionQuestion, // Modified
     generateNetworkBroadcastAddressQuestion
 ];
 
