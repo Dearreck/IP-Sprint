@@ -3,6 +3,7 @@
 // Generadores de Preguntas - Nivel Associate
 // CORREGIDO: generateClassAndHostPortionQuestion para devolver objetos completos en opciones/respuesta.
 // CORREGIDO: generateClassAndNetworkPortionQuestion para usar porción de host como distractor.
+// CORREGIDO: generateNetworkBroadcastAddressQuestion para usar Net, First, Last, Broad como opciones.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -156,7 +157,6 @@ export function generateClassAndDefaultMaskQuestion() {
     }
 }
 
-// *** CORRECTED Function (Options Logic) ***
 export function generateClassAndNetworkPortionQuestion() {
     try {
         let ip, info, portions, attempts = 0;
@@ -824,6 +824,7 @@ export function generateIdentifyHostPortionQuestion() {
 }
 
 
+// *** CORRECTED Function (Options Logic) ***
 export function generateNetworkBroadcastAddressQuestion() {
     try {
         let ip, info, attempts = 0;
@@ -841,9 +842,14 @@ export function generateNetworkBroadcastAddressQuestion() {
         const networkAddr = calculateNetworkAddress(ip, mask);
         const wildcardMask = calculateWildcardMask(mask);
         const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
+        const firstUsable = getFirstUsableHost(networkAddr, mask);
+        const lastUsable = getLastUsableHost(broadcastAddr, mask);
 
-        if (!networkAddr || !broadcastAddr || !wildcardMask) {
-            throw new Error(`Error calculating network/broadcast/wildcard for ${ip} / ${mask}`);
+        // Ensure all necessary addresses could be calculated
+        if (!networkAddr || !broadcastAddr || !firstUsable || !lastUsable) {
+            console.error(`Error calculating addresses for ${ip} / ${mask}`);
+            // Retry generation if calculation fails
+            return generateNetworkBroadcastAddressQuestion();
         }
 
         // Decide whether to ask for Network or Broadcast address
@@ -859,58 +865,45 @@ export function generateNetworkBroadcastAddressQuestion() {
             }
         };
 
-        // Generate options
-        let options = new Set([correctAnswer]);
-        const otherAddress = askForNetwork ? broadcastAddr : networkAddr;
-        if (otherAddress !== correctAnswer) options.add(otherAddress); // Add the opposite address (Net/Broad)
-        if (ip !== correctAnswer && !options.has(ip)) options.add(ip); // Add the original IP if different
+        // --- Generate Options: Net, First, Last, Broadcast ---
+        let options = [
+            networkAddr,
+            firstUsable,
+            lastUsable,
+            broadcastAddr
+        ];
 
-        // Add network/broadcast from another random IP as incorrect options
-        let randomIp2, randomInfo2, randomNetAddr, randomBroadAddr, attempts2 = 0;
-        do {
-            randomIp2 = generateRandomIp();
-            randomInfo2 = getIpInfo(randomIp2);
-            attempts2++;
-        } while ((randomInfo2.class !== 'A' && randomInfo2.class !== 'B' && randomInfo2.class !== 'C' || randomInfo2.typeKey === 'loopback') && attempts2 < 50);
+        // Remove potential duplicates if Net/Broad are adjacent to First/Last (e.g., in /30)
+        // (Using Set automatically handles duplicates)
+        options = Array.from(new Set(options));
 
-        if (randomInfo2.defaultMask !== 'N/A') {
-            randomNetAddr = calculateNetworkAddress(randomIp2, randomInfo2.defaultMask);
-            const randomWildcard = calculateWildcardMask(randomInfo2.defaultMask);
-            if (randomNetAddr && randomWildcard) {
-                randomBroadAddr = calculateBroadcastAddress(randomNetAddr, randomWildcard);
-                if (randomNetAddr && randomNetAddr !== correctAnswer && !options.has(randomNetAddr)) {
-                    options.add(randomNetAddr);
-                }
-                if (randomBroadAddr && randomBroadAddr !== correctAnswer && !options.has(randomBroadAddr)) {
-                    options.add(randomBroadAddr);
-                }
+        // Shuffle the final options
+        shuffleArray(options);
+
+        // Ensure 4 options (should always be 4 unless /30, then maybe 3, handle this)
+        // If less than 4 due to /30, add original IP as filler? Or maybe just allow 3 options?
+        // For now, let's assume we always get 4 distinct ones for simplicity with default masks A/B/C.
+        if (options.length < 4) {
+            console.warn(`Only ${options.length} distinct options for Net/First/Last/Broad for ${ip}/${mask}. Adding original IP.`);
+            if (!options.includes(ip)) {
+                options.push(ip);
+                shuffleArray(options);
             }
+             // If still less than 4 (highly unlikely), add a placeholder
+             while (options.length < 4) {
+                 options.push("0.0.0.0"); // Placeholder
+             }
+             options = options.slice(0, 4); // Ensure exactly 4
         }
 
-        // Fill remaining options with random IPs
-        while (options.size < 4) {
-            let randomOptionIp = generateRandomIp();
-            if (randomOptionIp !== correctAnswer && !options.has(randomOptionIp)) {
-                options.add(randomOptionIp);
-            }
-        }
-
-        let optionsArray = Array.from(options);
-        if (!optionsArray.includes(correctAnswer)) { // Ensure correct answer is present
-             optionsArray.pop(); optionsArray.push(correctAnswer);
-        }
-        optionsArray = optionsArray.slice(0, 4); // Limit to 4 options
-        shuffleArray(optionsArray);
 
         // --- Explanation ---
-        const firstUsable = getFirstUsableHost(networkAddr, mask);
-        const lastUsable = getLastUsableHost(broadcastAddr, mask);
         const explanationInfo = {
             generatorName: 'generatePortionExplanationHTML',
             // Highlight the correct answer type (network or broadcast) and show usable range
             args: [ip, mask, wildcardMask, networkAddr, broadcastAddr, firstUsable, lastUsable, askForNetwork ? 'netaddr' : 'broadaddr']
         };
-        return { question, options: optionsArray, correctAnswer, explanation: explanationInfo };
+        return { question, options: options, correctAnswer, explanation: explanationInfo };
     } catch (error) {
         console.error("Error en generateNetworkBroadcastAddressQuestion:", error);
         return null;
