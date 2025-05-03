@@ -1,6 +1,7 @@
 // js/questions_professional.js
 // ==================================================
 // Generadores de Preguntas - Nivel Professional
+// CORREGIDO: generateSubnettingQuestion usa generateNumSubnetsExplanationHTML para el caso específico.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -13,7 +14,9 @@ import {
     generateWildcardExplanationHTML, generateSubnettingExplanationHTML,
     generateIpTypeExplanationHTML, getFirstUsableHost, getLastUsableHost,
     generateBitsForSubnetsExplanationHTML, generateBitsForHostsExplanationHTML,
-    generateMaskForHostsExplanationHTML
+    generateMaskForHostsExplanationHTML,
+    // Importar la nueva función de explicación específica
+    generateNumSubnetsExplanationHTML
 } from './utils.js'; // Import necessary utils
 import { getTranslation } from './i18n.js';
 
@@ -168,7 +171,7 @@ export function generateWildcardQuestion() {
 
 export function generateSubnettingQuestion() {
     try {
-        let ip, info, subnetMask, prefixLength, originalClassMask, originalPrefix;
+        let ip, info, subnetMask, prefixLength, originalClassMask, originalPrefix, subnetBits;
         let attempts = 0;
         // Generate a valid subnetting scenario (subnet mask different from default, prefix <= 30)
         do {
@@ -181,6 +184,7 @@ export function generateSubnettingQuestion() {
             prefixLength = getMaskPrefixLength(subnetMask);
             // Check if valid subnetting scenario generated
             if (prefixLength !== null && subnetMask !== originalClassMask && prefixLength > originalPrefix && prefixLength <= 30) {
+                subnetBits = prefixLength - originalPrefix; // Calculate subnet bits here
                 break;
             }
             attempts++;
@@ -188,7 +192,7 @@ export function generateSubnettingQuestion() {
 
         if (attempts >= 100) { // Fallback scenario
             ip = '192.168.1.150'; info = getIpInfo(ip); subnetMask = '255.255.255.192'; prefixLength = 26;
-            originalClassMask = '255.255.255.0'; originalPrefix = 24;
+            originalClassMask = '255.255.255.0'; originalPrefix = 24; subnetBits = 2;
         }
 
         // Calculate necessary values
@@ -198,7 +202,7 @@ export function generateSubnettingQuestion() {
         const usableHosts = calculateUsableHosts(subnetMask);
         const numSubnets = calculateNumberOfSubnets(originalClassMask, subnetMask);
 
-        if (networkAddr === null || broadcastAddr === null || usableHosts === null || numSubnets === null) {
+        if (networkAddr === null || broadcastAddr === null || usableHosts === null || numSubnets === null || subnetBits === undefined) {
             throw new Error(`Error calculating subnetting values for ${ip}/${subnetMask}`);
         }
 
@@ -208,6 +212,7 @@ export function generateSubnettingQuestion() {
         let correctAnswer;
         let options = new Set();
         let correctAnswerFormatted; // For display (numbers formatted)
+        let explanationInfo = {}; // Define explanationInfo object
 
         switch (questionType) {
             case 0: // Ask for Network Address
@@ -222,6 +227,11 @@ export function generateSubnettingQuestion() {
                 while (!randomNetAddr || randomNetAddr === correctAnswer);
                 options.add(randomNetAddr);
                 correctAnswerFormatted = correctAnswer;
+                // Use full explanation for Network Address
+                explanationInfo = {
+                    generatorName: 'generateSubnettingExplanationHTML',
+                    args: [ip, subnetMask, networkAddr, broadcastAddr, usableHosts, numSubnets, originalClassMask]
+                };
                 break;
             case 1: // Ask for Broadcast Address
                 questionKey = 'question_subnetting_calculate_broadcast';
@@ -238,6 +248,11 @@ export function generateSubnettingQuestion() {
                 } while (!randomBroadAddr || randomBroadAddr === correctAnswer);
                 options.add(randomBroadAddr);
                 correctAnswerFormatted = correctAnswer;
+                 // Use full explanation for Broadcast Address
+                explanationInfo = {
+                    generatorName: 'generateSubnettingExplanationHTML',
+                    args: [ip, subnetMask, networkAddr, broadcastAddr, usableHosts, numSubnets, originalClassMask]
+                };
                 break;
             case 2: // Ask for Usable Hosts
                 questionKey = 'question_subnetting_calculate_usable_hosts';
@@ -250,12 +265,16 @@ export function generateSubnettingQuestion() {
                 if (hostBits > 2) options.add(Number(BigInt(2) ** BigInt(hostBits - 1) - BigInt(2)));
                 if (hostBits < 30 && prefixLength > originalPrefix) options.add(Number(BigInt(2) ** BigInt(hostBits + 1) - BigInt(2)));
                 correctAnswerFormatted = formatNumber(correctAnswer); // Format number for display
+                 // Use full explanation for Usable Hosts
+                explanationInfo = {
+                    generatorName: 'generateSubnettingExplanationHTML',
+                    args: [ip, subnetMask, networkAddr, broadcastAddr, usableHosts, numSubnets, originalClassMask]
+                };
                 break;
             case 3: // Ask for Number of Subnets
                 questionKey = 'question_subnetting_calculate_num_subnets';
                 correctAnswer = numSubnets;
                 options.add(correctAnswer);
-                const subnetBits = prefixLength - originalPrefix;
                 // Add subnets from adjacent prefixes as distractors
                 if (subnetBits > 0) {
                     const lowerPower = Number(BigInt(2) ** BigInt(subnetBits - 1));
@@ -270,6 +289,11 @@ export function generateSubnettingQuestion() {
                 if (subnetBits > 0 && subnetBits !== correctAnswer) options.add(subnetBits);
                 if (prefixLength !== correctAnswer) options.add(prefixLength);
                 correctAnswerFormatted = formatNumber(correctAnswer); // Format number for display
+                // *** USE NEW SPECIFIC EXPLANATION GENERATOR ***
+                explanationInfo = {
+                    generatorName: 'generateNumSubnetsExplanationHTML', // <-- Changed
+                    args: [info.class, originalClassMask, originalPrefix, subnetMask, prefixLength, subnetBits, numSubnets] // <-- Specific args
+                };
                 break;
         }
 
@@ -283,11 +307,13 @@ export function generateSubnettingQuestion() {
                 }
             } else { // Fill with random numbers close to the answer
                 let randomNumOption;
-                const base = correctAnswer > 4 ? correctAnswer : 2;
+                // Ensure correctAnswer is treated as a number for comparison
+                const correctNum = (typeof correctAnswer === 'string') ? parseFloat(correctAnswer.replace(/,/g, '')) : correctAnswer;
+                const base = correctNum > 4 ? correctNum : 2;
                 const range = Math.max(10, Math.ceil(base / 2));
                 randomNumOption = getRandomInt(Math.max(1, base - range), base + range);
-                if (correctAnswer !== 0 && randomNumOption === 0) randomNumOption = 1; // Avoid 0 unless answer is 0
-                if (randomNumOption !== correctAnswer && !options.has(randomNumOption)) {
+                if (correctNum !== 0 && randomNumOption === 0) randomNumOption = 1; // Avoid 0 unless answer is 0
+                if (randomNumOption !== correctNum && !options.has(randomNumOption)) {
                     options.add(randomNumOption);
                 }
             }
@@ -314,16 +340,15 @@ export function generateSubnettingQuestion() {
                 class: info.class // Needed for num_subnets question
             }
         };
-        const explanationInfo = {
-            generatorName: 'generateSubnettingExplanationHTML',
-            args: [ip, subnetMask, networkAddr, broadcastAddr, usableHosts, numSubnets, originalClassMask]
-        };
+
+        // explanationInfo is already set within the switch statement
         return { question, options: optionsArray, correctAnswer: correctAnswerFormatted, explanation: explanationInfo };
     } catch (error) {
         console.error("Error en generateSubnettingQuestion:", error);
         return null;
     }
 }
+
 
 export function generateIdentifyIpTypeQuestion() {
     try {
