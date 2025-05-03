@@ -3,6 +3,7 @@
 // Módulo de Utilidades para IP Sprint
 // CORREGIDO: Simplificada explicación de subnetting para enfocarse en ANDing cuando aplica.
 // MODIFICADO: generatePortionExplanationHTML para aceptar parámetro highlightRowKey y mostrar rango utilizable.
+// AÑADIDO: generateNumSubnetsExplanationHTML para explicación específica de número de subredes.
 // ==================================================
 
 import { getTranslation } from './i18n.js';
@@ -622,6 +623,8 @@ export function generatePortionExplanationHTML(ipString, maskString, wildcardStr
             const usableRangeText = `${firstUsable} - ${lastUsable}`;
             // Resaltar si highlightRowKey es 'usable'
             html += `<tr${highlightRowKey === 'usable' ? ' class="highlight-row"' : ''}><td>${getTranslation('explanation_portion_table_usable_range')}</td><td><code>${usableRangeText}</code></td><td>${getTranslation('explanation_portion_table_calc_usable_range')}</td></tr>`;
+        } else if (firstUsable && !lastUsable) { // Caso /31 donde solo hay 2 IPs (red y broadcast, no usables)
+             html += `<tr${highlightRowKey === 'usable' ? ' class="highlight-row"' : ''}><td>${getTranslation('explanation_portion_table_usable_range')}</td><td><code>N/A</code></td><td>(${getTranslation('no_usable_hosts') || 'No Usable Hosts'})</td></tr>`;
         }
         // --- FIN NUEVA FILA ---
 
@@ -716,6 +719,7 @@ export function generateWildcardExplanationHTML(subnetMask, wildcardMask) {
 
 /**
  * Genera explicación HTML para cálculos de Subnetting (Red, Broadcast, ANDing, Hosts, Subredes).
+ * Usado cuando la pregunta NO es específicamente sobre el número de subredes.
  * @param {string} ip - IP original.
  * @param {string} mask - Máscara de subred usada.
  * @param {string} networkAddr - Dirección de subred calculada.
@@ -814,6 +818,42 @@ export function generateSubnettingExplanationHTML(ip, mask, networkAddr, broadca
         return `<p>${getTranslation('explanation_portion_calc_error', { ip: ip, mask: mask })}</p>`;
     }
 }
+
+/**
+ * Genera explicación HTML específica para el cálculo del Número de Subredes.
+ * @param {string} ipClass - Clase de la IP original ('A', 'B', 'C').
+ * @param {string} originalClassMask - Máscara por defecto de la clase.
+ * @param {number} originalPrefix - Prefijo por defecto de la clase.
+ * @param {string} subnetMask - Máscara de subred utilizada.
+ * @param {number} prefixLength - Prefijo de la máscara utilizada.
+ * @param {number} subnetBits - Bits prestados para subred (calculado: prefixLength - originalPrefix).
+ * @param {number} numSubnets - Número de subredes calculado (2^subnetBits).
+ * @returns {string} El HTML de la explicación paso a paso.
+ */
+export function generateNumSubnetsExplanationHTML(ipClass, originalClassMask, originalPrefix, subnetMask, prefixLength, subnetBits, numSubnets) {
+    try {
+        if (subnetBits <= 0) {
+             // Si no hay bits de subred, mostrar mensaje simple
+             return `<p style="font-size: 0.9em; margin-top: 15px;"><em>(${getTranslation('no_subnetting_performed')})</em></p>`;
+        }
+
+        // Construir la explicación paso a paso
+        let html = `<div style="margin-top: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #fdfdfd;">`;
+        html += `<p style="margin-top:0; margin-bottom: 5px;"><strong>${getTranslation('explanation_subnetting_num_subnets')}</strong></p>`;
+        html += `<ol style="margin-left: 20px; padding-left: 10px; font-size: 0.9em; margin-top: 5px; margin-bottom: 5px;">`;
+        html += `<li>${getTranslation('explanation_subnet_calc_step1', { class: ipClass })} <code>${originalClassMask}</code> (/${originalPrefix})</li>`;
+        html += `<li>${getTranslation('explanation_subnet_calc_step2')} <code>${subnetMask}</code> (/${prefixLength})</li>`;
+        html += `<li>${getTranslation('explanation_subnet_calc_step3')} ${prefixLength} - ${originalPrefix} = <strong>${subnetBits}</strong></li>`;
+        html += `<li>${getTranslation('explanation_subnet_calc_step4')} <code>${getTranslation('explanation_subnet_calc_formula', { subnetBits: subnetBits, numSubnets: formatNumber(numSubnets) })}</code></li>`;
+        html += `</ol></div>`;
+        return html;
+
+    } catch (error) {
+        console.error("Error generando explicación de número de subredes:", error);
+        return `<p>Error al generar la explicación.</p>`;
+    }
+}
+
 
 /**
  * Genera un párrafo HTML explicando por qué una IP específica es de Red, Broadcast, Utilizable o Externa a una subred dada.
