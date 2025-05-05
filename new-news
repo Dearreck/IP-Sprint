@@ -1,0 +1,71 @@
+Objetivo General: Reemplazar la actual pantalla de botones de nivel y listas separadas por una interfaz única, más integrada, visualmente atractiva e informativa que guíe al usuario a través de su progreso en IP Sprint.
+
+Componentes Principales:
+
+Stepper Horizontal (La Ruta de Aprendizaje):
+
+Ubicación: Probablemente en la parte superior del área de contenido principal, debajo del encabezado del usuario.
+Apariencia: Una línea visual (no necesariamente recta, podría tener un ligero estilo de "circuito" o "camino") que conecta marcadores para cada nivel (Essential -> Entry -> Associate -> Professional -> Expert).
+Marcadores: En lugar de puntos, usaríamos iconos de Font Awesome que representen temáticamente cada nivel o su dificultad (ej: 🧱 Essential, ★ Entry, 🎓 Associate, 💼 Professional, 🏆 Expert).
+Progreso Visual: La línea y los iconos hasta el nivel más alto desbloqueado tendrían un color vivo (ej: Azul Primario o Teal Conexión). La porción bloqueada de la línea y los iconos estarían en un color atenuado (Gris Bloqueado).
+Estados de Marcador:
+Bloqueado: Icono y marcador en Gris Bloqueado.
+Desbloqueado (No Jugado/Seleccionado): Icono en color neutro o Azul Primario sobre fondo blanco, borde Azul Primario.
+Completado (Opcional): Podría mostrar un pequeño check (✓) verde junto al icono o cambiar el color del icono a Verde Éxito.
+Seleccionado: El marcador activo tendría un distintivo visual claro: un borde más grueso, un fondo de color (Azul Primario), o un ligero aumento de tamaño.
+Interacción: Al hacer clic/tap en un marcador, este adopta el estado "Seleccionado" y la tarjeta de abajo se actualiza. Hover sobre un marcador podría mostrar un tooltip con el nombre completo del nivel (útil en móvil si solo se ven iconos).
+Responsividad: En pantallas muy pequeñas, los nombres de los niveles junto a los iconos podrían ocultarse, confiando en el icono y el tooltip. El stepper debería mantenerse en una sola línea si es posible, quizás con un ligero scroll horizontal si fuera absolutamente necesario para muchos niveles futuros.
+Área de Tarjeta Única (Detalles del Nivel):
+
+Ubicación: Justo debajo del Stepper Horizontal, ocupando el área principal de contenido. Debe sentirse conectada al stepper.
+Contenido Dinámico (Actualizado al seleccionar en el stepper):
+Título del Nivel: Grande y claro, usando la fuente Comfortaa.
+Icono del Nivel (Opcional): El mismo icono del marcador del stepper, pero más grande, podría aparecer en la tarjeta.
+Estado y Puntuación (Si Desbloqueado):
+Texto claro indicando "Disponible" o "Completado".
+"Tu Mejor Puntuación: [Puntuación]": Muestra la puntuación más alta guardada en localStorage para este nivel específico. Si no se ha jugado, muestra "Aún no jugado". (Recordatorio: no mostraremos modos aquí).
+Estado y Requisito (Si Bloqueado):
+Texto claro "Nivel Bloqueado".
+Icono de Candado 🔒 (Font Awesome).
+Texto del Requisito: Muy importante. "Necesitas completar el Nivel [Anterior] para desbloquear." o "Requiere X estrellas en [Anterior]." (Usando el sistema de estrellas/progreso actual). Podría usar el color Amarillo Precaución para destacar.
+Botón de Acción:
+Desbloqueado: Botón grande y claro "Iniciar Nivel" (o "Volver a Jugar"). Usará el color Azul Primario.
+Bloqueado: El botón está visualmente desactivado (usando Gris Bloqueado) o directamente no aparece.
+Apariencia: Estilo de tarjeta moderno: fondo (blanco o gris oscuro según tema), bordes redondeados, sombra sutil para dar profundidad. Transición suave (ej: fundido) cuando el contenido cambia al seleccionar otro nivel.
+Aplicación de la Paleta de Colores:
+
+Tema Claro (Light Theme - Por Defecto):
+
+Fondo Body: #f4f7f6 (Gris Claro)
+Fondo Tarjeta/Header: #ffffff (Blanco) / #007bff (Azul Primario)
+Texto: #333 (Oscuro), Títulos en #0056b3 (Azul Oscuro)
+Stepper Base/Bloqueado: Línea/Iconos en #adb5bd o #ced4da (Gris Claro/Medio)
+Stepper Progreso/Activo: Línea/Iconos en #007bff (Azul Primario), Conexiones en #17a2b8 (Teal Conexión)
+Stepper Completado: Icono/Check en #28a745 (Verde Éxito)
+Stepper Seleccionado: Fondo del marcador en #007bff, icono blanco.
+Tarjeta Desbloqueada: Fondo blanco, borde sutil #17a2b8 (Teal), botón #007bff. Puntuación en #333.
+Tarjeta Bloqueada: Fondo blanco, borde #dee2e6 (Gris Borde), icono candado/texto en #adb5bd, requisito en #333 o #ffc107 (Amarillo), botón desactivado #ced4da.
+Tema Oscuro (Dark Theme - Activado):
+
+Fondo Body: #1a1a2e (Azul Muy Oscuro/Morado) o #212529 (Gris Oscuro)
+Fondo Tarjeta/Header: #2a2a3e (Azul/Gris Más Oscuro) / #0056b3 (Azul Oscuro)
+Texto: #e0e0e0 (Gris Claro/Blanco Roto), Títulos en #f8f9fa (Blanco).
+Stepper Base/Bloqueado: Línea/Iconos en #6c757d (Gris Oscuro).
+Stepper Progreso/Activo: Línea/Iconos en #58a6ff (Azul Brillante), Conexiones en #4dd0e1 (Teal Brillante).
+Stepper Completado: Icono/Check en #69db7c (Verde Brillante).
+Stepper Seleccionado: Fondo del marcador en #58a6ff, icono oscuro (#1a1a2e).
+Tarjeta Desbloqueada: Fondo #2a2a3e, borde sutil #4dd0e1 (Teal B.), botón #58a6ff. Puntuación en #e0e0e0.
+Tarjeta Bloqueada: Fondo #2a2a3e, borde #495057 (Gris Más Oscuro), icono candado/texto en #adb5bd, requisito en #e0e0e0 o #ffe066 (Amarillo Pálido), botón desactivado #495057.
+Microinteracciones:
+
+Animación sutil al hacer clic en un marcador del stepper (ej: ligero escalado).
+Transición suave (fundido o deslizamiento muy rápido) al cambiar el contenido de la tarjeta.
+Efectos hover estándar en los elementos interactivos (marcadores de stepper, botón de tarjeta).
+Resumen de Mejoras vs Flujo Actual:
+
+Interfaz Unificada: Se elimina la fragmentación de botones + progreso + puntuaciones en secciones separadas. Todo está en una pantalla cohesiva.
+Información Contextual: La puntuación personal y los requisitos de desbloqueo se muestran donde son más relevantes.
+Guía Visual Clara: El stepper actúa como un mapa visual del progreso.
+Estética Mejorada: Mayor potencial para un diseño visualmente atractivo y temático usando iconos, colores y transiciones.
+Enfoque: Centra al usuario en seleccionar un nivel y ver su estado/rendimiento relevante para esa elección.
+Este diseño detallado debería proporcionar una base sólida para visualizar la nueva pantalla de selección de niveles.
