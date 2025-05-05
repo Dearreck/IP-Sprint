@@ -5,37 +5,36 @@
 /* --- Variables CSS (Tema Claro por Defecto) --- */
 :root {
     /* Paleta Neutra */
-    --bg-color: #f4f7f6;          /* Fondo general (Gris Claro) */
-    --card-bg-color: #ffffff;     /* Fondo tarjetas/contenedores (Blanco) */
-    --text-color: #333333;        /* Texto principal (Gris Oscuro/Carbón) */
-    --secondary-text-color: #6c757d; /* Texto secundario (Gris Medio) */
-    --border-color: #dee2e6;      /* Bordes generales (Gris Borde) */
-    --disabled-color: #ced4da;    /* Elementos desactivados (Gris Desactivado) */
-    --locked-color: #adb5bd;      /* Elementos bloqueados (Gris Bloqueado) */
+    --bg-color: #f4f7f6;
+    --card-bg-color: #ffffff;
+    --text-color: #333333;
+    --secondary-text-color: #6c757d;
+    --border-color: #dee2e6;
+    --disabled-color: #ced4da;
+    --locked-color: #adb5bd;
 
     /* Paleta Primaria (Azul) */
-    --primary-color: #007bff;     /* Azul Principal (Botones, Activo) */
-    --primary-dark-color: #0056b3; /* Azul Oscuro (Hover, Títulos) */
-    --primary-light-bg: #e7f3ff;  /* Fondo Azul Claro (Hover sutil) */
+    --primary-color: #007bff;
+    --primary-dark-color: #0056b3;
+    --primary-light-bg: #e7f3ff;
 
     /* Paleta de Acentos y Estados */
-    --accent-teal-color: #17a2b8;  /* Verde Azulado (Conexión, Acentos) */
-    --success-color: #28a745;     /* Verde Éxito */
-    --error-color: #dc3545;       /* Rojo Error */
-    --warning-color: #ffc107;     /* Amarillo Precaución/Info */
-    --warning-text-color: #856404; /* Texto para fondo amarillo */
-    --warning-bg-color: #fff3cd;   /* Fondo para requisito */
-    --warning-border-color: #ffeeba; /* Borde para requisito */
-    --mastery-color: #6f42c1;     /* Púrpura Maestría (solo para modo Mastery) */
+    --accent-teal-color: #17a2b8;
+    --success-color: #28a745;
+    --error-color: #dc3545;
+    --warning-color: #ffc107;
+    --warning-text-color: #856404;
+    --warning-bg-color: #fff3cd;
+    --warning-border-color: #ffeeba;
+    --mastery-color: #6f42c1;
 
     /* Fuentes */
     --font-body: 'Montserrat', sans-serif;
     --font-title: 'Comfortaa', sans-serif;
 
     /* Otros */
-    --border-radius: 5px;         /* Radio de borde estándar */
-    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra estándar */
-    /* Variable para el progreso del stepper (actualizada por JS) */
+    --border-radius: 5px;
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     --progress-width: 10%;
 }
 
@@ -49,26 +48,6 @@ body {
     position: relative;
     overflow-x: hidden;
 }
-
-/* Fondo Animado (Opcional) */
-/*
-body::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background:
-        radial-gradient(var(--circuit-line-color) 1px, transparent 1px),
-        radial-gradient(var(--circuit-line-color) 1px, transparent 1px);
-    background-size: 20px 20px, 20px 20px;
-    background-position: 0 0, 10px 10px;
-    opacity: 0.5;
-    z-index: -1;
-}
-@keyframes pulse-light { ... }
-#user-setup::after { ... }
-#level-select::before { ... }
-*/
-
 
 main {
     flex-grow: 1; max-width: 800px; margin: 40px auto 20px auto;
@@ -87,13 +66,9 @@ h1, h2 {
     text-align: center; font-weight: 700;
 }
 
-h2 {
-    margin-bottom: 25px;
-}
-
+h2 { margin-bottom: 25px; }
 a { color: var(--primary-color); text-decoration: none; }
 a:hover { color: var(--primary-dark-color); text-decoration: underline; }
-
 hr { border: 0; height: 1px; background-color: var(--border-color); margin: 20px 0; }
 
 /* --- Estilos Header y Footer --- */
@@ -105,256 +80,49 @@ footer p { margin: 5px 0; } footer a { color: var(--locked-color); } footer a:ho
 footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color); }
 
 /* --- Controles Globales (Idioma/Tema) --- */
-.global-controls {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    display: flex;
-    gap: 10px;
-    z-index: 100;
-}
-
-#language-toggle-button {
-    background-color: var(--card-bg-color);
-    color: var(--primary-color);
-    border: 1px solid var(--primary-color);
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: var(--border-radius);
-    font-size: 0.85em;
-    opacity: 0.9;
-    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-#language-toggle-button:hover {
-    opacity: 1;
-    background-color: var(--primary-light-bg);
-}
+.global-controls { position: absolute; top: 10px; right: 15px; display: flex; gap: 10px; z-index: 100; }
+#language-toggle-button { background-color: var(--card-bg-color); color: var(--primary-color); border: 1px solid var(--primary-color); padding: 5px 10px; cursor: pointer; border-radius: var(--border-radius); font-size: 0.85em; opacity: 0.9; transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
+#language-toggle-button:hover { opacity: 1; background-color: var(--primary-light-bg); }
 
 /* --- Estilos Generales para Secciones DENTRO de main --- */
-.game-section {
-    margin-bottom: 30px;
-    padding: 25px 30px;
-    border: none; /* Sin borde individual si main tiene fondo */
-    border-radius: var(--border-radius);
-    background-color: transparent; /* Heredar fondo de main */
-}
+.game-section { margin-bottom: 30px; padding: 25px 30px; border: none; border-radius: var(--border-radius); background-color: transparent; }
 
 /* === Formulario User Setup MEJORADO === */
-#user-setup {
-    text-align: center;
-    min-height: 300px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-top: 0;
-    padding-bottom: 0;
-    border: none;
-    background-color: transparent;
-}
-
-.login-icon-area {
-    font-size: 3.5em;
-    color: var(--primary-color);
-    margin-bottom: 20px;
-}
-
-#user-setup h2 {
-    margin-top: 0;
-    margin-bottom: 30px;
-    color: var(--primary-dark-color);
-}
-
-#username-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-    width: 100%;
-    max-width: 350px;
-    margin: 0 auto;
-}
-
-#username-form label {
-    font-weight: bold;
-    color: var(--secondary-text-color);
-    font-size: 0.95em;
-}
-
-#username-form input[type="text"] {
-    padding: 12px 15px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    width: 100%;
-    box-sizing: border-box;
-    font-family: var(--font-body);
-    text-align: center;
-    font-size: 1.1em;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-#username-form input[type="text"]:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-    outline: none;
-}
-
-.login-submit-button {
-    padding: 14px 30px;
-    font-size: 1.1em;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
-}
-.login-submit-button i {
-    transition: transform 0.2s ease-in-out;
-}
-.login-submit-button:hover i {
-    transform: translateX(4px);
-}
-/* === FIN Formulario User Setup MEJORADO === */
-
+#user-setup { text-align: center; min-height: 300px; display: flex; flex-direction: column; justify-content: center; padding-top: 0; padding-bottom: 0; border: none; background-color: transparent; }
+.login-icon-area { font-size: 3.5em; color: var(--primary-color); margin-bottom: 20px; }
+#user-setup h2 { margin-top: 0; margin-bottom: 30px; color: var(--primary-dark-color); }
+#username-form { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; max-width: 350px; margin: 0 auto; }
+#username-form label { font-weight: bold; color: var(--secondary-text-color); font-size: 0.95em; }
+#username-form input[type="text"] { padding: 12px 15px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 100%; box-sizing: border-box; font-family: var(--font-body); text-align: center; font-size: 1.1em; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
+#username-form input[type="text"]:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); outline: none; }
+.login-submit-button { padding: 14px 30px; font-size: 1.1em; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2); }
+.login-submit-button i { transition: transform 0.2s ease-in-out; }
+.login-submit-button:hover i { transform: translateX(4px); }
 
 /* --- Estilos Selección de Nivel (Stepper + Tarjeta) --- */
-#level-select h2 {
-    margin-bottom: 30px;
-}
-
-#level-stepper-container {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin-bottom: 35px;
-    padding: 10px 0;
-    position: relative;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-}
-#level-stepper-container::-webkit-scrollbar {
-    display: none;
-}
-
-/* Línea base gris */
-#level-stepper-container::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 5%;
-    right: 5%;
-    height: 4px;
-    background-color: var(--border-color);
-    transform: translateY(-50%);
-    z-index: 1;
-    border-radius: 2px;
-}
-/* Línea de progreso azul */
-#level-stepper-container::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 5%;
-    width: var(--progress-width, 5%); /* Usa variable CSS */
-    height: 4px;
-    background-color: var(--primary-color);
-    transform: translateY(-50%);
-    z-index: 2;
-    border-radius: 2px;
-    transition: width 0.5s ease-in-out;
-}
-
-.stepper-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    cursor: pointer;
-    padding: 5px 10px;
-    position: relative;
-    z-index: 3;
-    background-color: var(--card-bg-color); /* Fondo para tapar línea */
-    transition: transform 0.2s ease;
-    min-width: 80px;
-}
-.stepper-item:hover:not(.locked) {
-    transform: scale(1.05);
-}
-.stepper-item.locked {
-    cursor: default;
-}
-
-
-.stepper-icon-wrapper {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--card-bg-color);
-    border: 3px solid var(--locked-color); /* Gris bloqueado por defecto */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 5px;
-    transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.2s ease;
-}
-
-.stepper-icon-wrapper i {
-    font-size: 1.2em;
-    color: var(--locked-color); /* Gris bloqueado por defecto */
-    transition: color 0.3s ease;
-}
-
-.stepper-label {
-    font-size: 0.8em;
-    font-weight: bold;
-    color: var(--secondary-text-color); /* Gris por defecto */
-    transition: color 0.3s ease;
-    margin-top: 2px;
-}
-
-/* Estados del Stepper Item */
+#level-select h2 { margin-bottom: 30px; }
+#level-stepper-container { display: flex; justify-content: space-around; align-items: center; margin-bottom: 35px; padding: 10px 0; position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+#level-stepper-container::-webkit-scrollbar { display: none; }
+#level-stepper-container::before { content: ''; position: absolute; top: 50%; left: 5%; right: 5%; height: 4px; background-color: var(--border-color); transform: translateY(-50%); z-index: 1; border-radius: 2px; }
+#level-stepper-container::after { content: ''; position: absolute; top: 50%; left: 5%; width: var(--progress-width, 5%); height: 4px; background-color: var(--primary-color); transform: translateY(-50%); z-index: 2; border-radius: 2px; transition: width 0.5s ease-in-out; }
+.stepper-item { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 5px 10px; position: relative; z-index: 3; background-color: var(--card-bg-color); transition: transform 0.2s ease; min-width: 80px; }
+.stepper-item:hover:not(.locked) { transform: scale(1.05); }
+.stepper-item.locked { cursor: default; }
+.stepper-icon-wrapper { width: 40px; height: 40px; border-radius: 50%; background-color: var(--card-bg-color); border: 3px solid var(--locked-color); display: flex; justify-content: center; align-items: center; margin-bottom: 5px; transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.2s ease; }
+.stepper-icon-wrapper i { font-size: 1.2em; color: var(--locked-color); transition: color 0.3s ease; }
+.stepper-label { font-size: 0.8em; font-weight: bold; color: var(--secondary-text-color); transition: color 0.3s ease; margin-top: 2px; }
 .stepper-item.unlocked .stepper-icon-wrapper { border-color: var(--primary-color); }
 .stepper-item.unlocked .stepper-icon-wrapper i { color: var(--primary-color); }
 .stepper-item.unlocked .stepper-label { color: var(--text-color); }
-
 .stepper-item.completed .stepper-icon-wrapper { border-color: var(--success-color); }
 .stepper-item.completed .stepper-icon-wrapper i { color: var(--success-color); }
 .stepper-item.completed .stepper-label { color: var(--success-color); }
-
-.stepper-item.selected .stepper-icon-wrapper {
-    border-color: var(--primary-dark-color);
-    background-color: var(--primary-color);
-    transform: scale(1.1);
-}
+.stepper-item.selected .stepper-icon-wrapper { border-color: var(--primary-dark-color); background-color: var(--primary-color); transform: scale(1.1); }
 .stepper-item.selected .stepper-icon-wrapper i { color: var(--card-bg-color); }
 .stepper-item.selected .stepper-label { color: var(--primary-dark-color); font-weight: 900; }
-
-/* Área de la Tarjeta */
-#level-card-area {
-    margin-top: 20px;
-    padding: 25px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background-color: #fdfdfd;
-    min-height: 180px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    transition: background-color 0.3s ease;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-}
-
+#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: #fdfdfd; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
 #level-card-content { width: 100%; }
-
-/* Estilos dentro de la tarjeta */
 #level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
-#level-card-content .level-icon { font-size: 2.5em; margin-bottom: 15px; color: var(--primary-color); }
 #level-card-content .level-status { font-weight: bold; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
 #level-card-content .level-status.locked { color: var(--locked-color); }
 #level-card-content .level-score { margin-bottom: 15px; color: var(--secondary-text-color); }
@@ -365,10 +133,31 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
 
 
 /* --- Estilos Área de Juego --- */
-.game-controls { text-align: right; margin-bottom: 10px; }
-.game-controls button { background-color: var(--secondary-text-color); color: white; padding: 4px 10px; font-size: 0.8em; margin-left: 8px; box-shadow: none; font-weight: normal; border: none; border-radius: var(--border-radius); cursor: pointer; transition: background-color 0.2s ease; }
-.game-controls button:hover { background-color: #5a6268; }
-.game-controls button i { margin-right: 4px; }
+/* === MODIFICADO: Estilos para botones de control === */
+.game-controls { text-align: right; margin-bottom: 15px; /* Más espacio debajo */ }
+.game-controls button {
+    background-color: var(--card-bg-color); /* Fondo claro */
+    color: var(--secondary-text-color); /* Texto gris */
+    border: 1px solid var(--border-color); /* Borde sutil */
+    padding: 6px 12px; /* Padding ajustado */
+    font-size: 0.85em; /* Tamaño de fuente ajustado */
+    margin-left: 8px;
+    box-shadow: none;
+    font-weight: 600; /* Semi-bold */
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.game-controls button:hover {
+    background-color: var(--primary-light-bg); /* Fondo azul claro al pasar */
+    color: var(--primary-dark-color); /* Texto azul oscuro */
+    border-color: var(--primary-light-bg);
+}
+.game-controls button i {
+    margin-right: 5px; /* Más espacio para icono */
+    opacity: 0.8;
+}
+/* === FIN MODIFICADO === */
 
 #game-info { text-align: center; margin-bottom: 15px; color: var(--secondary-text-color); font-size: 0.9em; }
 #game-info #main-game-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 15px; margin-bottom: 8px; }
@@ -384,18 +173,54 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
 #question-container { width: 90%; margin: 25px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--text-color); min-height: 50px; }
 .theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--text-color); }
 hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 20px 0; }
-#options-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
-.option-button { width: 80%; max-width: 450px; background-color: var(--secondary-text-color); }
-.option-button:hover { background-color: #5a6268; }
-.option-button.correct { background-color: var(--success-color); color: white; }
-.option-button.correct:hover { background-color: #218838; }
-.option-button.incorrect { background-color: var(--error-color); color: white; }
-.option-button.incorrect:hover { background-color: #c82333; }
+#options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; /* Más espacio */ margin-top: 20px; }
+
+/* === MODIFICADO: Estilos para botones de opción === */
+.option-button {
+    width: 80%;
+    max-width: 450px;
+    background-color: var(--card-bg-color); /* Fondo blanco */
+    color: var(--primary-dark-color); /* Texto azul oscuro */
+    border: 1px solid var(--border-color); /* Borde gris claro */
+    padding: 14px 20px; /* Más padding */
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600; /* Semi-bold */
+    text-align: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    box-shadow: var(--box-shadow); /* Sombra sutil */
+}
+.option-button:hover {
+    background-color: var(--primary-light-bg); /* Fondo azul claro */
+    border-color: var(--primary-color); /* Borde azul */
+    color: var(--primary-dark-color);
+    box-shadow: 0 3px 8px rgba(0, 123, 255, 0.15); /* Sombra más azulada */
+}
+.option-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+/* Estados correcto/incorrecto/mastery */
+.option-button.correct { background-color: var(--success-color); color: white; border-color: var(--success-color); }
+.option-button.correct:hover { background-color: #218838; border-color: #1e7e34; }
+.option-button.incorrect { background-color: var(--error-color); color: white; border-color: var(--error-color); }
+.option-button.incorrect:hover { background-color: #c82333; border-color: #bd2130;}
 .option-button.mastery { background-color: var(--mastery-color); color: white; border-color: var(--mastery-color); }
 .option-button.mastery:hover { background-color: #5a32a3; border-color: #5a32a3; }
-.option-button.correct.mastery { background-color: var(--mastery-color); }
+.option-button.correct.mastery { background-color: var(--mastery-color); } /* Asegurar que mastery prevalezca */
 .option-button.correct.mastery:hover { background-color: #5a32a3; }
-.options-disabled .option-button { pointer-events: none; opacity: 0.7; }
+/* Estado deshabilitado */
+.options-disabled .option-button {
+    pointer-events: none;
+    opacity: 0.65; /* Un poco más visible que antes */
+    box-shadow: none;
+}
+/* Mantener estilos de resaltado incluso si está deshabilitado */
+.options-disabled .option-button.correct { opacity: 1; background-color: var(--success-color); border-color: var(--success-color); color: white; }
+.options-disabled .option-button.incorrect { opacity: 1; background-color: var(--error-color); border-color: var(--error-color); color: white; }
+.options-disabled .option-button.mastery { opacity: 1; background-color: var(--mastery-color); border-color: var(--mastery-color); color: white; }
+/* === FIN MODIFICADO === */
 
 /* --- Timer y Feedback --- */
 #timer-display { color: var(--primary-color); font-size: 0.9em; margin-top: 10px; }
@@ -422,7 +247,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 #play-again-button:hover { background-color: #218838; }
 
 /* --- Progreso Desbloqueo (OBSOLETO VISUALMENTE) --- */
-#unlock-progress-section { display: none !important; /* Ocultar siempre */ }
+#unlock-progress-section { display: none !important; }
 
 /* --- High Scores --- */
 #high-scores-section h2 { margin-bottom: 15px; }
@@ -436,11 +261,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
-    #level-stepper-container {
-        justify-content: flex-start;
-        padding-left: 10px;
-        padding-right: 10px;
-    }
+    #level-stepper-container { justify-content: flex-start; padding-left: 10px; padding-right: 10px; }
      #level-stepper-container::before { left: 2%; right: 2%; }
      #level-stepper-container::after { left: 2%; }
     .stepper-item { min-width: 65px; padding: 5px; }
@@ -455,7 +276,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     main { margin: 10px; padding: 10px 15px; }
     header h1 { font-size: 1.6em; }
     #username-form input[type="text"] { width: 95%; }
-    .option-button { width: 95%; padding: 10px 15px; }
+    .option-button { width: 95%; padding: 12px 15px; /* Ajustar padding móvil */ }
     #question-container { font-size: 1.2em; width: 95%; }
     #game-info #main-game-info { gap: 5px 10px; }
     #game-info i { font-size: 1em; }
@@ -465,7 +286,6 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     #level-card-area { padding: 15px; min-height: 120px;}
     #level-card-content h3 { font-size: 1.3em; }
     #level-card-content .start-level-button { padding: 12px 25px; font-size: 1em; }
-
     .game-controls { text-align: center; margin-bottom: 15px; }
     .game-controls button { margin: 5px 5px; }
     .score-username { font-size: 1.1em; }
@@ -474,34 +294,10 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 }
 
 @media (max-width: 400px) {
-    .global-controls {
-         position: static;
-         display: flex;
-         justify-content: center;
-         margin-bottom: 10px;
-         margin-top: 5px;
-         gap: 15px;
-    }
+    .global-controls { position: static; display: flex; justify-content: center; margin-bottom: 10px; margin-top: 5px; gap: 15px; }
     header { padding-bottom: 5px; }
     .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
-    /* Opcional: Ocultar etiquetas en pantallas muy pequeñas */
-    /* .stepper-label { display: none; } */
+    /* .stepper-label { display: none; } */ /* Opcional: Ocultar etiquetas */
 }
 
-/* Opcional: Animación para el fondo de puntos */
-/*
-@keyframes background-pan {
-  from { background-position: 0 0, 10px 10px; }
-  to { background-position: -20px -20px, -10px -10px; }
-}
-*/
-
-/* Opcional: Animación para el icono de login */
-/*
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.7; }
-}
-*/
