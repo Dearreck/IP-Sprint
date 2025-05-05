@@ -350,7 +350,532 @@
     }
   ],
 
-  "binary": [],
-  "portions": [],
-  "mask": []
+    "binary": [
+    {
+      "id": "binary_q1",
+      "type": "VF",
+      "questionText": {
+        "es": "Las computadoras y los routers procesan internamente las direcciones IPv4 directamente en el formato decimal punteado (ej. 192.168.1.1).",
+        "en": "Computers and routers internally process IPv4 addresses directly in the dotted-decimal format (e.g., 192.168.1.1)."
+      },
+      "options": [
+        { "key": "option_true", "correct": false },
+        { "key": "option_false", "correct": true }
+      ],
+      "explanationText": {
+        "es": "Falso. El formato decimal punteado es para la lectura humana. Los dispositivos de red procesan y entienden las direcciones IPv4 como números binarios de 32 bits.",
+        "en": "False. The dotted-decimal format is for human readability. Network devices process and understand IPv4 addresses as 32-bit binary numbers."
+      }
+    },
+    {
+      "id": "binary_q2",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Cuántos bits en total componen una dirección IPv4?",
+        "en": "How many total bits make up an IPv4 address?"
+      },
+      "options": [
+        { "es": "8 bits", "en": "8 bits", "correct": false },
+        { "es": "16 bits", "en": "16 bits", "correct": false },
+        { "es": "32 bits", "en": "32 bits", "correct": true },
+        { "es": "128 bits", "en": "128 bits", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Una dirección IPv4 se define fundamentalmente como un número binario de 32 bits de longitud.",
+        "en": "An IPv4 address is fundamentally defined as a 32-bit long binary number."
+      }
+    },
+    {
+      "id": "binary_q3",
+      "type": "MC",
+      "questionText": {
+        "es": "En la estructura de una dirección IPv4, ¿qué es un \"octeto\"?",
+        "en": "In the structure of an IPv4 address, what is an \"octet\"?"
+      },
+      "options": [
+        { "es": "La dirección IP completa en formato decimal.", "en": "The complete IP address in decimal format.", "correct": false },
+        { "es": "Un grupo de 4 bits.", "en": "A group of 4 bits.", "correct": false },
+        { "es": "Un grupo de 8 bits.", "en": "A group of 8 bits.", "correct": true },
+        { "es": "Un identificador único de red.", "en": "A unique network identifier.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "La dirección IPv4 de 32 bits se divide en cuatro secciones iguales. Cada una de estas secciones de 8 bits se denomina octeto.",
+        "en": "The 32-bit IPv4 address is divided into four equal sections. Each of these 8-bit sections is called an octet."
+      }
+    },
+    {
+      "id": "binary_q4",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Cuántos octetos forman una dirección IPv4 completa?",
+        "en": "How many octets form a complete IPv4 address?"
+      },
+      "options": [
+        { "es": "1", "en": "1", "correct": false },
+        { "es": "2", "en": "2", "correct": false },
+        { "es": "4", "en": "4", "correct": true },
+        { "es": "8", "en": "8", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Dado que una dirección IPv4 tiene 32 bits y cada octeto tiene 8 bits (32 / 8 = 4), una dirección IPv4 se compone de cuatro octetos.",
+        "en": "Since an IPv4 address has 32 bits and each octet has 8 bits (32 / 8 = 4), an IPv4 address is composed of four octets."
+      }
+    },
+    {
+      "id": "binary_q5",
+      "type": "VF",
+      "questionText": {
+        "es": "Cada número en el formato decimal punteado (ej., el '192' en 192.168.1.1) representa el valor decimal de un octeto binario (8 bits).",
+        "en": "Each number in the dotted-decimal format (e.g., the '192' in 192.168.1.1) represents the decimal value of a binary octet (8 bits)."
+      },
+      "options": [
+        { "key": "option_true", "correct": true },
+        { "key": "option_false", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Correcto. El formato decimal punteado es una conversión a decimal de cada uno de los cuatro octetos que componen la dirección binaria de 32 bits.",
+        "en": "Correct. The dotted-decimal format is a decimal conversion of each of the four octets that make up the 32-bit binary address."
+      }
+    },
+    {
+      "id": "binary_q6",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Qué tipo de dígitos componen la representación binaria de una dirección IP que utilizan las computadoras?",
+        "en": "What type of digits make up the binary representation of an IP address used by computers?"
+      },
+      "options": [
+        { "es": "Dígitos del 0 al 9.", "en": "Digits 0 through 9.", "correct": false },
+        { "es": "Dígitos del 0 al 7 (Octal).", "en": "Digits 0 through 7 (Octal).", "correct": false },
+        { "es": "Dígitos 0 y 1 únicamente (Binario).", "en": "Digits 0 and 1 only (Binary).", "correct": true },
+        { "es": "Dígitos del 0 al 9 y letras A-F (Hexadecimal).", "en": "Digits 0 through 9 and letters A-F (Hexadecimal).", "correct": false }
+      ],
+      "explanationText": {
+        "es": "La representación binaria, que es como las máquinas procesan las IPs, utiliza únicamente los dígitos 0 y 1 (bits).",
+        "en": "The binary representation, which is how machines process IPs, uses only the digits 0 and 1 (bits)."
+      }
+    },
+    {
+      "id": "binary_q7",
+      "type": "MC",
+      "questionText": {
+        "es": "Si una dirección IPv4 tiene 32 bits, y se divide en octetos, ¿cuántos bits tiene cada octeto?",
+        "en": "If an IPv4 address has 32 bits, and it is divided into octets, how many bits does each octet have?"
+      },
+      "options": [
+        { "es": "4 bits", "en": "4 bits", "correct": false },
+        { "es": "8 bits", "en": "8 bits", "correct": true },
+        { "es": "16 bits", "en": "16 bits", "correct": false },
+        { "es": "32 bits", "en": "32 bits", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Un octeto, por definición en este contexto, es un grupo de 8 bits. Cuatro de estos grupos forman los 32 bits de la dirección IPv4.",
+        "en": "An octet, by definition in this context, is a group of 8 bits. Four of these groups form the 32 bits of the IPv4 address."
+      }
+    },
+    {
+      "id": "binary_q8",
+      "type": "VF",
+      "questionText": {
+        "es": "La estructura binaria de 32 bits es específica de IPv4; otros protocolos como IPv6 utilizan una cantidad diferente de bits.",
+        "en": "The 32-bit binary structure is specific to IPv4; other protocols like IPv6 use a different number of bits."
+      },
+      "options": [
+        { "key": "option_true", "correct": true },
+        { "key": "option_false", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Correcto. La longitud de 32 bits es una característica definitoria de las direcciones IPv4. El protocolo más nuevo, IPv6, utiliza direcciones de 128 bits.",
+        "en": "Correct. The 32-bit length is a defining characteristic of IPv4 addresses. The newer protocol, IPv6, uses 128-bit addresses."
+      }
+    },
+    {
+      "id": "binary_q9",
+      "type": "MC",
+      "questionText": {
+        "es": "Entender la estructura binaria de las direcciones IP es fundamental para comprender conceptos más avanzados como:",
+        "en": "Understanding the binary structure of IP addresses is fundamental to comprehending more advanced concepts such as:"
+      },
+      "options": [
+        { "es": "El color de los cables de red.", "en": "The color of network cables.", "correct": false },
+        { "es": "El subnetting (cálculo de subredes).", "en": "Subnetting (subnet calculation).", "correct": true },
+        { "es": "La velocidad de la conexión Wi-Fi.", "en": "The speed of the Wi-Fi connection.", "correct": false },
+        { "es": "Las licencias de software del sistema operativo.", "en": "Operating system software licenses.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "El subnetting implica manipular los bits dentro de la dirección IP para dividir redes grandes en redes más pequeñas. Esto requiere una comprensión directa de la estructura binaria de 32 bits y los octetos.",
+        "en": "Subnetting involves manipulating the bits within the IP address to divide large networks into smaller ones. This requires a direct understanding of the 32-bit binary structure and octets."
+      }
+    },
+    {
+      "id": "binary_q10",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Cuál es el valor decimal MÁXIMO que puede representarse con un solo octeto (8 bits)?",
+        "en": "What is the MAXIMUM decimal value that can be represented with a single octet (8 bits)?"
+      },
+      "options": [
+        { "es": "128", "en": "128", "correct": false },
+        { "es": "255", "en": "255", "correct": true },
+        { "es": "256", "en": "256", "correct": false },
+        { "es": "512", "en": "512", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Un octeto tiene 8 bits. El valor máximo se obtiene cuando los 8 bits son '1' (11111111 en binario), lo cual equivale a 255 en decimal. Esto explica por qué cada número en el formato decimal punteado va de 0 a 255.",
+        "en": "An octet has 8 bits. The maximum value is obtained when all 8 bits are '1' (11111111 in binary), which equals 255 in decimal. This explains why each number in the dotted-decimal format ranges from 0 to 255."
+      }
+    }
+  ],
+  
+    "portions": [
+    {
+      "id": "portions_q1",
+      "type": "VF",
+      "questionText": {
+        "es": "Toda dirección IPv4 se considera lógicamente dividida en exactamente dos partes: la porción de red y la porción de host.",
+        "en": "Every IPv4 address is logically considered to be divided into exactly two parts: the network portion and the host portion."
+      },
+      "options": [
+        { "key": "option_true", "correct": true },
+        { "key": "option_false", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Correcto. Conceptualmente, cada dirección IP se estructura en dos campos o partes: una que identifica la red y otra que identifica al host dentro de esa red.",
+        "en": "Correct. Conceptually, each IP address is structured into two fields or parts: one that identifies the network and another that identifies the host within that network."
+      }
+    },
+    {
+      "id": "portions_q2",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Qué identifica la porción de red (network portion) de una dirección IPv4?",
+        "en": "What does the network portion of an IPv4 address identify?"
+      },
+      "options": [
+        { "es": "Un dispositivo específico dentro de una red local.", "en": "A specific device within a local network.", "correct": false },
+        { "es": "El grupo completo de dispositivos que pertenecen a la misma red o subred lógica.", "en": "The entire group of devices belonging to the same logical network or subnet.", "correct": true },
+        { "es": "El fabricante del dispositivo de red.", "en": "The manufacturer of the network device.", "correct": false },
+        { "es": "La velocidad máxima de transmisión de la red.", "en": "The maximum transmission speed of the network.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "La porción de red de la dirección IP sirve para identificar de forma única a la red o subred a la que pertenece el host. Todos los hosts en la misma subred comparten esta porción.",
+        "en": "The network portion of the IP address serves to uniquely identify the network or subnet to which the host belongs. All hosts on the same subnet share this portion."
+      }
+    },
+    {
+      "id": "portions_q3",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Qué identifica la porción de host (host portion) de una dirección IPv4?",
+        "en": "What does the host portion of an IPv4 address identify?"
+      },
+      "options": [
+        { "es": "La red completa a la que está conectado el dispositivo.", "en": "The entire network to which the device is connected.", "correct": false },
+        { "es": "La dirección física (MAC) del dispositivo.", "en": "The physical (MAC) address of the device.", "correct": false },
+        { "es": "Un dispositivo o interfaz específico y único dentro de su propia red o subred.", "en": "A specific and unique device or interface within its own network or subnet.", "correct": true },
+        { "es": "El tipo de sistema operativo que utiliza el dispositivo.", "en": "The type of operating system the device uses.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "La porción de host distingue a un dispositivo individual de todos los demás dispositivos que se encuentran en la misma red o subred. Debe ser única dentro de esa red específica.",
+        "en": "The host portion distinguishes an individual device from all other devices located on the same network or subnet. It must be unique within that specific network."
+      }
+    },
+    {
+      "id": "portions_q4",
+      "type": "VF",
+      "questionText": {
+        "es": "Para que dos computadoras puedan comunicarse directamente dentro de la misma subred IP, la porción de host de sus direcciones IP debe ser idéntica.",
+        "en": "For two computers to communicate directly within the same IP subnet, the host portion of their IP addresses must be identical."
+      },
+      "options": [
+        { "key": "option_true", "correct": false },
+        { "key": "option_false", "correct": true }
+      ],
+      "explanationText": {
+        "es": "Falso. Para estar en la misma subred, deben compartir la misma porción de red. La porción de host debe ser única para cada dispositivo dentro de esa subred para poder diferenciarlos.",
+        "en": "False. To be on the same subnet, they must share the same network portion. The host portion must be unique for each device within that subnet to differentiate them."
+      }
+    },
+    {
+      "id": "portions_q5",
+      "type": "MC",
+      "questionText": {
+        "es": "Considera la analogía de una dirección postal (Calle Falsa 123). ¿Qué parte de la dirección IP se asemeja más al \"Nombre de la Calle\" (Calle Falsa)?",
+        "en": "Consider the analogy of a postal address (123 Fake Street). Which part of the IP address is most similar to the \"Street Name\" (Fake Street)?"
+      },
+      "options": [
+        { "es": "La dirección IP completa.", "en": "The complete IP address.", "correct": false },
+        { "es": "La porción de host.", "en": "The host portion.", "correct": false },
+        { "es": "La porción de red.", "en": "The network portion.", "correct": true },
+        { "es": "La máscara de subred.", "en": "The subnet mask.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "En la analogía común, el nombre de la calle representa el grupo (la red) donde se encuentran varias casas, similar a cómo la porción de red identifica la red donde residen varios hosts.",
+        "en": "In the common analogy, the street name represents the group (the network) where several houses are located, similar to how the network portion identifies the network where various hosts reside."
+      }
+    },
+    {
+      "id": "portions_q6",
+      "type": "MC",
+      "questionText": {
+        "es": "Usando la misma analogía de dirección postal (Calle Falsa 123), ¿qué parte de la dirección IP se asemeja más al \"Número de Casa\" (123)?",
+        "en": "Using the same postal address analogy (123 Fake Street), which part of the IP address is most similar to the \"House Number\" (123)?"
+      },
+      "options": [
+        { "es": "La porción de red.", "en": "The network portion.", "correct": false },
+        { "es": "La dirección MAC.", "en": "The MAC address.", "correct": false },
+        { "es": "La máscara de subred.", "en": "The subnet mask.", "correct": false },
+        { "es": "La porción de host.", "en": "The host portion.", "correct": true }
+      ],
+      "explanationText": {
+        "es": "El número de casa identifica una residencia específica dentro de una calle, al igual que la porción de host identifica a un dispositivo específico dentro de una red determinada por la porción de red.",
+        "en": "The house number identifies a specific residence on a street, just as the host portion identifies a specific device within a network determined by the network portion."
+      }
+    },
+    {
+      "id": "portions_q7",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Cuál de estas afirmaciones describe correctamente la relación entre dispositivos en la misma subred IP?",
+        "en": "Which of these statements correctly describes the relationship between devices on the same IP subnet?"
+      },
+      "options": [
+        { "es": "Tienen porciones de red diferentes pero la misma porción de host.", "en": "They have different network portions but the same host portion.", "correct": false },
+        { "es": "Tienen la misma porción de red y porciones de host únicas.", "en": "They have the same network portion and unique host portions.", "correct": true },
+        { "es": "Tienen la misma porción de red y la misma porción de host.", "en": "They have the same network portion and the same host portion.", "correct": false },
+        { "es": "Tienen porciones de red y porciones de host completamente diferentes.", "en": "They have completely different network and host portions.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "La definición de pertenecer a la misma subred IP implica compartir la misma porción de red, mientras que cada dispositivo debe tener una porción de host diferente para ser identificado unívocamente dentro de esa subred.",
+        "en": "The definition of belonging to the same IP subnet implies sharing the same network portion, while each device must have a different host portion to be uniquely identified within that subnet."
+      }
+    },
+    {
+      "id": "portions_q8",
+      "type": "VF",
+      "questionText": {
+        "es": "La división entre la porción de red y la porción de host es siempre fija y ocurre exactamente después del segundo octeto en todas las direcciones IPv4.",
+        "en": "The division between the network portion and the host portion is always fixed and occurs exactly after the second octet in all IPv4 addresses."
+      },
+      "options": [
+        { "key": "option_true", "correct": false },
+        { "key": "option_false", "correct": true }
+      ],
+      "explanationText": {
+        "es": "Falso. El punto de división entre la porción de red y host varía y no es fijo. Es determinado por la máscara de subred asociada a la dirección IP.",
+        "en": "False. The dividing point between the network and host portion varies and is not fixed. It is determined by the subnet mask associated with the IP address."
+      }
+    },
+    {
+      "id": "portions_q9",
+      "type": "MC",
+      "questionText": {
+        "es": "El concepto de dividir una dirección IP en porción de red y porción de host es fundamental para:",
+        "en": "The concept of dividing an IP address into a network portion and a host portion is fundamental for:"
+      },
+      "options": [
+        { "es": "Determinar el fabricante del hardware.", "en": "Determining the hardware manufacturer.", "correct": false },
+        { "es": "Establecer la velocidad de la conexión física.", "en": "Setting the speed of the physical connection.", "correct": false },
+        { "es": "Organizar las redes en grupos lógicos (subredes) y enrutar el tráfico entre ellas.", "en": "Organizing networks into logical groups (subnets) and routing traffic between them.", "correct": true },
+        { "es": "Asignar colores a los cables de red según el estándar.", "en": "Assigning colors to network cables according to the standard.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Esta división lógica es la base del direccionamiento IP y el subnetting, permitiendo agrupar dispositivos y facilitar el enrutamiento eficiente de paquetes entre diferentes redes o subredes.",
+        "en": "This logical division is the basis of IP addressing and subnetting, allowing devices to be grouped and facilitating efficient packet routing between different networks or subnets."
+      }
+    },
+    {
+      "id": "portions_q10",
+      "type": "MC",
+      "questionText": {
+        "es": "Si un dispositivo A tiene la IP 192.168.1.50 y un dispositivo B tiene la IP 192.168.2.75, asumiendo una máscara común que define los primeros tres octetos como red, ¿qué se puede concluir?",
+        "en": "If device A has the IP 192.168.1.50 and device B has the IP 192.168.2.75, assuming a common mask that defines the first three octets as the network, what can be concluded?"
+      },
+      "options": [
+        { "es": "Ambos dispositivos están en la misma red.", "en": "Both devices are on the same network.", "correct": false },
+        { "es": "Los dispositivos están en redes diferentes.", "en": "The devices are on different networks.", "correct": true },
+        { "es": "Ambos dispositivos tienen la misma porción de host.", "en": "Both devices have the same host portion.", "correct": false },
+        { "es": "El dispositivo A es un router y el B es una computadora.", "en": "Device A is a router and B is a computer.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Si los primeros tres octetos definen la red, la porción de red de A es 192.168.1 y la de B es 192.168.2. Al ser diferentes, pertenecen a redes distintas según esa máscara.",
+        "en": "If the first three octets define the network, A's network portion is 192.168.1 and B's is 192.168.2. Since they are different, they belong to different networks according to that mask."
+      }
+    }
+  ],
+  
+    "mask": [
+    {
+      "id": "mask_q1",
+      "type": "VF",
+      "questionText": {
+        "es": "La máscara de subred es un número de 32 bits que funciona junto con una dirección IPv4 para indicar qué parte de la dirección identifica la red y qué parte identifica al host.",
+        "en": "The subnet mask is a 32-bit number that works alongside an IPv4 address to indicate which part of the address identifies the network and which part identifies the host."
+      },
+      "options": [
+        { "key": "option_true", "correct": true },
+        { "key": "option_false", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Correcto. Esta es la definición y propósito fundamental de la máscara de subred en el direccionamiento IPv4.",
+        "en": "Correct. This is the fundamental definition and purpose of the subnet mask in IPv4 addressing."
+      }
+    },
+    {
+      "id": "mask_q2",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Cuál es el propósito principal de utilizar una máscara de subred?",
+        "en": "What is the primary purpose of using a subnet mask?"
+      },
+      "options": [
+        { "es": "Asignar automáticamente direcciones IP a los nuevos dispositivos.", "en": "Automatically assigning IP addresses to new devices.", "correct": false },
+        { "es": "Aumentar la velocidad de la conexión a Internet.", "en": "Increasing the speed of the Internet connection.", "correct": false },
+        { "es": "Traducir nombres de host a direcciones IP.", "en": "Translating hostnames to IP addresses.", "correct": false },
+        { "es": "Distinguir la porción de red de la porción de host en una dirección IP.", "en": "Distinguishing the network portion from the host portion in an IP address.", "correct": true }
+      ],
+      "explanationText": {
+        "es": "La función esencial de la máscara de subred es definir el límite exacto entre los bits que pertenecen a la porción de red y los bits que pertenecen a la porción de host dentro de una dirección IP.",
+        "en": "The essential function of the subnet mask is to define the exact boundary between the bits belonging to the network portion and the bits belonging to the host portion within an IP address."
+      }
+    },
+    {
+      "id": "mask_q3",
+      "type": "MC",
+      "questionText": {
+        "es": "¿En qué formato se escriben comúnmente las máscaras de subred IPv4 para que sean legibles por humanos?",
+        "en": "In which format are IPv4 subnet masks commonly written to be human-readable?"
+      },
+      "options": [
+        { "es": "Hexadecimal", "en": "Hexadecimal", "correct": false },
+        { "es": "Binario completo (32 bits)", "en": "Full binary (32 bits)", "correct": false },
+        { "es": "Decimal punteado (igual que las direcciones IPv4)", "en": "Dotted-decimal (same as IPv4 addresses)", "correct": true },
+        { "es": "Notación de nombres de dominio", "en": "Domain name notation", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Al igual que las direcciones IPv4, las máscaras de subred se representan típicamente en formato decimal punteado (cuatro números decimales separados por puntos, ej., 255.255.255.0) para facilitar su lectura y configuración.",
+        "en": "Like IPv4 addresses, subnet masks are typically represented in dotted-decimal format (four decimal numbers separated by dots, e.g., 255.255.255.0) for ease of reading and configuration."
+      }
+    },
+    {
+      "id": "mask_q4",
+      "type": "VF",
+      "questionText": {
+        "es": "En una máscara de subred, los números '255' (que corresponden a bits '1' en binario) indican generalmente la porción de host de la dirección IP.",
+        "en": "In a subnet mask, the numbers '255' (which correspond to '1' bits in binary) generally indicate the host portion of the IP address."
+      },
+      "options": [
+        { "key": "option_true", "correct": false },
+        { "key": "option_false", "correct": true }
+      ],
+      "explanationText": {
+        "es": "Falso. En la máscara de subred, los bits con valor '1' (representados como 255 en octetos completos) corresponden a la porción de red. Los bits con valor '0' corresponden a la porción de host.",
+        "en": "False. In the subnet mask, bits with a value of '1' (represented as 255 in full octets) correspond to the network portion. Bits with a value of '0' correspond to the host portion."
+      }
+    },
+    {
+      "id": "mask_q5",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Qué indica la máscara de subred 255.255.255.0 sobre una dirección IP asociada?",
+        "en": "What does the subnet mask 255.255.255.0 indicate about an associated IP address?"
+      },
+      "options": [
+        { "es": "Que toda la dirección IP identifica a la red.", "en": "That the entire IP address identifies the network.", "correct": false },
+        { "es": "Que los primeros 8 bits (primer octeto) identifican la red y los restantes 24 bits identifican al host.", "en": "That the first 8 bits (first octet) identify the network and the remaining 24 bits identify the host.", "correct": false },
+        { "es": "Que los primeros 24 bits (primeros tres octetos) identifican la red y los últimos 8 bits (último octeto) identifican al host.", "en": "That the first 24 bits (first three octets) identify the network and the last 8 bits (last octet) identify the host.", "correct": true },
+        { "es": "Que toda la dirección IP identifica al host.", "en": "That the entire IP address identifies the host.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "La máscara 255.255.255.0 tiene 24 bits iniciales puestos a '1' (tres 255s) y los últimos 8 bits a '0'. Esto significa que los primeros 24 bits de la dirección IP son la porción de red, y los últimos 8 bits son la porción de host.",
+        "en": "The mask 255.255.255.0 has the initial 24 bits set to '1' (three 255s) and the last 8 bits set to '0'. This means the first 24 bits of the IP address are the network portion, and the last 8 bits are the host portion."
+      }
+    },
+    {
+      "id": "mask_q6",
+      "type": "MC",
+      "questionText": {
+        "es": "Al configurar una computadora en una red, ¿cuál de los siguientes elementos es la máscara de subred?",
+        "en": "When configuring a computer on a network, which of the following elements is the subnet mask?"
+      },
+      "options": [
+        { "es": "192.168.1.100 (Ejemplo de dirección IP)", "en": "192.168.1.100 (Example IP address)", "correct": false },
+        { "es": "255.255.255.0 (Ejemplo de máscara de subred)", "en": "255.255.255.0 (Example subnet mask)", "correct": true },
+        { "es": "192.168.1.1 (Ejemplo de gateway)", "en": "192.168.1.1 (Example gateway)", "correct": false },
+        { "es": "8.8.8.8 (Ejemplo de servidor DNS)", "en": "8.8.8.8 (Example DNS server)", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Las máscaras de subred comúnmente usan valores como 255 para indicar la porción de red. 255.255.255.0 es un ejemplo típico de máscara, mientras que las otras opciones representan otros parámetros de configuración de red (IP, gateway, DNS).",
+        "en": "Subnet masks commonly use values like 255 to indicate the network portion. 255.255.255.0 is a typical example of a mask, while the other options represent other network configuration parameters (IP, gateway, DNS)."
+      }
+    },
+    {
+      "id": "mask_q7",
+      "type": "VF",
+      "questionText": {
+        "es": "Una máscara de subred y una dirección IP son esencialmente lo mismo y se pueden usar indistintamente.",
+        "en": "A subnet mask and an IP address are essentially the same thing and can be used interchangeably."
+      },
+      "options": [
+        { "key": "option_true", "correct": false },
+        { "key": "option_false", "correct": true }
+      ],
+      "explanationText": {
+        "es": "Falso. Aunque ambas son números de 32 bits y se escriben en formato similar, tienen propósitos completamente diferentes. La IP identifica/localiza al host, mientras que la máscara define la división red/host de esa IP. Siempre trabajan juntas.",
+        "en": "False. Although both are 32-bit numbers and written in a similar format, they have completely different purposes. The IP identifies/locates the host, while the mask defines the network/host division of that IP. They always work together."
+      }
+    },
+    {
+      "id": "mask_q8",
+      "type": "MC",
+      "questionText": {
+        "es": "En la representación binaria de una máscara de subred, ¿qué valor de bit (0 o 1) se utiliza para marcar las posiciones correspondientes a la porción de red?",
+        "en": "In the binary representation of a subnet mask, which bit value (0 or 1) is used to mark the positions corresponding to the network portion?"
+      },
+      "options": [
+        { "es": "El bit 0", "en": "Bit 0", "correct": false },
+        { "es": "El bit 1", "en": "Bit 1", "correct": true },
+        { "es": "Se usan ambos (0 y 1) alternativamente.", "en": "Both (0 and 1) are used alternately.", "correct": false },
+        { "es": "Depende de la clase de dirección IP.", "en": "It depends on the IP address class.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Por convención, en la máscara de subred binaria, los bits puestos a '1' indican las posiciones que pertenecen a la porción de red de la dirección IP asociada.",
+        "en": "By convention, in the binary subnet mask, bits set to '1' indicate the positions belonging to the network portion of the associated IP address."
+      }
+    },
+    {
+      "id": "mask_q9",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Cuál de las siguientes máscaras de subred es inválida según el formato y las reglas habituales?",
+        "en": "Which of the following subnet masks is invalid according to the usual format and rules?"
+      },
+      "options": [
+        { "es": "255.255.0.0", "en": "255.255.0.0", "correct": false },
+        { "es": "255.0.0.0", "en": "255.0.0.0", "correct": false },
+        { "es": "255.255.255.255", "en": "255.255.255.255", "correct": false },
+        { "es": "255.255.1.255", "en": "255.255.1.255", "correct": true }
+      ],
+      "explanationText": {
+        "es": "Las máscaras de subred válidas (contiguas) consisten en una secuencia de bits '1' seguida de una secuencia de bits '0'. En binario, 255.255.1.255 sería ...11111111.00000001.11111111, lo cual viola la regla de contigüidad (un '0' seguido de un '1').",
+        "en": "Valid (contiguous) subnet masks consist of a sequence of '1' bits followed by a sequence of '0' bits. In binary, 255.255.1.255 would be ...11111111.00000001.11111111, which violates the contiguity rule (a '0' followed by a '1')."
+      }
+    },
+    {
+      "id": "mask_q10",
+      "type": "VF",
+      "questionText": {
+        "es": "Sin una máscara de subred, un dispositivo IP no podría determinar si otra dirección IP está en su misma red local o en una red remota.",
+        "en": "Without a subnet mask, an IP device could not determine if another IP address is on its own local network or on a remote network."
+      },
+      "options": [
+        { "key": "option_true", "correct": true },
+        { "key": "option_false", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Correcto. Un dispositivo aplica la máscara de subred a su propia IP y a la IP de destino para comparar las porciones de red resultantes. Si coinciden, el destino está en la red local; si no, está en una red remota y debe enviarse al gateway. La máscara es esencial para esta determinación.",
+        "en": "Correct. A device applies the subnet mask to its own IP and the destination IP to compare the resulting network portions. If they match, the destination is on the local network; if not, it's on a remote network and must be sent to the gateway. The mask is essential for this determination."
+      }
+    }
+  ]
 }
