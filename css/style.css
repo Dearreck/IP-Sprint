@@ -2,175 +2,464 @@
 /* Hoja de Estilos Principal para IP Sprint          */
 /* ================================================== */
 
+/* --- Variables CSS (Tema Claro por Defecto) --- */
+:root {
+    /* Paleta Neutra */
+    --bg-color: #f4f7f6;          /* Fondo general (Gris Claro) */
+    --card-bg-color: #ffffff;     /* Fondo tarjetas/contenedores (Blanco) */
+    --text-color: #333333;        /* Texto principal (Gris Oscuro/Carbón) */
+    --secondary-text-color: #6c757d; /* Texto secundario (Gris Medio) */
+    --border-color: #dee2e6;      /* Bordes generales (Gris Borde) */
+    --disabled-color: #ced4da;    /* Elementos desactivados (Gris Desactivado) */
+    --locked-color: #adb5bd;      /* Elementos bloqueados (Gris Bloqueado) */
+
+    /* Paleta Primaria (Azul) */
+    --primary-color: #007bff;     /* Azul Principal (Botones, Activo) */
+    --primary-dark-color: #0056b3; /* Azul Oscuro (Hover, Títulos) */
+    --primary-light-bg: #e7f3ff;  /* Fondo Azul Claro (Hover sutil) */
+
+    /* Paleta de Acentos y Estados */
+    --accent-teal-color: #17a2b8;  /* Verde Azulado (Conexión, Acentos) */
+    --success-color: #28a745;     /* Verde Éxito */
+    --error-color: #dc3545;       /* Rojo Error */
+    --warning-color: #ffc107;     /* Amarillo Precaución/Info */
+    --mastery-color: #6f42c1;     /* Púrpura Maestría (solo para modo Mastery) */
+
+    /* Fuentes */
+    --font-body: 'Montserrat', sans-serif;
+    --font-title: 'Comfortaa', sans-serif;
+
+    /* Otros */
+    --border-radius: 5px;         /* Radio de borde estándar */
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra estándar */
+}
+
 /* --- Estilos Generales --- */
 body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-body);
     line-height: 1.6; margin: 0; padding: 0;
-    background-color: #f4f7f6; color: #333;
+    background-color: var(--bg-color); color: var(--text-color);
     display: flex; flex-direction: column; min-height: 100vh;
     font-weight: 400;
 }
 
 main {
     flex-grow: 1; max-width: 800px; margin: 20px auto;
-    padding: 20px; background-color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); border-radius: 8px;
+    padding: 20px; background-color: var(--card-bg-color);
+    box-shadow: var(--box-shadow); border-radius: 8px; /* Usar radios mayores para main */
     display: flex; flex-direction: column; justify-content: center;
 }
 
 h1, h2 {
-    font-family: 'Comfortaa', sans-serif; color: #0056b3;
+    font-family: var(--font-title); color: var(--primary-dark-color);
     text-align: center; font-weight: 700;
 }
 
-a { color: #0056b3; text-decoration: none; }
-a:hover { text-decoration: underline; }
+h2 {
+    margin-bottom: 25px; /* Más espacio debajo de títulos de sección */
+}
 
-hr { border: 0; height: 1px; background-color: #e0e0e0; margin: 20px 0; }
+a { color: var(--primary-color); text-decoration: none; }
+a:hover { color: var(--primary-dark-color); text-decoration: underline; }
+
+hr { border: 0; height: 1px; background-color: var(--border-color); margin: 20px 0; }
 
 /* --- Estilos Header y Footer --- */
-header { background-color: #007bff; color: #ffffff; padding: 15px 0; text-align: center; position: relative; /* Para posicionar selector de idioma */ }
-header h1 { margin: 0; color: #ffffff; font-size: 2em; font-family: 'Comfortaa', sans-serif; font-weight: 700; }
+header { background-color: var(--primary-color); color: var(--card-bg-color); padding: 15px 0; text-align: center; position: relative; }
+header h1 { margin: 0; color: var(--card-bg-color); font-size: 2em; font-family: var(--font-title); font-weight: 700; }
 
 footer { background-color: #343a40; color: #f8f9fa; text-align: center; padding: 15px 0; margin-top: auto; font-size: 0.9em; }
-footer p { margin: 5px 0; } footer a { color: #adb5bd; } footer a:hover { color: #ffffff; }
-footer img { vertical-align: middle; margin-right: 5px; height: 1em; width: auto; }
+footer p { margin: 5px 0; } footer a { color: var(--locked-color); } footer a:hover { color: var(--card-bg-color); }
+footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color); } /* Icono Telegram */
+
+/* --- Controles Globales (Idioma/Tema) --- */
+.global-controls {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+#language-selector button {
+    background-color: var(--card-bg-color);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 5px 8px;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    font-size: 0.8em;
+    opacity: 0.8;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+    font-weight: bold;
+}
+#language-selector button:hover,
+#language-selector button.active {
+    opacity: 1;
+    background-color: var(--primary-light-bg);
+}
 
 /* --- Estilos Generales para Secciones --- */
 .game-section {
     margin-bottom: 30px;
-    padding: 10px 20px; /* Padding vertical reducido */
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    background-color: #fdfdfd;
+    padding: 15px 20px; /* Padding ajustado */
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--card-bg-color); /* Blanco para secciones */
 }
-
-/* --- Controles Durante Juego --- */
-.game-controls { text-align: right; margin-bottom: 10px; }
-.game-controls button { background-color: #6c757d; color: white; padding: 4px 10px; font-size: 0.8em; margin-left: 8px; box-shadow: none; font-weight: normal; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s ease; }
-.game-controls button:hover { background-color: #5a6268; }
-.game-controls button i { margin-right: 4px; }
 
 /* --- Formulario User Setup --- */
 #user-setup h2 { margin-top: 0; }
 #username-form { display: flex; flex-direction: column; align-items: center; gap: 15px; }
 #username-form label { font-weight: bold; }
-#username-form input[type="text"] { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 80%; max-width: 300px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+#username-form input[type="text"] { padding: 10px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 80%; max-width: 300px; box-sizing: border-box; font-family: var(--font-body); }
 
 /* --- Botones Principales --- */
-button { font-family: 'Montserrat', sans-serif; background-color: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 1em; transition: background-color 0.3s ease, transform 0.1s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); font-weight: 700; }
-button:hover { background-color: #0056b3; }
+button { font-family: var(--font-body); background-color: var(--primary-color); color: var(--card-bg-color); border: none; padding: 12px 25px; border-radius: var(--border-radius); cursor: pointer; font-size: 1em; transition: background-color 0.3s ease, transform 0.1s ease; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); font-weight: 700; }
+button:hover { background-color: var(--primary-dark-color); }
 button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
+button:disabled { background-color: var(--disabled-color); color: var(--secondary-text-color); cursor: not-allowed; box-shadow: none; transform: none; }
 
-/* --- Selección Nivel --- */
-#level-select h2 { margin-bottom: 25px; }
-#level-buttons-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
-#level-buttons-container button { width: 70%; max-width: 300px; padding: 15px; font-size: 1.1em; }
+/* --- NUEVO: Estilos para Selección de Nivel (Stepper + Tarjeta) --- */
+#level-select h2 {
+    margin-bottom: 30px; /* Más espacio antes del stepper */
+}
 
-/* --- Progreso Desbloqueo --- */
-#unlock-progress-section { background-color: #f8f9fa; }
-#unlock-progress { padding: 5px 10px; text-align: center; }
-#unlock-progress h4 { margin-top: 0; margin-bottom: 10px; color: #495057; font-family: 'Montserrat', sans-serif; font-weight: 700; }
-#progress-stars { font-size: 1.5em; color: #ffc107; letter-spacing: 5px; vertical-align: middle; }
+/* Contenedor del Stepper */
+#level-stepper-container {
+    display: flex; /* Alinea los marcadores horizontalmente */
+    justify-content: space-around; /* Espacio entre marcadores */
+    align-items: center; /* Centra verticalmente */
+    margin-bottom: 35px; /* Espacio antes de la tarjeta */
+    padding: 10px 0;
+    position: relative; /* Para las líneas conectoras */
+    overflow-x: auto; /* Permite scroll horizontal si es necesario en pantallas muy pequeñas */
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+    scrollbar-width: none; /* Oculta scrollbar en Firefox */
+}
+#level-stepper-container::-webkit-scrollbar {
+    display: none; /* Oculta scrollbar en Chrome/Safari */
+}
 
-/* --- Área de Juego --- */
-#game-info { text-align: center; margin-bottom: 15px; color: #555; font-size: 0.9em; }
+
+/* Línea conectora base (detrás de los marcadores) */
+#level-stepper-container::before {
+    content: '';
+    position: absolute;
+    top: 50%; /* Centrada verticalmente */
+    left: 10%; /* Ajustar inicio/fin */
+    right: 10%;
+    height: 4px; /* Grosor de la línea */
+    background-color: var(--border-color); /* Color base gris */
+    transform: translateY(-50%);
+    z-index: 1; /* Detrás de los marcadores */
+    border-radius: 2px;
+}
+/* Línea de progreso (se ajustará con JS) */
+#level-stepper-container::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    width: 0%; /* Inicialmente 0, JS ajustará esto */
+    height: 4px;
+    background-color: var(--primary-color); /* Color de progreso azul */
+    transform: translateY(-50%);
+    z-index: 2; /* Encima de la línea base */
+    border-radius: 2px;
+    transition: width 0.5s ease-in-out; /* Animación suave */
+}
+
+/* Marcador individual del Stepper */
+.stepper-item {
+    display: flex;
+    flex-direction: column; /* Icono arriba, texto abajo */
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    padding: 5px 10px; /* Espacio alrededor */
+    position: relative; /* Para z-index */
+    z-index: 3; /* Encima de las líneas */
+    background-color: var(--card-bg-color); /* Fondo blanco para tapar la línea base */
+    transition: transform 0.2s ease;
+    min-width: 80px; /* Ancho mínimo para asegurar espacio */
+}
+.stepper-item:hover {
+    transform: scale(1.05); /* Ligero zoom al pasar el ratón */
+}
+
+/* Círculo/Wrapper del Icono */
+.stepper-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Círculo */
+    background-color: var(--card-bg-color); /* Fondo blanco */
+    border: 3px solid var(--locked-color); /* Borde gris por defecto (bloqueado) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 5px; /* Espacio entre icono y texto */
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Icono dentro del wrapper */
+.stepper-icon-wrapper i {
+    font-size: 1.2em;
+    color: var(--locked-color); /* Color gris por defecto */
+    transition: color 0.3s ease;
+}
+
+/* Etiqueta de texto debajo del icono */
+.stepper-label {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: var(--secondary-text-color); /* Gris por defecto */
+    transition: color 0.3s ease;
+}
+
+/* --- Estados del Stepper Item (se aplicarán con JS) --- */
+.stepper-item.unlocked .stepper-icon-wrapper {
+    border-color: var(--primary-color); /* Borde azul para desbloqueado */
+}
+.stepper-item.unlocked .stepper-icon-wrapper i {
+    color: var(--primary-color); /* Icono azul */
+}
+.stepper-item.unlocked .stepper-label {
+    color: var(--text-color); /* Texto normal */
+}
+
+.stepper-item.completed .stepper-icon-wrapper {
+    border-color: var(--success-color); /* Borde verde para completado */
+    /* Podríamos añadir un check aquí con ::after si quisiéramos */
+}
+.stepper-item.completed .stepper-icon-wrapper i {
+    color: var(--success-color); /* Icono verde */
+}
+.stepper-item.completed .stepper-label {
+    color: var(--success-color); /* Texto verde */
+}
+
+.stepper-item.selected .stepper-icon-wrapper {
+    border-color: var(--primary-dark-color); /* Borde azul oscuro */
+    background-color: var(--primary-color); /* Fondo azul */
+    transform: scale(1.1); /* Más grande cuando seleccionado */
+}
+.stepper-item.selected .stepper-icon-wrapper i {
+    color: var(--card-bg-color); /* Icono blanco */
+}
+.stepper-item.selected .stepper-label {
+    color: var(--primary-dark-color); /* Texto azul oscuro */
+    font-weight: 900;
+}
+
+/* Área de la Tarjeta */
+#level-card-area {
+    margin-top: 20px; /* Espacio después del stepper */
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: #fdfdfd; /* Fondo ligeramente diferente para la tarjeta */
+    min-height: 150px; /* Altura mínima para evitar colapso */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: background-color 0.3s ease; /* Para cambio de tema */
+}
+
+#level-card-content {
+    width: 100%;
+}
+
+/* Estilos dentro de la tarjeta (se generarán con JS, pero preparamos) */
+#level-card-content h3 { /* Título del Nivel */
+    font-family: var(--font-title);
+    color: var(--primary-dark-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.6em;
+}
+#level-card-content .level-icon { /* Icono grande opcional */
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    color: var(--primary-color); /* O color específico del nivel */
+}
+#level-card-content .level-status { /* "Disponible", "Bloqueado" */
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+#level-card-content .level-status.locked {
+    color: var(--locked-color);
+}
+#level-card-content .level-score { /* "Tu Mejor Puntuación: X" */
+    margin-bottom: 15px;
+    color: var(--secondary-text-color);
+}
+#level-card-content .level-score strong {
+    color: var(--text-color);
+    font-size: 1.1em;
+}
+#level-card-content .level-requirement { /* "Necesitas completar..." */
+    margin-bottom: 20px;
+    color: var(--warning-color); /* Usar amarillo para destacar requisito */
+    font-style: italic;
+    font-size: 0.9em;
+    padding: 5px 10px;
+    background-color: #fff3cd; /* Fondo amarillo pálido */
+    border-radius: var(--border-radius);
+    display: inline-block;
+}
+#level-card-content .level-requirement i { /* Icono candado */
+    margin-right: 5px;
+    color: var(--warning-color);
+}
+#level-card-content .start-level-button { /* Botón "Iniciar Nivel" */
+    padding: 15px 30px; /* Botón más grande */
+    font-size: 1.1em;
+}
+/* --- FIN NUEVO: Estilos Selección Nivel --- */
+
+
+/* --- Estilos Área de Juego (Revisar si algo necesita ajuste) --- */
+.game-controls { text-align: right; margin-bottom: 10px; }
+.game-controls button { background-color: var(--secondary-text-color); color: white; padding: 4px 10px; font-size: 0.8em; margin-left: 8px; box-shadow: none; font-weight: normal; border: none; border-radius: var(--border-radius); cursor: pointer; transition: background-color 0.2s ease; }
+.game-controls button:hover { background-color: #5a6268; }
+.game-controls button i { margin-right: 4px; }
+
+#game-info { text-align: center; margin-bottom: 15px; color: var(--secondary-text-color); font-size: 0.9em; }
 #game-info #main-game-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 15px; margin-bottom: 8px; }
 #game-info #main-game-info span { white-space: nowrap; }
-#game-info i { margin-right: 5px; color: #007bff; font-size: 0.95em; vertical-align: baseline; transition: color 0.3s ease, transform 0.3s ease; display: inline-block; }
-#game-info i:hover { color: #0056b3; transform: scale(1.15) rotate(-5deg); cursor: default; }
+#game-info i { margin-right: 5px; color: var(--primary-color); font-size: 0.95em; vertical-align: baseline; transition: color 0.3s ease, transform 0.3s ease; display: inline-block; }
+#game-info i:hover { color: var(--primary-dark-color); transform: scale(1.15) rotate(-5deg); cursor: default; }
 #round-progress-stars { text-align: center; line-height: 1; margin-top: 8px; font-size: 1.1em; }
-#round-progress-stars .star-correct { color: #28a745; margin: 0 1px; }
-#round-progress-stars .star-incorrect { color: #dc3545; margin: 0 1px; }
-#round-progress-stars .star-pending { color: #adb5bd; margin: 0 1px; }
-#round-progress-stars .star-mastery { color: #6f42c1; margin: 0 1px; }
+#round-progress-stars .star-correct { color: var(--success-color); margin: 0 1px; }
+#round-progress-stars .star-incorrect { color: var(--error-color); margin: 0 1px; }
+#round-progress-stars .star-pending { color: var(--locked-color); margin: 0 1px; }
+#round-progress-stars .star-mastery { color: var(--mastery-color); margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-#question-container { width: 80%; margin: 25px auto; text-align: center; font-size: 1.4em; font-weight: bold; color: #333; min-height: 50px; }
+#question-container { width: 90%; /* Más ancho */ margin: 25px auto; text-align: center; font-size: 1.3em; /* Ligeramente más pequeño */ font-weight: bold; color: var(--text-color); min-height: 50px; }
+/* --- NUEVO: Estilos para Teoría --- */
+.theory-presentation {
+    font-size: 0.9em;
+    font-weight: normal;
+    text-align: left;
+    margin-bottom: 15px;
+    padding: 15px; /* Más padding */
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    color: var(--text-color); /* Asegurar color texto */
+}
+hr.theory-separator {
+    border: 0;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 20px 0; /* Más espacio */
+}
+/* --- FIN NUEVO: Estilos Teoría --- */
 #options-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
-.option-button { width: 80%; max-width: 400px; background-color: #6c757d; }
+.option-button { width: 80%; max-width: 450px; /* Un poco más ancho */ background-color: var(--secondary-text-color); }
 .option-button:hover { background-color: #5a6268; }
-.option-button.correct { background-color: #28a745; color: white; }
+.option-button.correct { background-color: var(--success-color); color: white; }
 .option-button.correct:hover { background-color: #218838; }
-.option-button.incorrect { background-color: #dc3545; color: white; }
+.option-button.incorrect { background-color: var(--error-color); color: white; }
 .option-button.incorrect:hover { background-color: #c82333; }
-.option-button.mastery { background-color: #6f42c1; color: white; border-color: #6f42c1; }
+.option-button.mastery { background-color: var(--mastery-color); color: white; border-color: var(--mastery-color); }
 .option-button.mastery:hover { background-color: #5a32a3; border-color: #5a32a3; }
-.option-button.correct.mastery { background-color: #6f42c1; }
+.option-button.correct.mastery { background-color: var(--mastery-color); }
 .option-button.correct.mastery:hover { background-color: #5a32a3; }
 .options-disabled .option-button { pointer-events: none; opacity: 0.7; }
 
 /* --- Timer y Feedback --- */
-#timer-display { color: #007bff; font-size: 0.9em; margin-top: 10px; }
-#timer-display.low-time { color: #dc3545; font-weight: bold; }
-#feedback-area { margin-top: 20px; text-align: center; font-weight: bold; min-height: 5em; padding: 15px; border-radius: 4px; position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; }
+#timer-display { color: var(--primary-color); font-size: 0.9em; margin-top: 10px; }
+#timer-display.low-time { color: var(--error-color); font-weight: bold; }
+#feedback-area { margin-top: 20px; text-align: center; font-weight: bold; min-height: 5em; padding: 15px; border-radius: var(--border-radius); position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; }
 #feedback-area.correct { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
 #feedback-area.incorrect { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
 #feedback-area.mastery { color: #4d1a7f; background-color: #e9d8f3; border: 1px solid #d3b6e3; }
 #feedback-text-content { margin-bottom: 10px; flex-grow: 1; text-align: left; width: 100%; }
-#feedback-text-content .explanation { font-weight: normal; font-size: 1em; margin-top: 8px; color: #333; display: block; }
-.explanation-table { width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 0.85em; background-color: #fff; }
-.explanation-table th, .explanation-table td { border: 1px solid #ccc; padding: 4px 8px; text-align: center; font-weight: normal; }
+#feedback-text-content .explanation { font-weight: normal; font-size: 1em; margin-top: 8px; color: var(--text-color); display: block; }
+.explanation-table { width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 0.85em; background-color: var(--card-bg-color); }
+.explanation-table th, .explanation-table td { border: 1px solid var(--border-color); padding: 4px 8px; text-align: center; font-weight: normal; }
 .explanation-table th { background-color: #e9ecef; font-weight: bold; }
 .explanation-table .highlight-row td { background-color: #d4edda; font-weight: bold; }
-#next-question-button { padding: 5px 15px; font-size: 0.85em; background-color: #28a745; align-self: flex-end; margin-top: auto; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease, transform 0.1s ease; }
+#next-question-button { padding: 5px 15px; font-size: 0.85em; background-color: var(--success-color); align-self: flex-end; margin-top: auto; color: white; border: none; border-radius: var(--border-radius); cursor: pointer; transition: background-color 0.3s ease, transform 0.1s ease; }
 #next-question-button:hover { background-color: #218838; }
 
 /* --- Game Over --- */
 #game-over { text-align: center; }
-#game-over h2 { color: #dc3545; }
-#final-score { font-size: 1.8em; color: #0056b3; }
-#high-score-message { font-style: italic; color: #17a2b8; min-height: 1.2em; }
-#play-again-button { margin-top: 20px; background-color: #28a745; }
+#game-over h2 { color: var(--error-color); }
+#final-score { font-size: 1.8em; color: var(--primary-dark-color); }
+#high-score-message { font-style: italic; color: var(--accent-teal-color); min-height: 1.2em; }
+#play-again-button { margin-top: 20px; background-color: var(--success-color); }
 #play-again-button:hover { background-color: #218838; }
+
+/* --- Progreso Desbloqueo (Podría integrarse en la tarjeta bloqueada) --- */
+#unlock-progress-section { background-color: #f8f9fa; }
+#unlock-progress { padding: 5px 10px; text-align: center; }
+#unlock-progress h4 { margin-top: 0; margin-bottom: 10px; color: #495057; font-family: var(--font-body); font-weight: 700; }
+#progress-stars { font-size: 1.5em; color: var(--warning-color); letter-spacing: 5px; vertical-align: middle; }
 
 /* --- High Scores --- */
 #high-scores-section h2 { margin-bottom: 15px; }
 #score-list { list-style: none; padding: 0; margin: 0; text-align: left; }
-.score-entry { padding: 12px 0; border-bottom: 1px dashed #e0e0e0; }
+.score-entry { padding: 12px 0; border-bottom: 1px dashed var(--border-color); }
 .score-entry:last-child { border-bottom: none; }
-.score-username { font-weight: bold; font-size: 1.2em; color: #333; margin-bottom: 5px; }
-.level-scores { display: flex; flex-wrap: wrap; gap: 5px 15px; font-size: 0.9em; color: #555; padding-left: 10px; }
+.score-username { font-weight: bold; font-size: 1.2em; color: var(--text-color); margin-bottom: 5px; }
+.level-scores { display: flex; flex-wrap: wrap; gap: 5px 15px; font-size: 0.9em; color: var(--secondary-text-color); padding-left: 10px; }
 .level-score-item { white-space: nowrap; }
-.level-score-item strong { color: #0056b3; font-weight: bold; }
-
-/* --- NUEVO: Estilos para el Selector de Idioma --- */
-#language-selector {
-    position: absolute; /* Posiciona relativo al contenedor padre (header) */
-    top: 10px;          /* Espacio desde arriba */
-    right: 15px;         /* Espacio desde la derecha */
-    z-index: 100;        /* Asegura que esté por encima de otros elementos */
-}
-#language-selector button {
-    background-color: #ffffff; /* Fondo blanco */
-    color: #007bff;            /* Texto azul */
-    border: 1px solid #007bff; /* Borde azul */
-    padding: 5px 8px;          /* Relleno pequeño */
-    margin-left: 5px;          /* Espacio entre botones */
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 0.8em;          /* Texto pequeño */
-    opacity: 0.8;              /* Ligeramente transparente por defecto */
-    transition: opacity 0.2s ease, background-color 0.2s ease; /* Transiciones suaves */
-    font-weight: bold;         /* Texto en negrita */
-}
-#language-selector button:hover,
-#language-selector button.active { /* Estilo al pasar el mouse o si está activo */
-    opacity: 1;                /* Opacidad completa */
-    background-color: #e7f3ff; /* Fondo azul claro */
-}
-/* --- Fin Estilos Selector de Idioma --- */
-
+.level-score-item strong { color: var(--primary-dark-color); font-weight: bold; }
 
 /* --- Responsiveness --- */
+@media (max-width: 768px) { /* Ajuste para tablets también */
+    #level-stepper-container {
+        justify-content: flex-start; /* Empieza desde la izquierda */
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+     #level-stepper-container::before, #level-stepper-container::after {
+        left: 5%; /* Ajustar inicio/fin de línea */
+        right: 5%;
+    }
+    .stepper-item {
+        min-width: 65px; /* Más pequeño en tablets */
+        padding: 5px;
+    }
+    .stepper-icon-wrapper {
+        width: 35px;
+        height: 35px;
+    }
+    .stepper-icon-wrapper i {
+        font-size: 1em;
+    }
+    .stepper-label {
+        font-size: 0.7em;
+    }
+    #level-card-area {
+        padding: 20px;
+    }
+    #level-card-content h3 {
+        font-size: 1.4em;
+    }
+}
+
 @media (max-width: 600px) {
     main { margin: 10px; padding: 10px 15px; }
     header h1 { font-size: 1.6em; }
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 10px 15px; }
-    #question-container { font-size: 1.2em; width: 90%; }
+    #question-container { font-size: 1.2em; width: 95%; }
     #game-info #main-game-info { gap: 5px 10px; }
     #game-info i { font-size: 1em; }
-    #level-buttons-container button { width: 90%; padding: 12px; font-size: 1em; }
+    /* Ocultar etiquetas del stepper en móvil, dejar solo iconos */
+    /* .stepper-label { display: none; } */ /* Descomentar si se prefiere solo iconos */
+    .stepper-item { min-width: 55px; } /* Aún más pequeño */
+    #level-card-area { padding: 15px; min-height: 120px;}
+    #level-card-content h3 { font-size: 1.3em; }
+    #level-card-content .start-level-button { padding: 12px 25px; font-size: 1em; }
+
     #unlock-progress h4 { font-size: 0.9em; }
     #unlock-progress { padding: 5px; }
     #progress-stars { font-size: 1.5em; }
@@ -178,17 +467,20 @@ button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 
     .game-controls button { margin: 5px 5px; }
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
+    .global-controls { top: 5px; right: 10px; } /* Ajustar controles globales */
 }
 
-/* Ajuste específico para selector de idioma en pantallas pequeñas */
 @media (max-width: 400px) {
-    #language-selector {
+    .global-controls {
          position: static; /* Quitar posicionamiento absoluto */
-         display: block; /* Hacer que ocupe su propia línea */
-         text-align: center; /* Centrar los botones */
+         display: flex; /* Usar flex para centrar */
+         justify-content: center; /* Centrar los botones */
          margin-bottom: 10px; /* Añadir espacio debajo antes del main */
          margin-top: 5px; /* Añadir espacio arriba */
+         gap: 15px; /* Espacio entre selectores */
     }
     header { padding-bottom: 5px; /* Reducir padding del header para compensar */ }
+    .stepper-item { min-width: 50px; } /* Mínimo absoluto */
+    #level-card-content h3 { font-size: 1.2em; }
 }
 
