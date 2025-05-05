@@ -6,7 +6,7 @@
 // CORREGIDO: displayQuestion guarda clave i18n para opciones V/F.
 // CORREGIDO: displayFeedback redibuja pregunta/opciones y aplica resaltado en refresco.
 // CORREGIDO: displayGameOver añade listener a playAgainButton correctamente.
-// Versión sin console.log de depuración
+// AÑADIDOS: Logs detallados en displayLevelSelection para diagnóstico.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -108,14 +108,54 @@ export function updatePlayerInfo(username, level, score) {
  * @param {function} levelSelectHandler - Función a llamar al seleccionar un nivel.
  */
 export function displayLevelSelection(unlockedLevels, currentUserData, currentUsername, levelSelectHandler) {
-    if (!levelStepperContainer || !levelCardContent || !config.LEVELS || !currentUserData || !currentUsername) {
-        console.error("Error en displayLevelSelection: Faltan elementos del DOM o datos necesarios."); // Mantener error crítico
+    // --- Chequeo Detallado (Temporal para Diagnóstico) ---
+    let errorFound = false;
+    console.log("--- [UI] Chequeo Detallado en displayLevelSelection ---"); // Log inicio chequeo
+    if (!levelStepperContainer) {
+        console.error("[UI] Error: levelStepperContainer no encontrado.");
+        errorFound = true;
+    } else { console.log("[UI] levelStepperContainer: Encontrado"); }
+    if (!levelCardContent) {
+        console.error("[UI] Error: levelCardContent no encontrado.");
+        errorFound = true;
+    } else { console.log("[UI] levelCardContent: Encontrado"); }
+    if (!config.LEVELS || !Array.isArray(config.LEVELS)) {
+        console.error("[UI] Error: config.LEVELS no es un array válido.");
+        errorFound = true;
+    } else { console.log("[UI] config.LEVELS: Válido"); }
+    if (!currentUserData || typeof currentUserData !== 'object') {
+        console.error("[UI] Error: currentUserData no es un objeto válido. Recibido:", currentUserData);
+        errorFound = true;
+    } else {
+         console.log("[UI] currentUserData: Es objeto");
+         // Chequeo adicional para unlockedLevels dentro de currentUserData
+         if (!Array.isArray(currentUserData.unlockedLevels)) {
+             console.error("[UI] Error: currentUserData.unlockedLevels NO es un array válido. Recibido:", currentUserData.unlockedLevels);
+             errorFound = true;
+         } else {
+             console.log("[UI] currentUserData.unlockedLevels: Es array");
+         }
+    }
+    if (!currentUsername || typeof currentUsername !== 'string') {
+        console.error("[UI] Error: currentUsername no es un string válido. Recibido:", currentUsername);
+        errorFound = true;
+    } else { console.log("[UI] currentUsername: Válido"); }
+     if (typeof levelSelectHandler !== 'function') {
+        console.error("[UI] Error: levelSelectHandler NO es una función. Tipo:", typeof levelSelectHandler);
+        errorFound = true;
+    } else { console.log("[UI] levelSelectHandler: Es función"); }
+    console.log("--- [UI] Fin Chequeo Detallado ---"); // Log fin chequeo
+
+
+    if (errorFound) {
         if (levelSelectSection) {
              levelSelectSection.innerHTML = `<p>${getTranslation('error_loading_levels') || 'Error loading levels.'}</p>`;
              showSection(levelSelectSection);
         }
-        return;
+        return; // Detener ejecución si hay error
     }
+    // --- Fin Chequeo Detallado ---
+
 
     levelStepperContainer.innerHTML = '';
     levelCardContent.innerHTML = `<p>${getTranslation('loading_levels') || 'Loading levels...'}</p>`;
