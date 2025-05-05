@@ -1,0 +1,200 @@
+// data/questions_essential.json
+{
+  "purpose": [
+    {
+      "id": "purpose_q1",
+      "type": "VF", // Verdadero/Falso
+      "questionText": {
+        "es": "Una dirección IP funciona de manera similar a una dirección postal, ya que no solo identifica un dispositivo final, sino también dónde se encuentra dentro de la red.",
+        "en": "An IP address functions similarly to a postal address, as it not only identifies an end device but also where it is located within the network."
+      },
+      "options": [
+        // Usamos claves i18n estándar para V/F
+        { "key": "option_true", "correct": true },
+        { "key": "option_false", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Correcto. La dirección IP tiene una doble función: identificar un host específico (como el destinatario en una carta) y su ubicación en la red (como la calle y ciudad), lo cual es esencial para el enrutamiento.",
+        "en": "Correct. The IP address has a dual function: identifying a specific host (like the recipient on a letter) and its location on the network (like the street and city), which is essential for routing."
+      }
+    },
+    {
+      "id": "purpose_q2",
+      "type": "MC", // Opción Múltiple
+      "questionText": {
+        "es": "¿Cuál describe mejor la función principal y dual de una dirección IPv4 en una red?",
+        "en": "Which best describes the primary dual function of an IPv4 address on a network?"
+      },
+      "options": [
+        { "es": "Asignar nombres de dominio a los servidores.", "en": "Assigning domain names to servers.", "correct": false },
+        { "es": "Identificar el fabricante del hardware de red.", "en": "Identifying the network hardware manufacturer.", "correct": false },
+        { "es": "Identificar un dispositivo único y su ubicación lógica en la red.", "en": "Identifying a unique device and its logical location on the network.", "correct": true },
+        { "es": "Garantizar la seguridad física del cableado de red.", "en": "Ensuring the physical security of network cabling.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "La dirección IP es fundamental para identificar unívocamente una interfaz de host y su ubicación en la red, permitiendo así que los paquetes de datos sean dirigidos (enrutados) correctamente hacia él.",
+        "en": "The IP address is fundamental for uniquely identifying a host interface and its location on the network, thus allowing data packets to be correctly directed (routed) to it."
+      }
+    },
+    {
+      "id": "purpose_q3",
+      "type": "MC", // Opción Múltiple (Negación)
+      "questionText": {
+        "es": "¿Cuál de las siguientes opciones NO es una función principal o propósito directo de una dirección IP?",
+        "en": "Which of the following is NOT a primary function or direct purpose of an IP address?"
+      },
+      "options": [
+        { "es": "Permitir el enrutamiento de paquetes a través de diferentes redes.", "en": "Allowing packet routing across different networks.", "correct": false },
+        { "es": "Identificar de forma única una interfaz de red dentro de su red local.", "en": "Uniquely identifying a network interface within its local network.", "correct": false },
+        { "es": "Indicar la ubicación lógica de un dispositivo en la topología de red.", "en": "Indicating the logical location of a device in the network topology.", "correct": false },
+        { "es": "Traducir nombres de dominio (como www.google.com) a direcciones numéricas.", "en": "Translating domain names (like www.google.com) to numerical addresses.", "correct": true } // Esta es la que NO es función de la IP
+      ],
+      "explanationText": {
+        "es": "La traducción de nombres de dominio a direcciones IP es función del sistema DNS (Domain Name System), no de la dirección IP en sí misma. Las direcciones IP se centran en la identificación y localización para el enrutamiento.",
+        "en": "Translating domain names to IP addresses is the function of the DNS (Domain Name System), not the IP address itself. IP addresses focus on identification and location for routing."
+      }
+    },
+    {
+      "id": "purpose_q4",
+      "type": "VF",
+      "questionText": {
+        "es": "Sin direcciones IP, sería imposible enviar datos entre computadoras que se encuentran en redes diferentes (por ejemplo, a través de Internet).",
+        "en": "Without IP addresses, it would be impossible to send data between computers located on different networks (e.g., across the Internet)."
+      },
+      "options": [
+        { "key": "option_true", "correct": true },
+        { "key": "option_false", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Correcto. Las direcciones IP proporcionan la información de localización necesaria para que los routers puedan tomar decisiones y reenviar paquetes entre distintas redes. Sin ellas, el enrutamiento a gran escala no funcionaría.",
+        "en": "Correct. IP addresses provide the necessary location information for routers to make decisions and forward packets between different networks. Without them, large-scale routing would not work."
+      }
+    },
+    {
+      "id": "purpose_q5",
+      "type": "MC", // Escenario
+      "questionText": {
+        "es": "Un usuario en la red A quiere enviar un correo electrónico a un servidor en la red B. ¿Qué información utiliza principalmente el router entre la red A y la red B para dirigir el paquete hacia la red correcta?",
+        "en": "A user on network A wants to send an email to a server on network B. What information does the router between network A and network B primarily use to direct the packet towards the correct network?"
+      },
+      "options": [
+        { "es": "La dirección MAC del servidor de correo.", "en": "The MAC address of the mail server.", "correct": false },
+        { "es": "La dirección IP de destino (del servidor de correo).", "en": "The destination IP address (of the mail server).", "correct": true },
+        { "es": "El número de puerto TCP utilizado por el correo electrónico.", "en": "The TCP port number used by email.", "correct": false },
+        { "es": "El nombre de usuario del destinatario del correo.", "en": "The username of the email recipient.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Los routers operan en la capa de red y utilizan la dirección IP de destino para determinar la ruta y la red hacia la cual reenviar el paquete. La IP proporciona la información de localización necesaria.",
+        "en": "Routers operate at the network layer and use the destination IP address to determine the route and the network to forward the packet to. The IP provides the necessary location information."
+      }
+    },
+    {
+      "id": "purpose_q6",
+      "type": "MC",
+      "questionText": {
+        "es": "El propósito fundamental de tener direcciones IP únicas para cada dispositivo conectado a Internet es:",
+        "en": "The fundamental purpose of having unique IP addresses for each device connected to the Internet is:"
+      },
+      "options": [
+        { "es": "Para que los fabricantes puedan rastrear sus dispositivos vendidos.", "en": "So manufacturers can track their sold devices.", "correct": false },
+        { "es": "Para asegurar que los datos enviados lleguen al destino correcto y no a otro dispositivo.", "en": "To ensure that sent data reaches the correct destination and not another device.", "correct": true },
+        { "es": "Para limitar la cantidad de dispositivos que pueden conectarse a una red.", "en": "To limit the number of devices that can connect to a network.", "correct": false },
+        { "es": "Para determinar la velocidad de conexión del dispositivo.", "en": "To determine the device's connection speed.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "La unicidad de las direcciones IP (en su contexto) es crucial para asegurar que cada dispositivo tenga una identidad y ubicación claras, garantizando así la entrega correcta de los datos al destinatario deseado.",
+        "en": "The uniqueness of IP addresses (in their context) is crucial to ensure that each device has a clear identity and location, thus guaranteeing the correct delivery of data to the intended recipient."
+      }
+    },
+    {
+      "id": "purpose_q7",
+      "type": "VF",
+      "questionText": {
+        "es": "La dirección IP de un dispositivo puede cambiar (por ejemplo, si se mueve a otra red), pero su propósito sigue siendo identificarlo y localizarlo en su red actual.",
+        "en": "A device's IP address can change (e.g., if it moves to another network), but its purpose remains to identify and locate it on its current network."
+      },
+      "options": [
+        { "key": "option_true", "correct": true },
+        { "key": "option_false", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Correcto. Las direcciones IP son direcciones lógicas y pueden cambiar. Sin embargo, independientemente de la dirección específica asignada, su función constante es servir como identificador y localizador del dispositivo dentro de la red a la que está conectado en ese momento.",
+        "en": "Correct. IP addresses are logical addresses and can change. However, regardless of the specific address assigned, their constant function is to serve as an identifier and locator for the device within the network it is currently connected to."
+      }
+    },
+    {
+      "id": "purpose_q8",
+      "type": "MC",
+      "questionText": {
+        "es": "¿Qué capa del modelo OSI se encarga principalmente del direccionamiento lógico utilizando direcciones IP para el enrutamiento entre redes?",
+        "en": "Which layer of the OSI model is primarily responsible for logical addressing using IP addresses for inter-network routing?"
+      },
+      "options": [
+        { "es": "Capa 1 - Física", "en": "Layer 1 - Physical", "correct": false },
+        { "es": "Capa 2 - Enlace de Datos", "en": "Layer 2 - Data Link", "correct": false },
+        { "es": "Capa 3 - Red", "en": "Layer 3 - Network", "correct": true },
+        { "es": "Capa 4 - Transporte", "en": "Layer 4 - Transport", "correct": false }
+      ],
+      "explanationText": {
+        "es": "La Capa de Red (Layer 3) es responsable del direccionamiento lógico (IP) y el enrutamiento de paquetes a través de múltiples redes. Las direcciones IP son el componente clave para esta función.",
+        "en": "The Network Layer (Layer 3) is responsible for logical addressing (IP) and routing packets across multiple networks. IP addresses are the key component for this function."
+      }
+    },
+    {
+      "id": "purpose_q9",
+      "type": "MC", // Negación
+      "questionText": {
+        "es": "Considerando el propósito fundamental de las direcciones IP, ¿cuál de estas afirmaciones es INCORRECTA?",
+        "en": "Considering the fundamental purpose of IP addresses, which of these statements is INCORRECT?"
+      },
+      "options": [
+        { "es": "Las direcciones IP permiten la comunicación global en Internet.", "en": "IP addresses enable global communication on the Internet.", "correct": false },
+        { "es": "Cada dispositivo necesita una dirección IP para ser identificado en una red IP.", "en": "Every device needs an IP address to be identified on an IP network.", "correct": false },
+        { "es": "Las direcciones IP son direcciones físicas grabadas permanentemente en el hardware.", "en": "IP addresses are physical addresses permanently burned into the hardware.", "correct": true }, // Esta es la incorrecta
+        { "es": "Las direcciones IP ayudan a los routers a decidir dónde enviar los paquetes de datos.", "en": "IP addresses help routers decide where to send data packets.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Las direcciones IP son direcciones lógicas, no físicas. Las direcciones físicas grabadas en el hardware son las direcciones MAC (Capa 2). El propósito de la IP es la identificación y localización lógica en la red (Capa 3).",
+        "en": "IP addresses are logical, not physical addresses. The physical addresses burned into hardware are MAC addresses (Layer 2). The purpose of IP is logical identification and location on the network (Layer 3)."
+      }
+    },
+    {
+      "id": "purpose_q10",
+      "type": "MC", // Escenario
+      "questionText": {
+        "es": "Si una página web tarda mucho en cargar, ¿cuál de las siguientes opciones está directamente relacionada con el propósito fundamental de la dirección IP del servidor web?",
+        "en": "If a webpage takes a long time to load, which of the following is directly related to the fundamental purpose of the web server's IP address?"
+      },
+      "options": [
+        { "es": "La dirección IP asegura que tu navegador sabe a qué servidor específico (identificación) y a qué ubicación de red (localización) enviar la solicitud de la página.", "en": "The IP address ensures your browser knows which specific server (identification) and network location (localization) to send the page request to.", "correct": true },
+        { "es": "La dirección IP determina la cantidad de publicidad que mostrará la página web.", "en": "The IP address determines the amount of advertising the webpage will display.", "correct": false },
+        { "es": "La dirección IP encripta la conexión entre tu navegador y el servidor web.", "en": "The IP address encrypts the connection between your browser and the web server.", "correct": false },
+        { "es": "La dirección IP mide la velocidad de descarga de tu conexión a Internet.", "en": "The IP address measures the download speed of your Internet connection.", "correct": false }
+      ],
+      "explanationText": {
+        "es": "Aunque muchos factores afectan la velocidad de carga, la dirección IP del servidor es esencial para que tu solicitud inicial llegue al servidor correcto. Su propósito es identificar y localizar ese servidor en Internet, permitiendo que la comunicación se establezca.",
+        "en": "Although many factors affect loading speed, the server's IP address is essential for your initial request to reach the correct server. Its purpose is to identify and locate that server on the Internet, allowing communication to be established."
+      }
+    }
+  ],
+  "format": [
+    // Aquí irían las ~10 preguntas sobre Formato Decimal Punteado
+    // Ejemplo:
+    // {
+    //   "id": "format_q1",
+    //   "type": "MC",
+    //   "questionText": { "es": "¿Cuál NO es un formato válido?", "en": "Which is NOT a valid format?" },
+    //   "options": [ ... ],
+    //   "explanationText": { "es": "...", "en": "..." }
+    // }
+  ],
+  "binary": [
+    // Aquí irían las ~10 preguntas sobre Estructura Binaria y Octetos
+  ],
+  "portions": [
+    // Aquí irían las ~10 preguntas sobre Porción de Red y Host
+  ],
+  "mask": [
+    // Aquí irían las ~10 preguntas sobre Introducción a la Máscara de Subred
+  ]
+}
