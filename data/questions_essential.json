@@ -175,16 +175,8 @@
       }
     }
   ],
-  "format": [
-    // Dejar vacío por ahora - Aquí irán las preguntas de Formato Decimal
-  ],
-  "binary": [
-    // Dejar vacío por ahora - Aquí irán las preguntas de Binario/Octetos
-  ],
-  "portions": [
-    // Dejar vacío por ahora - Aquí irán las preguntas de Porciones Red/Host
-  ],
-  "mask": [
-    // Dejar vacío por ahora - Aquí irán las preguntas de Introducción a Máscara
-  ]
+  "format": [],
+  "binary": [],
+  "portions": [],
+  "mask": []
 }
