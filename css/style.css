@@ -4,27 +4,38 @@
 
 /* --- Variables CSS (Tema Claro por Defecto) --- */
 :root {
-    /* ... (variables sin cambios) ... */
-    --bg-color: #f4f7f6;
-    --card-bg-color: #ffffff;
-    --text-color: #333333;
-    --secondary-text-color: #6c757d;
-    --border-color: #dee2e6;
-    --disabled-color: #ced4da;
-    --locked-color: #adb5bd;
-    --primary-color: #007bff;
-    --primary-dark-color: #0056b3;
-    --primary-light-bg: #e7f3ff;
-    --accent-teal-color: #17a2b8;
-    --success-color: #28a745;
-    --error-color: #dc3545;
-    --warning-color: #ffc107;
-    --mastery-color: #6f42c1;
+    /* Paleta Neutra */
+    --bg-color: #f4f7f6;          /* Fondo general (Gris Claro) */
+    --card-bg-color: #ffffff;     /* Fondo tarjetas/contenedores (Blanco) */
+    --text-color: #333333;        /* Texto principal (Gris Oscuro/Carbón) */
+    --secondary-text-color: #6c757d; /* Texto secundario (Gris Medio) */
+    --border-color: #dee2e6;      /* Bordes generales (Gris Borde) */
+    --disabled-color: #ced4da;    /* Elementos desactivados (Gris Desactivado) */
+    --locked-color: #adb5bd;      /* Elementos bloqueados (Gris Bloqueado) */
+
+    /* Paleta Primaria (Azul) */
+    --primary-color: #007bff;     /* Azul Principal (Botones, Activo) */
+    --primary-dark-color: #0056b3; /* Azul Oscuro (Hover, Títulos) */
+    --primary-light-bg: #e7f3ff;  /* Fondo Azul Claro (Hover sutil) */
+
+    /* Paleta de Acentos y Estados */
+    --accent-teal-color: #17a2b8;  /* Verde Azulado (Conexión, Acentos) */
+    --success-color: #28a745;     /* Verde Éxito */
+    --error-color: #dc3545;       /* Rojo Error */
+    --warning-color: #ffc107;     /* Amarillo Precaución/Info */
+    --warning-text-color: #856404; /* Texto para fondo amarillo */
+    --warning-bg-color: #fff3cd;   /* Fondo para requisito */
+    --warning-border-color: #ffeeba; /* Borde para requisito */
+    --mastery-color: #6f42c1;     /* Púrpura Maestría (solo para modo Mastery) */
+
+    /* Fuentes */
     --font-body: 'Montserrat', sans-serif;
     --font-title: 'Comfortaa', sans-serif;
-    --border-radius: 5px;
-    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    /* Variable para el progreso del stepper */
+
+    /* Otros */
+    --border-radius: 5px;         /* Radio de borde estándar */
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra estándar */
+    /* Variable para el progreso del stepper (actualizada por JS) */
     --progress-width: 10%;
 }
 
@@ -72,24 +83,28 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
     top: 10px;
     right: 15px;
     display: flex;
-    gap: 10px;
+    gap: 10px; /* Espacio entre toggle de idioma y futuro toggle de tema */
     z-index: 100;
 }
 
-#language-selector button {
+/* Estilo para el botón toggle de idioma */
+#language-toggle-button {
     background-color: var(--card-bg-color);
     color: var(--primary-color);
     border: 1px solid var(--primary-color);
-    padding: 5px 8px;
+    padding: 5px 10px; /* Ajustar padding si es necesario */
     cursor: pointer;
     border-radius: var(--border-radius);
-    font-size: 0.8em;
-    opacity: 0.8;
-    transition: opacity 0.2s ease, background-color 0.2s ease;
+    font-size: 0.85em; /* Ligeramente más grande */
+    opacity: 0.9;     /* Ligeramente más opaco */
+    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
     font-weight: bold;
+    display: inline-flex; /* Para alinear icono y texto */
+    align-items: center;
+    gap: 5px; /* Espacio entre icono y texto */
 }
-#language-selector button:hover,
-#language-selector button.active {
+
+#language-toggle-button:hover {
     opacity: 1;
     background-color: var(--primary-light-bg);
 }
@@ -127,12 +142,12 @@ button:disabled { background-color: var(--disabled-color); color: var(--secondar
     margin-bottom: 35px;
     padding: 10px 0;
     position: relative;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    overflow-x: auto; /* Habilitar scroll horizontal si es necesario */
+    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+    scrollbar-width: none; /* Ocultar scrollbar en Firefox */
 }
 #level-stepper-container::-webkit-scrollbar {
-    display: none;
+    display: none; /* Ocultar scrollbar en Chrome/Safari */
 }
 
 /* Línea base gris */
@@ -140,9 +155,9 @@ button:disabled { background-color: var(--disabled-color); color: var(--secondar
     content: '';
     position: absolute;
     top: 50%;
-    /* Ajuste inicial para pantallas anchas */
-    left: 5%; /* Reducir margen inicial */
-    right: 5%; /* Reducir margen final */
+    /* Márgenes ajustados para diferentes tamaños */
+    left: 5%;
+    right: 5%;
     height: 4px;
     background-color: var(--border-color);
     transform: translateY(-50%);
@@ -159,9 +174,9 @@ button:disabled { background-color: var(--disabled-color); color: var(--secondar
     height: 4px;
     background-color: var(--primary-color);
     transform: translateY(-50%);
-    z-index: 2;
+    z-index: 2; /* Encima de la línea base */
     border-radius: 2px;
-    transition: width 0.5s ease-in-out;
+    transition: width 0.5s ease-in-out; /* Animación suave */
 }
 
 .stepper-item {
@@ -172,42 +187,47 @@ button:disabled { background-color: var(--disabled-color); color: var(--secondar
     cursor: pointer;
     padding: 5px 10px;
     position: relative;
-    z-index: 3;
-    background-color: var(--card-bg-color); /* Fondo para tapar línea */
+    z-index: 3; /* Encima de las líneas */
+    background-color: var(--card-bg-color); /* Fondo para tapar la línea */
     transition: transform 0.2s ease;
-    min-width: 80px;
+    min-width: 80px; /* Ancho mínimo para espaciado */
 }
-.stepper-item:hover {
+.stepper-item:hover:not(.locked) { /* Solo aplicar hover si no está bloqueado */
     transform: scale(1.05);
 }
+.stepper-item.locked {
+    cursor: default; /* No mostrar cursor de puntero si está bloqueado */
+}
+
 
 .stepper-icon-wrapper {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     background-color: var(--card-bg-color);
-    border: 3px solid var(--locked-color);
+    border: 3px solid var(--locked-color); /* Gris bloqueado por defecto */
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 5px;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
+    transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.2s ease; /* Añadir transform */
 }
 
 .stepper-icon-wrapper i {
     font-size: 1.2em;
-    color: var(--locked-color);
+    color: var(--locked-color); /* Gris bloqueado por defecto */
     transition: color 0.3s ease;
 }
 
 .stepper-label {
     font-size: 0.8em;
     font-weight: bold;
-    color: var(--secondary-text-color);
+    color: var(--secondary-text-color); /* Gris por defecto */
     transition: color 0.3s ease;
+    margin-top: 2px; /* Pequeño espacio extra */
 }
 
-/* Estados del Stepper Item */
+/* --- Estados del Stepper Item --- */
 .stepper-item.unlocked .stepper-icon-wrapper { border-color: var(--primary-color); }
 .stepper-item.unlocked .stepper-icon-wrapper i { color: var(--primary-color); }
 .stepper-item.unlocked .stepper-label { color: var(--text-color); }
@@ -216,8 +236,12 @@ button:disabled { background-color: var(--disabled-color); color: var(--secondar
 .stepper-item.completed .stepper-icon-wrapper i { color: var(--success-color); }
 .stepper-item.completed .stepper-label { color: var(--success-color); }
 
-.stepper-item.selected .stepper-icon-wrapper { border-color: var(--primary-dark-color); background-color: var(--primary-color); transform: scale(1.1); }
-.stepper-item.selected .stepper-icon-wrapper i { color: var(--card-bg-color); }
+.stepper-item.selected .stepper-icon-wrapper {
+    border-color: var(--primary-dark-color);
+    background-color: var(--primary-color);
+    transform: scale(1.1); /* Más grande cuando seleccionado */
+}
+.stepper-item.selected .stepper-icon-wrapper i { color: var(--card-bg-color); } /* Icono blanco */
 .stepper-item.selected .stepper-label { color: var(--primary-dark-color); font-weight: 900; }
 
 /* Área de la Tarjeta */
@@ -226,14 +250,15 @@ button:disabled { background-color: var(--disabled-color); color: var(--secondar
     padding: 25px;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    background-color: #fdfdfd;
-    min-height: 150px;
+    background-color: #fdfdfd; /* Fondo ligeramente diferente */
+    min-height: 180px; /* Aumentar altura mínima para más contenido */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
     transition: background-color 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* Sombra interior sutil */
 }
 
 #level-card-content { width: 100%; }
@@ -241,13 +266,13 @@ button:disabled { background-color: var(--disabled-color); color: var(--secondar
 /* Estilos dentro de la tarjeta */
 #level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
 #level-card-content .level-icon { font-size: 2.5em; margin-bottom: 15px; color: var(--primary-color); }
-#level-card-content .level-status { font-weight: bold; margin-bottom: 10px; }
+#level-card-content .level-status { font-weight: bold; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
 #level-card-content .level-status.locked { color: var(--locked-color); }
 #level-card-content .level-score { margin-bottom: 15px; color: var(--secondary-text-color); }
 #level-card-content .level-score strong { color: var(--text-color); font-size: 1.1em; }
-#level-card-content .level-requirement { margin-bottom: 20px; color: #856404; /* Marrón oscuro para texto warning */ background-color: #fff3cd; border: 1px solid #ffeeba; /* Borde amarillo pálido */ font-style: italic; font-size: 0.9em; padding: 8px 12px; border-radius: var(--border-radius); display: inline-block; }
-#level-card-content .level-requirement i { margin-right: 5px; color: #856404; } /* Icono info del mismo color */
-#level-card-content .start-level-button { padding: 15px 30px; font-size: 1.1em; }
+#level-card-content .level-requirement { margin-bottom: 20px; color: var(--warning-text-color); background-color: var(--warning-bg-color); border: 1px solid var(--warning-border-color); font-style: italic; font-size: 0.9em; padding: 8px 12px; border-radius: var(--border-radius); display: inline-block; max-width: 90%; }
+#level-card-content .level-requirement i { margin-right: 5px; color: var(--warning-text-color); }
+#level-card-content .start-level-button { padding: 15px 30px; font-size: 1.1em; margin-top: 10px; /* Espacio arriba */ }
 
 
 /* --- Estilos Área de Juego --- */
@@ -324,19 +349,17 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 @media (max-width: 768px) {
     #level-stepper-container {
         justify-content: flex-start;
-        padding-left: 10px; /* Menos padding */
+        padding-left: 10px;
         padding-right: 10px;
     }
-     /* --- AJUSTE LÍNEA BASE STEPPER --- */
      #level-stepper-container::before {
-        left: 2%; /* Más cerca del borde */
-        right: 2%; /* Más cerca del borde */
+        left: 2%;
+        right: 2%;
     }
      #level-stepper-container::after {
-        left: 2%; /* Coincidir con ::before */
-        /* width usa la variable --progress-width, ajustada por JS */
+        left: 2%;
+        /* width usa la variable --progress-width */
     }
-    /* --- FIN AJUSTE --- */
     .stepper-item {
         min-width: 65px;
         padding: 5px;
@@ -367,15 +390,13 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     #question-container { font-size: 1.2em; width: 95%; }
     #game-info #main-game-info { gap: 5px 10px; }
     #game-info i { font-size: 1em; }
-    /* --- AJUSTE LÍNEA BASE STEPPER (MÓVIL) --- */
      #level-stepper-container::before {
-        left: 1%; /* Aún más cerca */
+        left: 1%;
         right: 1%;
     }
      #level-stepper-container::after {
         left: 1%;
     }
-    /* --- FIN AJUSTE --- */
     .stepper-item { min-width: 55px; }
     #level-card-area { padding: 15px; min-height: 120px;}
     #level-card-content h3 { font-size: 1.3em; }
@@ -403,4 +424,3 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     /* Opcional: Ocultar etiquetas en pantallas muy pequeñas */
     /* .stepper-label { display: none; } */
 }
-
