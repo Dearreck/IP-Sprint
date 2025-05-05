@@ -2,6 +2,7 @@
 // ==================================================
 // Lógica Principal del Juego IP Sprint
 // Adaptado para Nivel Essential y UI Stepper+Tarjeta
+// CORREGIDO: Pasa 'currentUsername' explícitamente a ui.displayLevelSelection
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -59,7 +60,7 @@ function getTimerDurationForCurrentLevel() {
  * @param {string} username - Nombre de usuario ingresado.
  */
 export function handleUserLogin(username) {
-    currentUsername = username;
+    currentUsername = username; // Guardar el nombre de usuario globalmente
     try {
         // Obtiene datos existentes o crea datos por defecto
         const allUserData = storage.getAllUserData();
@@ -84,8 +85,9 @@ export function handleUserLogin(username) {
         ui.updatePlayerInfo(currentUsername, '', '');
 
         // Llama a la función de UI para mostrar el stepper y la tarjeta de nivel
-        // Pasa la función selectLevelAndMode como el manejador para cuando se haga clic en un nivel del stepper
-        ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
+        // --- CORREGIDO: Pasar currentUsername explícitamente ---
+        // Pasamos currentUserData (para rachas, etc.) Y currentUsername
+        ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, currentUsername, selectLevelAndMode);
 
         // Carga y muestra las puntuaciones altas globales
         const highScores = storage.loadHighScores();
@@ -361,39 +363,48 @@ function loadNextQuestion() {
     lastMasteryMode = false;
     lastSelectedOriginalValue = null;
 
-    // Calcular resultados
+    // Calcular resultados finales
     const maxScore = config.PERFECT_SCORE;
     const scorePercentage = maxScore > 0 ? Math.round((currentScore / maxScore) * 100) : 0;
     const isPerfect = currentScore === maxScore;
-    const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK;
+    const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK; // >= 90%
 
     try {
         // Cargar datos frescos del usuario antes de modificar
         currentUserData = storage.getUserData(currentUsername);
 
         // --- Lógica de Rachas y Desbloqueo ---
+        // (Asumiendo que Essential es base y no desbloquea nada)
         if (currentLevel === 'Entry') {
+             // Racha para desbloquear Associate (requiere 100%)
              if (isPerfect) {
                  currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1;
+                 // Desbloquear Associate si se alcanzan 3 rachas perfectas y aún no está desbloqueado
                  if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) {
                      currentUserData.unlockedLevels.push('Associate');
-                     // currentUserData.entryPerfectStreak = 0; // Opcional: resetear al desbloquear
+                     // Opcional: Resetear racha al desbloquear
+                     // currentUserData.entryPerfectStreak = 0;
                  }
              } else {
-                 currentUserData.entryPerfectStreak = 0; // Resetear si no fue perfecta
+                 // Si no es perfecta, resetear racha de Entry
+                 currentUserData.entryPerfectStreak = 0;
              }
         } else if (currentLevel === 'Associate') {
-              if (meetsAssociateThreshold) { // Usa el umbral >= 90%
+             // Racha para desbloquear Professional (requiere >= 90%)
+              if (meetsAssociateThreshold) {
                  currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1;
+                 // Desbloquear Professional si se alcanzan 3 rachas >= 90% y aún no está desbloqueado
                  if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) {
                      currentUserData.unlockedLevels.push('Professional');
-                     // currentUserData.associatePerfectStreak = 0; // Opcional: resetear
+                     // Opcional: Resetear racha al desbloquear
+                     // currentUserData.associatePerfectStreak = 0;
                  }
               } else {
-                  currentUserData.associatePerfectStreak = 0; // Resetear si no cumple umbral
+                  // Si no cumple el umbral, resetear racha de Associate
+                  currentUserData.associatePerfectStreak = 0;
               }
         }
-        // Añadir lógica para Professional -> Expert aquí si se implementa
+        // Añadir lógica similar si Professional desbloquea Expert aquí
 
         // Guardar datos actualizados del usuario (niveles, rachas)
         storage.saveUserData(currentUsername, currentUserData);
@@ -453,9 +464,13 @@ export function handlePlayAgain() {
          // Fallback si no hay usuario (no debería ocurrir en flujo normal)
          currentUserData = { unlockedLevels: ['Essential'], entryPerfectStreak: 0, associatePerfectStreak: 0 };
          console.warn("handlePlayAgain llamado sin currentUsername.");
+         // Si no hay usuario, lo mejor es volver al inicio (login)
+         initializeGame();
+         return;
     }
     // Llama a la función de UI para mostrar el stepper/tarjeta actualizados
-    ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
+    // --- CORREGIDO: Pasar currentUsername explícitamente ---
+    ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, currentUsername, selectLevelAndMode);
 }
 
 /**
@@ -536,6 +551,14 @@ export function refreshActiveGameUI() {
         ui.displayQuestion(currentQuestionData, handleAnswerClick);
         // Asegurarse que las opciones estén habilitadas
         if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
+    }
+    // --- CORREGIDO: Refrescar Level Select si estaba activo ---
+    // (Esto maneja el caso de cambiar idioma en la pantalla de selección)
+    else if (ui.levelSelectSection && ui.levelSelectSection.style.display !== 'none') {
+        console.log("Refrescando Level Selection UI por cambio de idioma...");
+        currentUserData = storage.getUserData(currentUsername); // Recargar datos
+        // Pasar username explícitamente
+        ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, currentUsername, selectLevelAndMode);
     }
     // Si no hay ni pregunta ni feedback activo (estado inesperado)
     else {
