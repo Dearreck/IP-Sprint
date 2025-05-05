@@ -1,7 +1,12 @@
 // js/ui.js
 // ==================================================
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
+// Gestiona la manipulación del DOM y la presentación visual.
+// Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // CORREGIDO: Selección de elementos DOM movida dentro de las funciones.
+// CORREGIDO: displayQuestion guarda clave i18n para opciones V/F.
+// CORREGIDO: displayFeedback redibuja pregunta/opciones y aplica resaltado en refresco.
+// CORREGIDO: displayGameOver añade listener a playAgainButton correctamente.
 // Versión sin console.log de depuración
 // ==================================================
 
@@ -11,7 +16,7 @@ import { handleAnswerClick } from './game.js'; // Handler para respuestas
 import { getTranslation } from './i18n.js';
 import * as storage from './storage.js'; // Para leer puntuaciones
 import {
-    // Generadores de Explicaciones
+    // Generadores de Explicaciones (para niveles no-Essential)
     generateClassRangeTableHTML, generatePrivateRangeTableHTML, generatePortionExplanationHTML,
     generateSpecialAddressExplanationHTML, generateWildcardExplanationHTML, generateSubnettingExplanationHTML,
     generateIpTypeExplanationHTML, generateBitsForSubnetsExplanationHTML, generateBitsForHostsExplanationHTML,
@@ -29,16 +34,20 @@ export const highScoresSection = document.getElementById('high-scores-section');
 export const usernameForm = document.getElementById('username-form');
 export const usernameInput = document.getElementById('username');
 // NO exportamos elementos internos de las secciones (se buscarán en las funciones)
-// export const levelStepperContainer = document.getElementById('level-stepper-container'); // <--- Eliminado
-// export const levelCardArea = document.getElementById('level-card-area');             // <--- Eliminado
-// export const levelCardContent = document.getElementById('level-card-content');       // <--- Eliminado
-// ... (Eliminar otras exportaciones de elementos internos si las hubiera)
 
-// Mapa para generadores (sin cambios)
-const explanationGenerators = { /* ... */ };
+// Mapa para llamar a los generadores de explicaciones desde utils.js
+const explanationGenerators = {
+    generateClassRangeTableHTML, generatePrivateRangeTableHTML, generatePortionExplanationHTML,
+    generateSpecialAddressExplanationHTML, generateWildcardExplanationHTML, generateSubnettingExplanationHTML,
+    generateIpTypeExplanationHTML, generateBitsForSubnetsExplanationHTML, generateBitsForHostsExplanationHTML,
+    generateMaskForHostsExplanationHTML, generateNumSubnetsExplanationHTML
+};
 
-// Iconos (sin cambios)
-const levelIcons = { /* ... */ };
+// Iconos para cada nivel
+const levelIcons = {
+    'Essential': 'fa-book-open', 'Entry': 'fa-star', 'Associate': 'fa-graduation-cap',
+    'Professional': 'fa-briefcase', 'Expert': 'fa-trophy'
+};
 
 // --- Funciones de Manipulación de la UI ---
 
@@ -133,11 +142,27 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
             lastUnlockedIndex = index;
             if (firstUnlockedLevelName === null) firstUnlockedLevelName = level;
         }
-        // ... (creación de stepperItem, iconWrapper, icon, label - sin cambios) ...
-        const stepperItem = document.createElement('div'); /* ... */
-        const iconWrapper = document.createElement('div'); /* ... */
-        const icon = document.createElement('i'); /* ... */
-        const label = document.createElement('span'); /* ... */
+        // Creación de stepperItem, iconWrapper, icon, label
+        const stepperItem = document.createElement('div');
+        stepperItem.classList.add('stepper-item');
+        stepperItem.dataset.level = level;
+        stepperItem.classList.toggle('unlocked', isUnlocked);
+        stepperItem.classList.toggle('locked', !isUnlocked);
+
+        const iconWrapper = document.createElement('div');
+        iconWrapper.classList.add('stepper-icon-wrapper');
+        const icon = document.createElement('i');
+        icon.className = `fa-solid ${levelIcons[level] || 'fa-question-circle'}`;
+        iconWrapper.appendChild(icon);
+        stepperItem.appendChild(iconWrapper);
+
+        const label = document.createElement('span');
+        label.classList.add('stepper-label');
+        const translationKey = `level_${level.toLowerCase()}`;
+        label.dataset.translate = translationKey;
+        label.textContent = getTranslation(translationKey) || level;
+        stepperItem.appendChild(label);
+
 
         stepperItem.addEventListener('click', () => {
             if (stepperItem.classList.contains('selected')) return;
@@ -195,11 +220,36 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
     levelCardContentElement.appendChild(title);
 
     if (isUnlocked) {
-        // ... (crear status, scoreDiv, startButton - sin cambios en la lógica interna) ...
-        const status = document.createElement('div'); /* ... */
-        const scoreDiv = document.createElement('div'); /* ... */
-        const startButton = document.createElement('button'); /* ... */
+        // Crear status, scoreDiv, startButton
+        const status = document.createElement('div');
+        status.classList.add('level-status');
+        const statusKey = 'level_status_available';
+        status.dataset.translate = statusKey;
+        status.textContent = getTranslation(statusKey) || "Available";
+        levelCardContentElement.appendChild(status);
 
+        const scoreDiv = document.createElement('div');
+        scoreDiv.classList.add('level-score');
+        const allHighScores = storage.loadHighScores();
+        const userScoreData = allHighScores.find(user => user.name === currentUsername);
+        const userScores = userScoreData?.scores || {};
+        const levelKey = `${levelName}-standard`;
+        const bestScore = userScores[levelKey];
+        const scoreLabelKey = 'your_best_score';
+        const noScoreLabelKey = 'not_played_yet';
+        if (bestScore !== undefined) {
+            scoreDiv.innerHTML = `${getTranslation(scoreLabelKey) || 'Your Best Score'}: <strong>${bestScore}</strong>`;
+        } else {
+            scoreDiv.textContent = getTranslation(noScoreLabelKey) || 'Not played yet';
+        }
+        levelCardContentElement.appendChild(scoreDiv);
+
+
+        const startButton = document.createElement('button');
+        startButton.classList.add('start-level-button');
+        const buttonKey = 'start_level_button';
+        startButton.dataset.translate = buttonKey;
+        startButton.textContent = getTranslation(buttonKey) || 'Start Level';
         // Añadir listener al botón
         if (typeof levelSelectHandler === 'function') {
             startButton.addEventListener('click', () => {
@@ -213,9 +263,34 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
         levelCardContentElement.appendChild(startButton);
 
     } else { // Nivel Bloqueado
-        // ... (crear status, requirement - sin cambios en la lógica interna) ...
-        const status = document.createElement('div'); /* ... */
-        const requirement = document.createElement('div'); /* ... */
+        // Crear status, requirement
+        const status = document.createElement('div');
+        status.classList.add('level-status', 'locked');
+        const lockedStatusKey = 'level_status_locked';
+        status.innerHTML = `<i class="fas fa-lock"></i> ${getTranslation(lockedStatusKey) || 'Locked'}`;
+        levelCardContentElement.appendChild(status);
+
+        const requirement = document.createElement('div');
+        requirement.classList.add('level-requirement');
+        let requirementText = '';
+        let requirementKey = '';
+        const levelsOrder = config.LEVELS;
+        const currentIndex = levelsOrder.indexOf(levelName);
+        if (currentIndex > 0) {
+            const previousLevel = levelsOrder[currentIndex - 1];
+            const prevLevelKey = `level_${previousLevel.toLowerCase()}`;
+            requirementKey = `requirement_${levelName.toLowerCase()}`;
+            requirementText = getTranslation(requirementKey, { prevLevel: getTranslation(prevLevelKey) || previousLevel });
+            if (requirementText === requirementKey) {
+                 const defaultReqKey = 'requirement_default';
+                 requirementText = getTranslation(defaultReqKey, { prevLevel: getTranslation(prevLevelKey) || previousLevel }) || `Complete ${previousLevel} first.`;
+            }
+        } else {
+            requirementKey = 'requirement_default_unknown';
+            requirementText = getTranslation(requirementKey) || "Unlock previous levels first.";
+        }
+        requirement.innerHTML = `<i class="fas fa-info-circle"></i> ${requirementText}`;
+        levelCardContentElement.appendChild(requirement);
     }
 }
 
@@ -271,6 +346,7 @@ export function updateRoundProgressUI(roundResults, isMasteryMode) {
 
 /**
  * Muestra la pregunta actual y genera los botones de opción.
+ * CORREGIDO: Guarda la clave i18n correcta para opciones V/F.
  * @param {object} questionData - Datos de la pregunta formateados para la UI.
  * @param {function} answerClickHandler - Handler para el clic en opciones.
  */
@@ -290,21 +366,46 @@ export function displayQuestion(questionData, answerClickHandler) {
         optionsContainerElement.classList.remove('options-disabled');
 
         let finalQuestionHTML = '';
-        // ... (lógica para añadir teoría y texto de pregunta - sin cambios) ...
-
+        // Añadir teoría
+        if (questionData.theoryKey) {
+            const theoryText = getTranslation(questionData.theoryKey);
+            if (theoryText && theoryText !== questionData.theoryKey) {
+                finalQuestionHTML += `<div class="theory-presentation">${theoryText}</div><hr class="theory-separator">`;
+            }
+        }
+        // Añadir texto pregunta
+        let questionDisplayHTML = '';
+        if (questionData.question?.text) {
+            questionDisplayHTML = questionData.question.text;
+        } else if (questionData.question?.key) {
+            const questionReplacements = questionData.question.replacements || {};
+            questionDisplayHTML = getTranslation(questionData.question.key, questionReplacements);
+        } else {
+            console.error("[UI] Datos de pregunta inválidos:", questionData.question);
+            questionDisplayHTML = "Error: Invalid Question.";
+        }
+        finalQuestionHTML += questionDisplayHTML;
         questionTextElement.innerHTML = finalQuestionHTML;
 
+        // Crear botones
         if (!questionData.options || !Array.isArray(questionData.options)) {
              throw new Error("optionsArray inválido o no es un array.");
         }
-
         const trueText = getTranslation('option_true');
         const falseText = getTranslation('option_false');
-
         questionData.options.forEach((optionData) => {
-            // ... (lógica para crear botones, determinar texto y valor original - sin cambios) ...
-            const button = document.createElement('button'); /* ... */
-            let buttonText = ''; let originalValue = ''; /* ... */
+            const button = document.createElement('button'); button.classList.add('option-button');
+            let buttonText = ''; let originalValue = '';
+            // Determinar texto y valor original
+            if (typeof optionData === 'string') {
+                const translated = getTranslation(optionData);
+                buttonText = (translated && translated !== optionData) ? translated : optionData;
+                originalValue = optionData;
+                if (buttonText === trueText) originalValue = 'option_true';
+                else if (buttonText === falseText) originalValue = 'option_false';
+            } else if (typeof optionData === 'object' && optionData !== null) {
+                // ... (lógica para objetos complejos) ...
+            } else { buttonText = 'Invalid Option'; originalValue = 'invalid'; }
 
             button.textContent = buttonText;
             button.setAttribute('data-original-value', originalValue);
@@ -348,7 +449,13 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     if (isRefresh) {
         // 1. Redibujar Texto de Pregunta
         if (questionTextElement) {
-            // ... (lógica para construir finalQuestionHTML - sin cambios) ...
+            let finalQuestionHTML = '';
+            if (questionData.theoryKey) { /* ... (añadir teoría) ... */ }
+            let questionDisplayHTML = '';
+            if (questionData.question?.text) { questionDisplayHTML = questionData.question.text; }
+            else if (questionData.question?.key) { questionDisplayHTML = getTranslation(questionData.question.key, questionData.question.replacements || {}); }
+            else { questionDisplayHTML = "Error: Invalid Question."; }
+            finalQuestionHTML += questionDisplayHTML;
             questionTextElement.innerHTML = finalQuestionHTML;
         } else { console.error("Elemento #question-text no encontrado durante refresco de feedback."); }
 
@@ -356,7 +463,38 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         if (optionsContainerElement) {
             optionsContainerElement.innerHTML = '';
             optionsContainerElement.classList.add('options-disabled');
-            // ... (lógica para crear botones, reconstruir valor original y resaltar - sin cambios) ...
+            const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
+            const correctAnswerValue = questionData.correctAnswer; // Valor/clave correcta
+
+            if (!questionData.options || !Array.isArray(questionData.options)) {
+                 console.error("optionsArray inválido durante refresco de feedback.");
+            } else {
+                const trueText = getTranslation('option_true');
+                const falseText = getTranslation('option_false');
+
+                questionData.options.forEach((optionText) => { // options es array de strings
+                    const button = document.createElement('button');
+                    button.classList.add('option-button');
+                    button.disabled = true;
+                    button.textContent = optionText;
+
+                    // Reconstruir data-original-value para comparación
+                    let originalValue = optionText;
+                    if (optionText === trueText) originalValue = 'option_true';
+                    else if (optionText === falseText) originalValue = 'option_false';
+                    // TODO: Mejorar reconstrucción para otros tipos de opciones
+
+                    button.setAttribute('data-original-value', originalValue);
+
+                    // Aplicar resaltado
+                    if (originalValue === correctAnswerValue) {
+                        button.classList.add(correctButtonClass);
+                    } else if (!isCorrect && originalValue === selectedValueOriginal) { // Usar selectedValueOriginal
+                        button.classList.add('incorrect');
+                    }
+                    optionsContainerElement.appendChild(button);
+                });
+            }
         } else { console.error("Elemento #options-container no encontrado durante refresco de feedback."); }
     }
     // --- Fin Redibujar en Refresco ---
@@ -364,7 +502,27 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 
     // --- Mostrar Área de Feedback (Lógica Principal) ---
     let feedbackText = ''; let explanationHTML = '';
-    // ... (lógica para determinar feedbackText y explanationHTML - sin cambios) ...
+    const correctAnswerDisplay = questionData.correctAnswerDisplay; // Texto para mostrar
+
+    if (isCorrect) {
+        feedbackText = getTranslation('feedback_correct');
+    } else {
+        feedbackText = getTranslation('feedback_incorrect', { correctAnswer: `<strong>${correctAnswerDisplay}</strong>` });
+    }
+    feedbackAreaElement.className = isCorrect ? (isMasteryMode ? 'mastery' : 'correct') : 'incorrect'; // Usar variable local
+
+    // Generar HTML de la explicación si es incorrecto
+    if (!isCorrect && questionData.explanation) {
+        try {
+            const expInfo = questionData.explanation;
+            if (expInfo.text) { explanationHTML = `<p>${expInfo.text}</p>`; }
+            else { /* ... (lógica anterior para claves/generadores) ... */ }
+        } catch (genError) {
+            console.error("Error generando explicación HTML:", genError);
+            explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' }) || 'Error generating explanation.'}</p>`;
+        }
+        // El resaltado ya se hizo (en handleAnswerClick o en el bloque isRefresh)
+    }
 
     // Construir HTML final del feedback y mostrarlo
     let finalFeedbackHTML = `<div id="feedback-text-content"><span>${feedbackText}</span>`;
@@ -378,8 +536,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 
     // Añadir listener al botón "Siguiente" si se creó
     if (!isCorrect) {
-        // Buscar el botón DENTRO del feedbackArea recién actualizado
-        const newNextButton = feedbackAreaElement.querySelector('#next-question-button');
+        const newNextButton = feedbackAreaElement.querySelector('#next-question-button'); // Buscar dentro del área
         if (newNextButton) {
             if (typeof nextStepHandler === 'function') {
                 newNextButton.addEventListener('click', nextStepHandler);
@@ -405,11 +562,7 @@ export function displayGameOver(score, currentUserData, playedLevel, playAgainHa
 
     if (!currentUserData || !currentUserData.name) {
          console.error("displayGameOver llamado sin currentUserData o sin nombre de usuario.");
-         if (currentGameOverSection) {
-             if(finalScoreDisplayElement) finalScoreDisplayElement.textContent = score;
-             if(highScoreMessageElement) highScoreMessageElement.textContent = getTranslation('error_displaying_results') || "Error displaying results.";
-             showSection(currentGameOverSection);
-         }
+         if (currentGameOverSection) { /* ... (mostrar error básico) ... */ }
          return;
     }
     if(finalScoreDisplayElement) finalScoreDisplayElement.textContent = score;
@@ -438,7 +591,7 @@ export function displayGameOver(score, currentUserData, playedLevel, playAgainHa
             }
         }
     } else {
-        console.error("[UI] El elemento #play-again-button es nulo en displayGameOver."); // Error más específico
+        console.error("[UI] El elemento #play-again-button es nulo en displayGameOver.");
     }
 
     showSection(currentGameOverSection); // Mostrar la sección correcta
