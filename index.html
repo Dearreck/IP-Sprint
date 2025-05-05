@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es"> <head>
+<html lang="es">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="IP Sprint: Juego interactivo para practicar y aprender direccionamiento IPv4. ¡Pon a prueba tu velocidad y conocimientos!">
@@ -16,12 +17,15 @@
 
     <link rel="stylesheet" href="css/style.css">
 
-    </head>
+</head>
 <body>
-    <div id="language-selector">
-        <button data-lang="es">ES</button>
-        <button data-lang="en">EN</button>
-    </div>
+    <div class="global-controls">
+        <div id="language-selector">
+            <button data-lang="es">ES</button>
+            <button data-lang="en">EN</button>
+        </div>
+        </div>
+
 
     <header>
         <h1 data-translate="app_title">IP Sprint 🚀</h1>
@@ -41,10 +45,17 @@
 
         <section id="level-select" class="game-section" style="display: none;">
             <h2 data-translate="choose_level_title">Elige un Nivel</h2>
-             <div id="level-buttons-container">
-                 <p data-translate="loading_levels">Cargando niveles...</p>
-             </div>
-        </section>
+
+            <div id="level-stepper-container">
+                </div>
+
+            <div id="level-card-area">
+                <div id="level-card-content">
+                    <p data-translate="loading_levels">Selecciona un nivel arriba...</p>
+                </div>
+            </div>
+
+            </section>
 
         <section id="game-area" class="game-section" style="display: none;">
             <div class="game-controls">
@@ -62,7 +73,8 @@
                     <span><i class="fas fa-user"></i> <span data-translate="user_label">Usuario:</span> <span id="username-display"></span></span>
                     <span><i class="fas fa-star"></i> <span data-translate="points_label">Puntos:</span> <span id="score-display">0</span></span>
                 </div>
-                <div id="round-progress-stars" style="margin-top: 8px; font-size: 1.1em;"></div>
+                <div id="round-progress-stars" style="margin-top: 8px; font-size: 1.1em;">
+                    </div>
                 <div id="timer-display" style="margin-top: 8px; font-weight: bold; display: none;">
                     ⏳ <span data-translate="timer_label">Tiempo:</span> <span id="time-left">--</span>s
                 </div>
@@ -74,19 +86,20 @@
             <div id="options-container">
                  </div>
             <div id="feedback-area" style="min-height: 1.5em; margin-top: 1em;">
-                </div>
+                 </div>
         </section>
 
         <section id="game-over" class="game-section" style="display: none;">
             <h2 data-translate="game_over_title">¡Juego Terminado!</h2>
             <p><span data-translate="final_score_label">Tu puntuación final:</span> <strong id="final-score">0</strong></p>
-            <p id="high-score-message"></p> <button id="play-again-button" data-translate="play_again_button">Elegir Nivel</button>
+            <p id="high-score-message"></p>
+            <button id="play-again-button" data-translate="play_again_button">Elegir Nivel</button>
         </section>
 
         <section id="unlock-progress-section" class="game-section" style="display: none;">
              <div id="unlock-progress" style="text-align: center;">
-                 <h4>Progreso para Nivel Associate:</h4>
-                 <span id="progress-stars" style="font-size: 1.5em; color: #ffc107;">☆☆☆</span>
+                 <h4></h4>
+                 <span id="progress-stars" style="font-size: 1.5em; color: #ffc107;"></span>
              </div>
         </section>
 
@@ -103,7 +116,7 @@
         <p data-translate="footer_text_1">Juego "IP Sprint" creado como herramienta de aprendizaje.</p>
         <p>
             <a href="https://t.me/dearreck_channel" target="_blank" rel="noopener noreferrer">
-                <img src="assets/images/paper-plane.png" alt="Icono de Telegram" height="16" style="vertical-align: middle; margin-right: 5px;">
+                <i class="fab fa-telegram-plane" style="margin-right: 5px;"></i>
                 <span data-translate="footer_link_text">Únete al canal CCNA con Dearreck en Telegram</span>
             </a>
         </p>
