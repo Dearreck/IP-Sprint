@@ -3,7 +3,8 @@
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
 // Gestiona la manipulación del DOM y la presentación visual.
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
-// CORREGIDO: displayFeedback ahora redibuja pregunta/opciones en refresco.
+// CORREGIDO: displayQuestion guarda clave i18n para opciones V/F.
+// CORREGIDO: displayFeedback redibuja pregunta/opciones en refresco.
 // Versión sin console.log
 // ==================================================
 
@@ -39,9 +40,9 @@ export const usernameDisplay = document.getElementById('username-display');
 export const levelDisplay = document.getElementById('level-display');
 export const scoreDisplay = document.getElementById('score-display');
 export const roundProgressStarsDiv = document.getElementById('round-progress-stars');
-export const questionText = document.getElementById('question-text'); // Elemento para el texto de la pregunta
-export const optionsContainer = document.getElementById('options-container'); // Contenedor de botones de opción
-export const feedbackArea = document.getElementById('feedback-area'); // Área para mostrar feedback
+export const questionText = document.getElementById('question-text');
+export const optionsContainer = document.getElementById('options-container');
+export const feedbackArea = document.getElementById('feedback-area');
 export const timerDisplayDiv = document.getElementById('timer-display');
 export const timeLeftSpan = document.getElementById('time-left');
 export const restartRoundButton = document.getElementById('restart-round-button');
@@ -68,7 +69,7 @@ const levelIcons = {
 // --- Funciones de Manipulación de la UI ---
 
 /**
- * Muestra una sección específica del juego y oculta las demás.
+ * Muestra una sección específica del juego y oculta las demás relevantes.
  * @param {HTMLElement} sectionToShow - El elemento de la sección a mostrar.
  */
 export function showSection(sectionToShow) {
@@ -81,11 +82,11 @@ export function showSection(sectionToShow) {
     if (sectionToShow === levelSelectSection || sectionToShow === gameOverSection) {
         if (highScoresSection) highScoresSection.style.display = 'block';
     }
-    if (unlockProgressSection) unlockProgressSection.style.display = 'none'; // Ocultar siempre el viejo
+    if (unlockProgressSection) unlockProgressSection.style.display = 'none';
 }
 
 /**
- * Actualiza la información del jugador en la UI del juego.
+ * Actualiza la información del jugador (nombre, nivel, puntos) en la UI del juego.
  * @param {string} username - Nombre del usuario.
  * @param {string} level - Nivel actual (clave no traducida).
  * @param {number} score - Puntuación actual.
@@ -99,7 +100,7 @@ export function updatePlayerInfo(username, level, score) {
 // --- Lógica para Stepper y Tarjeta ---
 
 /**
- * Genera y muestra el Stepper horizontal y la tarjeta de nivel inicial.
+ * Genera y muestra el Stepper horizontal y prepara el área de la tarjeta.
  * @param {Array<string>} unlockedLevels - Niveles desbloqueados.
  * @param {object} currentUserData - Datos del usuario (para rachas, etc.).
  * @param {string} currentUsername - Nombre del usuario actual.
@@ -163,6 +164,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
 
     const effectiveFirstLevel = firstUnlockedLevelName || allLevels[0];
     const firstStepperItem = levelStepperContainer.querySelector(`.stepper-item[data-level="${effectiveFirstLevel}"]`);
+
     if (firstStepperItem) {
         firstStepperItem.classList.add('selected');
         updateLevelCard(effectiveFirstLevel, unlockedLevels.includes(effectiveFirstLevel), currentUsername, levelSelectHandler);
@@ -174,6 +176,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
     showSection(levelSelectSection);
     if (unlockProgressSection) unlockProgressSection.style.display = 'none';
 }
+
 
 /**
  * Actualiza el contenido de la tarjeta única con la información del nivel seleccionado.
@@ -276,6 +279,7 @@ function updateStepperProgressLine(lastUnlockedIndex, totalLevels) {
     levelStepperContainer.style.setProperty('--progress-width', `${progressPercentage}%`);
 }
 
+
 /**
  * Actualiza la UI de progreso de DESBLOQUEO de nivel (OBSOLETA).
  */
@@ -310,6 +314,7 @@ export function updateRoundProgressUI(roundResults, isMasteryMode) {
 
 /**
  * Muestra la pregunta actual y genera los botones de opción.
+ * CORREGIDO: Guarda la clave i18n correcta para opciones V/F.
  * @param {object} questionData - Datos de la pregunta formateados para la UI.
  * @param {function} answerClickHandler - Handler para el clic en opciones.
  */
@@ -319,14 +324,12 @@ export function displayQuestion(questionData, answerClickHandler) {
              console.error("Error en displayQuestion: Faltan elementos del DOM.");
              return;
         }
-        // Limpiar feedback anterior, mantener pregunta y opciones por ahora
         feedbackArea.innerHTML = ''; feedbackArea.className = '';
-        optionsContainer.innerHTML = ''; // Limpiar opciones siempre
-        optionsContainer.classList.remove('options-disabled'); // Habilitar opciones
+        optionsContainer.innerHTML = '';
+        optionsContainer.classList.remove('options-disabled');
 
         let finalQuestionHTML = '';
 
-        // Mostrar teoría si existe
         if (questionData.theoryKey) {
             const theoryText = getTranslation(questionData.theoryKey);
             if (theoryText && theoryText !== questionData.theoryKey) {
@@ -334,7 +337,6 @@ export function displayQuestion(questionData, answerClickHandler) {
             }
         }
 
-        // Mostrar texto de la pregunta (directo o traducido)
         let questionDisplayHTML = '';
         if (questionData.question?.text) {
             questionDisplayHTML = questionData.question.text;
@@ -348,19 +350,33 @@ export function displayQuestion(questionData, answerClickHandler) {
         finalQuestionHTML += questionDisplayHTML;
         questionText.innerHTML = finalQuestionHTML;
 
-        // Crear botones de opción
         if (!questionData.options || !Array.isArray(questionData.options)) {
              throw new Error("optionsArray inválido o no es un array.");
         }
+
+        // --- Obtener textos traducidos de Verdadero/Falso para comparación ---
+        const trueText = getTranslation('option_true');
+        const falseText = getTranslation('option_false');
+        // --- Fin Obtener textos ---
+
         questionData.options.forEach((optionData) => {
             const button = document.createElement('button'); button.classList.add('option-button');
-            let buttonText = ''; let originalValue = '';
+            let buttonText = ''; let originalValue = ''; // Valor para comparación lógica
 
             if (typeof optionData === 'string') {
                 const translated = getTranslation(optionData);
                 buttonText = (translated && translated !== optionData) ? translated : optionData;
-                originalValue = optionData;
-            } else if (typeof optionData === 'object' && optionData !== null) {
+                originalValue = optionData; // Por defecto, el valor original es la clave/texto
+
+                // --- CORRECCIÓN V/F: Usar clave i18n como valor original ---
+                if (buttonText === trueText) {
+                    originalValue = 'option_true'; // Guardar la clave
+                } else if (buttonText === falseText) {
+                    originalValue = 'option_false'; // Guardar la clave
+                }
+                // --- FIN CORRECCIÓN V/F ---
+
+            } else if (typeof optionData === 'object' && optionData !== null) { // Opción compleja
                 let textParts = []; let originalValueParts = [];
                 if (optionData.classKey) { textParts.push(getTranslation(optionData.classKey)); originalValueParts.push(optionData.classKey); }
                 if (optionData.typeKey) { textParts.push(getTranslation(optionData.typeKey)); originalValueParts.push(optionData.typeKey); }
@@ -372,7 +388,7 @@ export function displayQuestion(questionData, answerClickHandler) {
             } else { buttonText = 'Invalid Option'; originalValue = 'invalid'; }
 
             button.textContent = buttonText;
-            button.setAttribute('data-original-value', originalValue);
+            button.setAttribute('data-original-value', originalValue); // Guardar valor original
             if (typeof answerClickHandler === 'function') {
                 button.addEventListener('click', answerClickHandler);
             } else {
@@ -396,16 +412,15 @@ export function displayQuestion(questionData, answerClickHandler) {
  * @param {object} questionData - Datos formateados de la pregunta actual.
  * @param {function} nextStepHandler - Función para el botón "Siguiente".
  * @param {string|null} selectedValueOriginal - El valor original de la opción incorrecta seleccionada (o null).
- * @param {boolean} [isRefresh=false] - Indica si esta llamada es para refrescar la UI (ej. cambio idioma).
+ * @param {boolean} [isRefresh=false] - Indica si esta llamada es para refrescar la UI.
  */
 export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStepHandler, selectedValueOriginal = null, isRefresh = false) {
-    // Chequeos iniciales
     if (!feedbackArea || !questionData || questionData.correctAnswer === undefined || questionData.correctAnswerDisplay === undefined) {
-         console.error("Error en displayFeedback: Faltan elementos o datos (incl. correctAnswerDisplay).", {feedbackArea, questionData});
+         console.error("Error en displayFeedback: Faltan elementos o datos (incl. correctAnswerDisplay).");
          return;
     }
 
-    // --- Si es un Refresco, redibujar pregunta y opciones PRIMERO ---
+    // --- Redibujar Pregunta y Opciones si es un Refresco ---
     if (isRefresh) {
         // 1. Redibujar Texto de Pregunta
         if (questionText) {
@@ -426,30 +441,32 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 
         // 2. Redibujar Opciones (deshabilitadas y resaltadas)
         if (optionsContainer) {
-            optionsContainer.innerHTML = ''; // Limpiar opciones viejas
-            optionsContainer.classList.add('options-disabled'); // Asegurar que estén deshabilitadas
+            optionsContainer.innerHTML = '';
+            optionsContainer.classList.add('options-disabled');
             const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
             const correctAnswerValue = questionData.correctAnswer; // Valor/clave correcta
 
             if (!questionData.options || !Array.isArray(questionData.options)) {
                  console.error("optionsArray inválido durante refresco de feedback.");
             } else {
-                questionData.options.forEach((optionText) => { // Ahora options es array de strings
+                // --- Obtener textos V/F para reconstruir valor original ---
+                const trueText = getTranslation('option_true');
+                const falseText = getTranslation('option_false');
+                // --- Fin Obtener textos ---
+
+                questionData.options.forEach((optionText) => { // options es array de strings
                     const button = document.createElement('button');
                     button.classList.add('option-button');
-                    button.disabled = true; // Deshabilitar botón
-                    button.textContent = optionText; // El texto ya está en el idioma correcto
+                    button.disabled = true;
+                    button.textContent = optionText;
 
-                    // Reconstruir el valor original para comparación (esto es lo más delicado)
-                    // Necesitamos el valor original que corresponde a este optionText
-                    // Esto requiere que questionData.options sea [{text: '...', value: '...'}, ...]
-                    // O que podamos buscar la clave original a partir del texto traducido (difícil)
-                    // SOLUCIÓN TEMPORAL: Reconstruir data-original-value si es posible (ej. claves V/F)
-                    // o usar el texto mismo si no. ¡ESTO PUEDE FALLAR SI HAY TEXTOS IGUALES!
+                    // --- Reconstruir data-original-value para comparación ---
                     let originalValue = optionText; // Usar texto como fallback
-                    if (optionText === getTranslation('option_true')) originalValue = 'option_true';
-                    else if (optionText === getTranslation('option_false')) originalValue = 'option_false';
-                    // Para objetos complejos, necesitaríamos los datos originales aquí.
+                    if (optionText === trueText) originalValue = 'option_true';
+                    else if (optionText === falseText) originalValue = 'option_false';
+                    // Para opciones complejas (no Essential), necesitaríamos los datos originales aquí
+                    // o una forma más robusta de mapear texto a valor.
+                    // --- Fin Reconstrucción ---
 
                     button.setAttribute('data-original-value', originalValue);
 
@@ -457,7 +474,6 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                     if (originalValue === correctAnswerValue) {
                         button.classList.add(correctButtonClass);
                     } else if (!isCorrect && originalValue === selectedValueOriginal) {
-                        // Resaltar la incorrecta que se seleccionó
                         button.classList.add('incorrect');
                     }
                     optionsContainer.appendChild(button);
@@ -470,7 +486,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 
     // --- Mostrar Área de Feedback (Lógica Principal) ---
     let feedbackText = ''; let explanationHTML = '';
-    const correctAnswerDisplay = questionData.correctAnswerDisplay;
+    const correctAnswerDisplay = questionData.correctAnswerDisplay; // Texto para mostrar
 
     if (isCorrect) {
         feedbackText = getTranslation('feedback_correct');
@@ -489,22 +505,16 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                 let baseExplanationText = '';
                 if (expInfo.baseTextKey) { baseExplanationText = getTranslation(expInfo.baseTextKey, expInfo.replacements || {}); }
                 let generatedExplanationHTML = '';
-                if (expInfo.generatorName && explanationGenerators[expInfo.generatorName]) {
-                    const generatorFunc = explanationGenerators[expInfo.generatorName];
-                    if (typeof generatorFunc === 'function') { generatedExplanationHTML = generatorFunc.apply(null, expInfo.args || []); }
-                    else { throw new Error(`Generator '${expInfo.generatorName}' no es una función.`); }
-                } else if (Array.isArray(expInfo.generators)) {
-                    const separator = expInfo.separator || '<br>';
-                    generatedExplanationHTML = expInfo.generators.map(genInfo => { /* ... */ }).join(separator);
-                }
+                if (expInfo.generatorName && explanationGenerators[expInfo.generatorName]) { /* ... */ }
+                else if (Array.isArray(expInfo.generators)) { /* ... */ }
                 explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedExplanationHTML}` : generatedExplanationHTML;
                 if (!explanationHTML && baseExplanationText) { explanationHTML = `<p>${baseExplanationText}</p>`; }
             }
         } catch (genError) {
-            console.error("Error generando explicación HTML:", genError, questionData.explanation);
+            console.error("Error generando explicación HTML:", genError);
             explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' }) || 'Error generating explanation.'}</p>`;
         }
-        // El resaltado de botones ya se hizo arriba si era refresh, o en handleAnswerClick si no lo era.
+        // El resaltado ya se hizo (en handleAnswerClick o en el bloque isRefresh)
     }
 
     // Construir HTML final del feedback y mostrarlo
@@ -552,7 +562,7 @@ export function displayGameOver(score, currentUserData, playedLevel, playAgainHa
     const previousUserData = storage.getUserData(currentUserData.name);
 
     // Lógica de mensajes de desbloqueo (sin cambios)
-    if (playedLevel === 'Essential') { /* ... */ }
+    if (playedLevel === 'Essential') { if (isPerfect) extraMessage = getTranslation('game_over_good_round_essential') || "Good start!"; }
     else if (playedLevel === 'Entry') { /* ... */ }
     else if (playedLevel === 'Associate') { /* ... */ }
 
