@@ -1,15 +1,13 @@
-// data/questions_essential.json
 {
   "purpose": [
     {
       "id": "purpose_q1",
-      "type": "VF", // Verdadero/Falso
+      "type": "VF",
       "questionText": {
         "es": "Una dirección IP funciona de manera similar a una dirección postal, ya que no solo identifica un dispositivo final, sino también dónde se encuentra dentro de la red.",
         "en": "An IP address functions similarly to a postal address, as it not only identifies an end device but also where it is located within the network."
       },
       "options": [
-        // Usamos claves i18n estándar para V/F
         { "key": "option_true", "correct": true },
         { "key": "option_false", "correct": false }
       ],
@@ -20,7 +18,7 @@
     },
     {
       "id": "purpose_q2",
-      "type": "MC", // Opción Múltiple
+      "type": "MC",
       "questionText": {
         "es": "¿Cuál describe mejor la función principal y dual de una dirección IPv4 en una red?",
         "en": "Which best describes the primary dual function of an IPv4 address on a network?"
@@ -38,7 +36,7 @@
     },
     {
       "id": "purpose_q3",
-      "type": "MC", // Opción Múltiple (Negación)
+      "type": "MC",
       "questionText": {
         "es": "¿Cuál de las siguientes opciones NO es una función principal o propósito directo de una dirección IP?",
         "en": "Which of the following is NOT a primary function or direct purpose of an IP address?"
@@ -47,7 +45,7 @@
         { "es": "Permitir el enrutamiento de paquetes a través de diferentes redes.", "en": "Allowing packet routing across different networks.", "correct": false },
         { "es": "Identificar de forma única una interfaz de red dentro de su red local.", "en": "Uniquely identifying a network interface within its local network.", "correct": false },
         { "es": "Indicar la ubicación lógica de un dispositivo en la topología de red.", "en": "Indicating the logical location of a device in the network topology.", "correct": false },
-        { "es": "Traducir nombres de dominio (como www.google.com) a direcciones numéricas.", "en": "Translating domain names (like www.google.com) to numerical addresses.", "correct": true } // Esta es la que NO es función de la IP
+        { "es": "Traducir nombres de dominio (como www.google.com) a direcciones numéricas.", "en": "Translating domain names (like www.google.com) to numerical addresses.", "correct": true }
       ],
       "explanationText": {
         "es": "La traducción de nombres de dominio a direcciones IP es función del sistema DNS (Domain Name System), no de la dirección IP en sí misma. Las direcciones IP se centran en la identificación y localización para el enrutamiento.",
@@ -72,7 +70,7 @@
     },
     {
       "id": "purpose_q5",
-      "type": "MC", // Escenario
+      "type": "MC",
       "questionText": {
         "es": "Un usuario en la red A quiere enviar un correo electrónico a un servidor en la red B. ¿Qué información utiliza principalmente el router entre la red A y la red B para dirigir el paquete hacia la red correcta?",
         "en": "A user on network A wants to send an email to a server on network B. What information does the router between network A and network B primarily use to direct the packet towards the correct network?"
@@ -142,7 +140,7 @@
     },
     {
       "id": "purpose_q9",
-      "type": "MC", // Negación
+      "type": "MC",
       "questionText": {
         "es": "Considerando el propósito fundamental de las direcciones IP, ¿cuál de estas afirmaciones es INCORRECTA?",
         "en": "Considering the fundamental purpose of IP addresses, which of these statements is INCORRECT?"
@@ -150,7 +148,7 @@
       "options": [
         { "es": "Las direcciones IP permiten la comunicación global en Internet.", "en": "IP addresses enable global communication on the Internet.", "correct": false },
         { "es": "Cada dispositivo necesita una dirección IP para ser identificado en una red IP.", "en": "Every device needs an IP address to be identified on an IP network.", "correct": false },
-        { "es": "Las direcciones IP son direcciones físicas grabadas permanentemente en el hardware.", "en": "IP addresses are physical addresses permanently burned into the hardware.", "correct": true }, // Esta es la incorrecta
+        { "es": "Las direcciones IP son direcciones físicas grabadas permanentemente en el hardware.", "en": "IP addresses are physical addresses permanently burned into the hardware.", "correct": true },
         { "es": "Las direcciones IP ayudan a los routers a decidir dónde enviar los paquetes de datos.", "en": "IP addresses help routers decide where to send data packets.", "correct": false }
       ],
       "explanationText": {
@@ -160,7 +158,7 @@
     },
     {
       "id": "purpose_q10",
-      "type": "MC", // Escenario
+      "type": "MC",
       "questionText": {
         "es": "Si una página web tarda mucho en cargar, ¿cuál de las siguientes opciones está directamente relacionada con el propósito fundamental de la dirección IP del servidor web?",
         "en": "If a webpage takes a long time to load, which of the following is directly related to the fundamental purpose of the web server's IP address?"
@@ -178,23 +176,15 @@
     }
   ],
   "format": [
-    // Aquí irían las ~10 preguntas sobre Formato Decimal Punteado
-    // Ejemplo:
-    // {
-    //   "id": "format_q1",
-    //   "type": "MC",
-    //   "questionText": { "es": "¿Cuál NO es un formato válido?", "en": "Which is NOT a valid format?" },
-    //   "options": [ ... ],
-    //   "explanationText": { "es": "...", "en": "..." }
-    // }
+    // Dejar vacío por ahora - Aquí irán las preguntas de Formato Decimal
   ],
   "binary": [
-    // Aquí irían las ~10 preguntas sobre Estructura Binaria y Octetos
+    // Dejar vacío por ahora - Aquí irán las preguntas de Binario/Octetos
   ],
   "portions": [
-    // Aquí irían las ~10 preguntas sobre Porción de Red y Host
+    // Dejar vacío por ahora - Aquí irán las preguntas de Porciones Red/Host
   ],
   "mask": [
-    // Aquí irían las ~10 preguntas sobre Introducción a la Máscara de Subred
+    // Dejar vacío por ahora - Aquí irán las preguntas de Introducción a Máscara
   ]
 }
