@@ -1,16 +1,16 @@
 // js/main.js
 // ==================================================
 // Punto de Entrada Principal y Manejo de Eventos Globales
-// CORREGIDO: Asegura que el listener para #play-again-button se añada correctamente.
+// ELIMINADO: Listener para #play-again-button (se moverá a ui.js)
 // ==================================================
 
 // --- Importaciones de Módulos ---
 import * as storage from './storage.js';
-import * as ui from './ui.js'; // Todavía importamos ui para otras referencias
+import * as ui from './ui.js';
 // Importar funciones específicas necesarias de game.js
 import {
     handleUserLogin,
-    handlePlayAgain, // <--- Importamos el handler
+    // handlePlayAgain, // Ya no necesitamos importar el handler aquí directamente
     handleRestartRound,
     handleExitToMenu,
     selectLevelAndMode,
@@ -62,18 +62,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error("[Main] #username-form no encontrado");
     }
 
-    // --- CORREGIDO: Listener para el botón "Jugar de Nuevo" ---
-    // Buscar el botón directamente aquí para asegurar que existe en el DOM
-    const playAgainButtonElement = document.getElementById('play-again-button');
-    if (playAgainButtonElement) {
-        // Añadir el listener usando la función importada de game.js
-        playAgainButtonElement.addEventListener('click', handlePlayAgain);
-        console.log("[Main] Listener añadido a #play-again-button."); // Log confirmación
-    } else {
-        // Este mensaje ya no debería aparecer si el ID es correcto en index.html
-        console.error("[Main] #play-again-button no encontrado al añadir listener.");
-    }
-    // --- FIN CORRECCIÓN ---
+    // --- ELIMINADO: Listener para el botón "Jugar de Nuevo" ---
+    // const playAgainButtonElement = document.getElementById('play-again-button');
+    // if (playAgainButtonElement) {
+    //     playAgainButtonElement.addEventListener('click', handlePlayAgain); // <--- ELIMINADO
+    //     console.log("[Main] Listener añadido a #play-again-button.");
+    // } else {
+    //     console.error("[Main] #play-again-button no encontrado al añadir listener.");
+    // }
+    // --- FIN ELIMINADO ---
 
     // Listeners para botones de control durante el juego
     if (ui.restartRoundButton) {
@@ -114,7 +111,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                          const lastScoreText = ui.finalScoreDisplay?.textContent;
                          const lastScore = parseInt(lastScoreText || '0', 10);
                          const lastLevelPlayed = getCurrentLevel();
-                         ui.displayGameOver(lastScore, currentUserData, lastLevelPlayed);
+                         // --- MODIFICADO: Pasar handlePlayAgain a displayGameOver ---
+                         // Necesitaremos ajustar ui.displayGameOver para aceptar este handler
+                         ui.displayGameOver(lastScore, currentUserData, lastLevelPlayed, handlePlayAgain);
                     }
                     else if (ui.gameAreaSection && ui.gameAreaSection.style.display !== 'none') {
                         console.log("[Main] Refrescando Game Area...");
