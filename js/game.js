@@ -5,7 +5,7 @@
 // ==================================================
 
 // --- Importaciones de Módulos ---
-import *:// js/game.js
+// js/game.js
 // ==================================================
 // Lógica Principal del Juego IP Sprint
 // Adaptado para Nivel Essential y UI Stepper+Tarjeta
