@@ -4,34 +4,28 @@
 
 /* --- Variables CSS (Tema Claro por Defecto) --- */
 :root {
-    /* Paleta Neutra */
-    --bg-color: #f4f7f6;          /* Fondo general (Gris Claro) */
-    --card-bg-color: #ffffff;     /* Fondo tarjetas/contenedores (Blanco) */
-    --text-color: #333333;        /* Texto principal (Gris Oscuro/Carbón) */
-    --secondary-text-color: #6c757d; /* Texto secundario (Gris Medio) */
-    --border-color: #dee2e6;      /* Bordes generales (Gris Borde) */
-    --disabled-color: #ced4da;    /* Elementos desactivados (Gris Desactivado) */
-    --locked-color: #adb5bd;      /* Elementos bloqueados (Gris Bloqueado) */
-
-    /* Paleta Primaria (Azul) */
-    --primary-color: #007bff;     /* Azul Principal (Botones, Activo) */
-    --primary-dark-color: #0056b3; /* Azul Oscuro (Hover, Títulos) */
-    --primary-light-bg: #e7f3ff;  /* Fondo Azul Claro (Hover sutil) */
-
-    /* Paleta de Acentos y Estados */
-    --accent-teal-color: #17a2b8;  /* Verde Azulado (Conexión, Acentos) */
-    --success-color: #28a745;     /* Verde Éxito */
-    --error-color: #dc3545;       /* Rojo Error */
-    --warning-color: #ffc107;     /* Amarillo Precaución/Info */
-    --mastery-color: #6f42c1;     /* Púrpura Maestría (solo para modo Mastery) */
-
-    /* Fuentes */
+    /* ... (variables sin cambios) ... */
+    --bg-color: #f4f7f6;
+    --card-bg-color: #ffffff;
+    --text-color: #333333;
+    --secondary-text-color: #6c757d;
+    --border-color: #dee2e6;
+    --disabled-color: #ced4da;
+    --locked-color: #adb5bd;
+    --primary-color: #007bff;
+    --primary-dark-color: #0056b3;
+    --primary-light-bg: #e7f3ff;
+    --accent-teal-color: #17a2b8;
+    --success-color: #28a745;
+    --error-color: #dc3545;
+    --warning-color: #ffc107;
+    --mastery-color: #6f42c1;
     --font-body: 'Montserrat', sans-serif;
     --font-title: 'Comfortaa', sans-serif;
-
-    /* Otros */
-    --border-radius: 5px;         /* Radio de borde estándar */
-    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra estándar */
+    --border-radius: 5px;
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Variable para el progreso del stepper */
+    --progress-width: 10%;
 }
 
 /* --- Estilos Generales --- */
@@ -46,7 +40,7 @@ body {
 main {
     flex-grow: 1; max-width: 800px; margin: 20px auto;
     padding: 20px; background-color: var(--card-bg-color);
-    box-shadow: var(--box-shadow); border-radius: 8px; /* Usar radios mayores para main */
+    box-shadow: var(--box-shadow); border-radius: 8px;
     display: flex; flex-direction: column; justify-content: center;
 }
 
@@ -56,7 +50,7 @@ h1, h2 {
 }
 
 h2 {
-    margin-bottom: 25px; /* Más espacio debajo de títulos de sección */
+    margin-bottom: 25px;
 }
 
 a { color: var(--primary-color); text-decoration: none; }
@@ -70,7 +64,7 @@ header h1 { margin: 0; color: var(--card-bg-color); font-size: 2em; font-family:
 
 footer { background-color: #343a40; color: #f8f9fa; text-align: center; padding: 15px 0; margin-top: auto; font-size: 0.9em; }
 footer p { margin: 5px 0; } footer a { color: var(--locked-color); } footer a:hover { color: var(--card-bg-color); }
-footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color); } /* Icono Telegram */
+footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color); }
 
 /* --- Controles Globales (Idioma/Tema) --- */
 .global-controls {
@@ -103,10 +97,10 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
 /* --- Estilos Generales para Secciones --- */
 .game-section {
     margin-bottom: 30px;
-    padding: 15px 20px; /* Padding ajustado */
+    padding: 15px 20px;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    background-color: var(--card-bg-color); /* Blanco para secciones */
+    background-color: var(--card-bg-color);
 }
 
 /* --- Formulario User Setup --- */
@@ -121,208 +115,142 @@ button:hover { background-color: var(--primary-dark-color); }
 button:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
 button:disabled { background-color: var(--disabled-color); color: var(--secondary-text-color); cursor: not-allowed; box-shadow: none; transform: none; }
 
-/* --- NUEVO: Estilos para Selección de Nivel (Stepper + Tarjeta) --- */
+/* --- Estilos Selección de Nivel (Stepper + Tarjeta) --- */
 #level-select h2 {
-    margin-bottom: 30px; /* Más espacio antes del stepper */
+    margin-bottom: 30px;
 }
 
-/* Contenedor del Stepper */
 #level-stepper-container {
-    display: flex; /* Alinea los marcadores horizontalmente */
-    justify-content: space-around; /* Espacio entre marcadores */
-    align-items: center; /* Centra verticalmente */
-    margin-bottom: 35px; /* Espacio antes de la tarjeta */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 35px;
     padding: 10px 0;
-    position: relative; /* Para las líneas conectoras */
-    overflow-x: auto; /* Permite scroll horizontal si es necesario en pantallas muy pequeñas */
-    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
-    scrollbar-width: none; /* Oculta scrollbar en Firefox */
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
 #level-stepper-container::-webkit-scrollbar {
-    display: none; /* Oculta scrollbar en Chrome/Safari */
+    display: none;
 }
 
-
-/* Línea conectora base (detrás de los marcadores) */
+/* Línea base gris */
 #level-stepper-container::before {
     content: '';
     position: absolute;
-    top: 50%; /* Centrada verticalmente */
-    left: 10%; /* Ajustar inicio/fin */
-    right: 10%;
-    height: 4px; /* Grosor de la línea */
-    background-color: var(--border-color); /* Color base gris */
+    top: 50%;
+    /* Ajuste inicial para pantallas anchas */
+    left: 5%; /* Reducir margen inicial */
+    right: 5%; /* Reducir margen final */
+    height: 4px;
+    background-color: var(--border-color);
     transform: translateY(-50%);
-    z-index: 1; /* Detrás de los marcadores */
+    z-index: 1;
     border-radius: 2px;
 }
-/* Línea de progreso (se ajustará con JS) */
+/* Línea de progreso azul */
 #level-stepper-container::after {
     content: '';
     position: absolute;
     top: 50%;
-    left: 10%;
-    width: 0%; /* Inicialmente 0, JS ajustará esto */
+    left: 5%; /* Coincidir con ::before */
+    width: var(--progress-width, 5%); /* Usar variable CSS, fallback 5% */
     height: 4px;
-    background-color: var(--primary-color); /* Color de progreso azul */
+    background-color: var(--primary-color);
     transform: translateY(-50%);
-    z-index: 2; /* Encima de la línea base */
+    z-index: 2;
     border-radius: 2px;
-    transition: width 0.5s ease-in-out; /* Animación suave */
+    transition: width 0.5s ease-in-out;
 }
 
-/* Marcador individual del Stepper */
 .stepper-item {
     display: flex;
-    flex-direction: column; /* Icono arriba, texto abajo */
+    flex-direction: column;
     align-items: center;
     text-align: center;
     cursor: pointer;
-    padding: 5px 10px; /* Espacio alrededor */
-    position: relative; /* Para z-index */
-    z-index: 3; /* Encima de las líneas */
-    background-color: var(--card-bg-color); /* Fondo blanco para tapar la línea base */
+    padding: 5px 10px;
+    position: relative;
+    z-index: 3;
+    background-color: var(--card-bg-color); /* Fondo para tapar línea */
     transition: transform 0.2s ease;
-    min-width: 80px; /* Ancho mínimo para asegurar espacio */
+    min-width: 80px;
 }
 .stepper-item:hover {
-    transform: scale(1.05); /* Ligero zoom al pasar el ratón */
+    transform: scale(1.05);
 }
 
-/* Círculo/Wrapper del Icono */
 .stepper-icon-wrapper {
     width: 40px;
     height: 40px;
-    border-radius: 50%; /* Círculo */
-    background-color: var(--card-bg-color); /* Fondo blanco */
-    border: 3px solid var(--locked-color); /* Borde gris por defecto (bloqueado) */
+    border-radius: 50%;
+    background-color: var(--card-bg-color);
+    border: 3px solid var(--locked-color);
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 5px; /* Espacio entre icono y texto */
+    margin-bottom: 5px;
     transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
-/* Icono dentro del wrapper */
 .stepper-icon-wrapper i {
     font-size: 1.2em;
-    color: var(--locked-color); /* Color gris por defecto */
+    color: var(--locked-color);
     transition: color 0.3s ease;
 }
 
-/* Etiqueta de texto debajo del icono */
 .stepper-label {
     font-size: 0.8em;
     font-weight: bold;
-    color: var(--secondary-text-color); /* Gris por defecto */
+    color: var(--secondary-text-color);
     transition: color 0.3s ease;
 }
 
-/* --- Estados del Stepper Item (se aplicarán con JS) --- */
-.stepper-item.unlocked .stepper-icon-wrapper {
-    border-color: var(--primary-color); /* Borde azul para desbloqueado */
-}
-.stepper-item.unlocked .stepper-icon-wrapper i {
-    color: var(--primary-color); /* Icono azul */
-}
-.stepper-item.unlocked .stepper-label {
-    color: var(--text-color); /* Texto normal */
-}
+/* Estados del Stepper Item */
+.stepper-item.unlocked .stepper-icon-wrapper { border-color: var(--primary-color); }
+.stepper-item.unlocked .stepper-icon-wrapper i { color: var(--primary-color); }
+.stepper-item.unlocked .stepper-label { color: var(--text-color); }
 
-.stepper-item.completed .stepper-icon-wrapper {
-    border-color: var(--success-color); /* Borde verde para completado */
-    /* Podríamos añadir un check aquí con ::after si quisiéramos */
-}
-.stepper-item.completed .stepper-icon-wrapper i {
-    color: var(--success-color); /* Icono verde */
-}
-.stepper-item.completed .stepper-label {
-    color: var(--success-color); /* Texto verde */
-}
+.stepper-item.completed .stepper-icon-wrapper { border-color: var(--success-color); }
+.stepper-item.completed .stepper-icon-wrapper i { color: var(--success-color); }
+.stepper-item.completed .stepper-label { color: var(--success-color); }
 
-.stepper-item.selected .stepper-icon-wrapper {
-    border-color: var(--primary-dark-color); /* Borde azul oscuro */
-    background-color: var(--primary-color); /* Fondo azul */
-    transform: scale(1.1); /* Más grande cuando seleccionado */
-}
-.stepper-item.selected .stepper-icon-wrapper i {
-    color: var(--card-bg-color); /* Icono blanco */
-}
-.stepper-item.selected .stepper-label {
-    color: var(--primary-dark-color); /* Texto azul oscuro */
-    font-weight: 900;
-}
+.stepper-item.selected .stepper-icon-wrapper { border-color: var(--primary-dark-color); background-color: var(--primary-color); transform: scale(1.1); }
+.stepper-item.selected .stepper-icon-wrapper i { color: var(--card-bg-color); }
+.stepper-item.selected .stepper-label { color: var(--primary-dark-color); font-weight: 900; }
 
 /* Área de la Tarjeta */
 #level-card-area {
-    margin-top: 20px; /* Espacio después del stepper */
+    margin-top: 20px;
     padding: 25px;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    background-color: #fdfdfd; /* Fondo ligeramente diferente para la tarjeta */
-    min-height: 150px; /* Altura mínima para evitar colapso */
+    background-color: #fdfdfd;
+    min-height: 150px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
-    transition: background-color 0.3s ease; /* Para cambio de tema */
+    transition: background-color 0.3s ease;
 }
 
-#level-card-content {
-    width: 100%;
-}
+#level-card-content { width: 100%; }
 
-/* Estilos dentro de la tarjeta (se generarán con JS, pero preparamos) */
-#level-card-content h3 { /* Título del Nivel */
-    font-family: var(--font-title);
-    color: var(--primary-dark-color);
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.6em;
-}
-#level-card-content .level-icon { /* Icono grande opcional */
-    font-size: 2.5em;
-    margin-bottom: 15px;
-    color: var(--primary-color); /* O color específico del nivel */
-}
-#level-card-content .level-status { /* "Disponible", "Bloqueado" */
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-#level-card-content .level-status.locked {
-    color: var(--locked-color);
-}
-#level-card-content .level-score { /* "Tu Mejor Puntuación: X" */
-    margin-bottom: 15px;
-    color: var(--secondary-text-color);
-}
-#level-card-content .level-score strong {
-    color: var(--text-color);
-    font-size: 1.1em;
-}
-#level-card-content .level-requirement { /* "Necesitas completar..." */
-    margin-bottom: 20px;
-    color: var(--warning-color); /* Usar amarillo para destacar requisito */
-    font-style: italic;
-    font-size: 0.9em;
-    padding: 5px 10px;
-    background-color: #fff3cd; /* Fondo amarillo pálido */
-    border-radius: var(--border-radius);
-    display: inline-block;
-}
-#level-card-content .level-requirement i { /* Icono candado */
-    margin-right: 5px;
-    color: var(--warning-color);
-}
-#level-card-content .start-level-button { /* Botón "Iniciar Nivel" */
-    padding: 15px 30px; /* Botón más grande */
-    font-size: 1.1em;
-}
-/* --- FIN NUEVO: Estilos Selección Nivel --- */
+/* Estilos dentro de la tarjeta */
+#level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
+#level-card-content .level-icon { font-size: 2.5em; margin-bottom: 15px; color: var(--primary-color); }
+#level-card-content .level-status { font-weight: bold; margin-bottom: 10px; }
+#level-card-content .level-status.locked { color: var(--locked-color); }
+#level-card-content .level-score { margin-bottom: 15px; color: var(--secondary-text-color); }
+#level-card-content .level-score strong { color: var(--text-color); font-size: 1.1em; }
+#level-card-content .level-requirement { margin-bottom: 20px; color: #856404; /* Marrón oscuro para texto warning */ background-color: #fff3cd; border: 1px solid #ffeeba; /* Borde amarillo pálido */ font-style: italic; font-size: 0.9em; padding: 8px 12px; border-radius: var(--border-radius); display: inline-block; }
+#level-card-content .level-requirement i { margin-right: 5px; color: #856404; } /* Icono info del mismo color */
+#level-card-content .start-level-button { padding: 15px 30px; font-size: 1.1em; }
 
 
-/* --- Estilos Área de Juego (Revisar si algo necesita ajuste) --- */
+/* --- Estilos Área de Juego --- */
 .game-controls { text-align: right; margin-bottom: 10px; }
 .game-controls button { background-color: var(--secondary-text-color); color: white; padding: 4px 10px; font-size: 0.8em; margin-left: 8px; box-shadow: none; font-weight: normal; border: none; border-radius: var(--border-radius); cursor: pointer; transition: background-color 0.2s ease; }
 .game-controls button:hover { background-color: #5a6268; }
@@ -339,28 +267,11 @@ button:disabled { background-color: var(--disabled-color); color: var(--secondar
 #round-progress-stars .star-pending { color: var(--locked-color); margin: 0 1px; }
 #round-progress-stars .star-mastery { color: var(--mastery-color); margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-#question-container { width: 90%; /* Más ancho */ margin: 25px auto; text-align: center; font-size: 1.3em; /* Ligeramente más pequeño */ font-weight: bold; color: var(--text-color); min-height: 50px; }
-/* --- NUEVO: Estilos para Teoría --- */
-.theory-presentation {
-    font-size: 0.9em;
-    font-weight: normal;
-    text-align: left;
-    margin-bottom: 15px;
-    padding: 15px; /* Más padding */
-    background-color: #f8f9fa;
-    border-left: 4px solid var(--primary-color);
-    border-radius: var(--border-radius);
-    color: var(--text-color); /* Asegurar color texto */
-}
-hr.theory-separator {
-    border: 0;
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 20px 0; /* Más espacio */
-}
-/* --- FIN NUEVO: Estilos Teoría --- */
+#question-container { width: 90%; margin: 25px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--text-color); min-height: 50px; }
+.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 15px; padding: 15px; background-color: #f8f9fa; border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--text-color); }
+hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 20px 0; }
 #options-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
-.option-button { width: 80%; max-width: 450px; /* Un poco más ancho */ background-color: var(--secondary-text-color); }
+.option-button { width: 80%; max-width: 450px; background-color: var(--secondary-text-color); }
 .option-button:hover { background-color: #5a6268; }
 .option-button.correct { background-color: var(--success-color); color: white; }
 .option-button.correct:hover { background-color: #218838; }
@@ -396,11 +307,8 @@ hr.theory-separator {
 #play-again-button { margin-top: 20px; background-color: var(--success-color); }
 #play-again-button:hover { background-color: #218838; }
 
-/* --- Progreso Desbloqueo (Podría integrarse en la tarjeta bloqueada) --- */
-#unlock-progress-section { background-color: #f8f9fa; }
-#unlock-progress { padding: 5px 10px; text-align: center; }
-#unlock-progress h4 { margin-top: 0; margin-bottom: 10px; color: #495057; font-family: var(--font-body); font-weight: 700; }
-#progress-stars { font-size: 1.5em; color: var(--warning-color); letter-spacing: 5px; vertical-align: middle; }
+/* --- Progreso Desbloqueo (OBSOLETO VISUALMENTE) --- */
+#unlock-progress-section { display: none !important; /* Ocultar siempre */ }
 
 /* --- High Scores --- */
 #high-scores-section h2 { margin-bottom: 15px; }
@@ -413,18 +321,24 @@ hr.theory-separator {
 .level-score-item strong { color: var(--primary-dark-color); font-weight: bold; }
 
 /* --- Responsiveness --- */
-@media (max-width: 768px) { /* Ajuste para tablets también */
+@media (max-width: 768px) {
     #level-stepper-container {
-        justify-content: flex-start; /* Empieza desde la izquierda */
-        padding-left: 15px;
-        padding-right: 15px;
+        justify-content: flex-start;
+        padding-left: 10px; /* Menos padding */
+        padding-right: 10px;
     }
-     #level-stepper-container::before, #level-stepper-container::after {
-        left: 5%; /* Ajustar inicio/fin de línea */
-        right: 5%;
+     /* --- AJUSTE LÍNEA BASE STEPPER --- */
+     #level-stepper-container::before {
+        left: 2%; /* Más cerca del borde */
+        right: 2%; /* Más cerca del borde */
     }
+     #level-stepper-container::after {
+        left: 2%; /* Coincidir con ::before */
+        /* width usa la variable --progress-width, ajustada por JS */
+    }
+    /* --- FIN AJUSTE --- */
     .stepper-item {
-        min-width: 65px; /* Más pequeño en tablets */
+        min-width: 65px;
         padding: 5px;
     }
     .stepper-icon-wrapper {
@@ -453,34 +367,40 @@ hr.theory-separator {
     #question-container { font-size: 1.2em; width: 95%; }
     #game-info #main-game-info { gap: 5px 10px; }
     #game-info i { font-size: 1em; }
-    /* Ocultar etiquetas del stepper en móvil, dejar solo iconos */
-    /* .stepper-label { display: none; } */ /* Descomentar si se prefiere solo iconos */
-    .stepper-item { min-width: 55px; } /* Aún más pequeño */
+    /* --- AJUSTE LÍNEA BASE STEPPER (MÓVIL) --- */
+     #level-stepper-container::before {
+        left: 1%; /* Aún más cerca */
+        right: 1%;
+    }
+     #level-stepper-container::after {
+        left: 1%;
+    }
+    /* --- FIN AJUSTE --- */
+    .stepper-item { min-width: 55px; }
     #level-card-area { padding: 15px; min-height: 120px;}
     #level-card-content h3 { font-size: 1.3em; }
     #level-card-content .start-level-button { padding: 12px 25px; font-size: 1em; }
 
-    #unlock-progress h4 { font-size: 0.9em; }
-    #unlock-progress { padding: 5px; }
-    #progress-stars { font-size: 1.5em; }
     .game-controls { text-align: center; margin-bottom: 15px; }
     .game-controls button { margin: 5px 5px; }
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
-    .global-controls { top: 5px; right: 10px; } /* Ajustar controles globales */
+    .global-controls { top: 5px; right: 10px; }
 }
 
 @media (max-width: 400px) {
     .global-controls {
-         position: static; /* Quitar posicionamiento absoluto */
-         display: flex; /* Usar flex para centrar */
-         justify-content: center; /* Centrar los botones */
-         margin-bottom: 10px; /* Añadir espacio debajo antes del main */
-         margin-top: 5px; /* Añadir espacio arriba */
-         gap: 15px; /* Espacio entre selectores */
+         position: static;
+         display: flex;
+         justify-content: center;
+         margin-bottom: 10px;
+         margin-top: 5px;
+         gap: 15px;
     }
-    header { padding-bottom: 5px; /* Reducir padding del header para compensar */ }
-    .stepper-item { min-width: 50px; } /* Mínimo absoluto */
+    header { padding-bottom: 5px; }
+    .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
+    /* Opcional: Ocultar etiquetas en pantallas muy pequeñas */
+    /* .stepper-label { display: none; } */
 }
 
