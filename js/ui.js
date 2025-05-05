@@ -3,6 +3,7 @@
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
 // Gestiona la manipulación del DOM y la presentación visual.
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
+// CORREGIDO: Recibe 'currentUsername' explícitamente.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -94,6 +95,7 @@ export function showSection(sectionToShow) {
 
     // Mostrar High Scores con Level Select y Game Over
     if (sectionToShow === levelSelectSection || sectionToShow === gameOverSection) {
+        // Asegurarse que highScoresSection exista antes de intentar mostrarlo
         if (highScoresSection) highScoresSection.style.display = 'block';
     }
      // Asegurarse que unlockProgressSection (el viejo) esté oculto
@@ -119,18 +121,19 @@ export function updatePlayerInfo(username, level, score) {
 /**
  * Genera y muestra el Stepper horizontal y prepara el área de la tarjeta.
  * @param {Array<string>} unlockedLevels - Array con los nombres de los niveles desbloqueados.
- * @param {object} currentUserData - Datos completos del usuario (nombre necesario).
+ * @param {object} currentUserData - Datos del usuario (para rachas, etc., NO se espera .name aquí).
+ * @param {string} currentUsername - El nombre del usuario actual. <<< RECIBE USERNAME
  * @param {function} levelSelectHandler - La función (de game.js) a llamar al hacer clic en un marcador.
  */
-export function displayLevelSelection(unlockedLevels, currentUserData, levelSelectHandler) {
+export function displayLevelSelection(unlockedLevels, currentUserData, currentUsername, levelSelectHandler) {
     // Chequeos de existencia de elementos y datos
-    if (!levelStepperContainer || !levelCardContent || !config.LEVELS || !currentUserData || !currentUserData.name) {
+    if (!levelStepperContainer || !levelCardContent || !config.LEVELS || !currentUserData || !currentUsername) {
         console.error("Error en displayLevelSelection: Faltan elementos del DOM o datos necesarios.", {
             levelStepperContainerExists: !!levelStepperContainer,
             levelCardContentExists: !!levelCardContent,
             configLevelsExists: !!config.LEVELS,
             currentUserDataExists: !!currentUserData,
-            usernameExists: !!currentUserData?.name
+            usernameExists: !!currentUsername // Chequea el parámetro username
         });
         if (levelSelectSection) {
              levelSelectSection.innerHTML = `<p>${getTranslation('error_loading_levels') || 'Error loading levels.'}</p>`;
@@ -167,7 +170,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
         const iconWrapper = document.createElement('div');
         iconWrapper.classList.add('stepper-icon-wrapper');
         const icon = document.createElement('i');
-        icon.className = `fa-solid ${levelIcons[level] || 'fa-question-circle'}`;
+        icon.className = `fa-solid ${levelIcons[level] || 'fa-question-circle'}`; // Asegura fa-solid
         iconWrapper.appendChild(icon);
         stepperItem.appendChild(iconWrapper);
 
@@ -185,8 +188,8 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
 
             document.querySelectorAll('.stepper-item.selected').forEach(el => el.classList.remove('selected'));
             stepperItem.classList.add('selected');
-            // Pasar username para buscar puntuación
-            updateLevelCard(level, isUnlocked, currentUserData.name, levelSelectHandler);
+            // --- Pasar currentUsername a updateLevelCard ---
+            updateLevelCard(level, isUnlocked, currentUsername, levelSelectHandler);
         });
 
         levelStepperContainer.appendChild(stepperItem);
@@ -196,11 +199,12 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
     updateStepperProgressLine(lastUnlockedIndex, allLevels.length);
 
     // Seleccionar tarjeta del primer nivel desbloqueado por defecto
-    const effectiveFirstLevel = firstUnlockedLevelName || allLevels[0];
+    const effectiveFirstLevel = firstUnlockedLevelName || allLevels[0]; // Essential como fallback
     const firstStepperItem = levelStepperContainer.querySelector(`.stepper-item[data-level="${effectiveFirstLevel}"]`);
     if (firstStepperItem) {
         firstStepperItem.classList.add('selected');
-        updateLevelCard(effectiveFirstLevel, unlockedLevels.includes(effectiveFirstLevel), currentUserData.name, levelSelectHandler);
+        // --- Pasar currentUsername a updateLevelCard ---
+        updateLevelCard(effectiveFirstLevel, unlockedLevels.includes(effectiveFirstLevel), currentUsername, levelSelectHandler);
     } else {
         levelCardContent.innerHTML = `<p>${getTranslation('error_loading_levels') || 'Error loading levels.'}</p>`;
         console.error(`No se encontró el stepper item para el nivel por defecto: ${effectiveFirstLevel}`);
@@ -215,7 +219,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, levelSele
  * Actualiza el contenido de la tarjeta única con la información del nivel seleccionado.
  * @param {string} levelName - Nombre del nivel.
  * @param {boolean} isUnlocked - Si el nivel está desbloqueado.
- * @param {string} currentUsername - Nombre del usuario actual.
+ * @param {string} currentUsername - Nombre del usuario actual (para buscar puntuación).
  * @param {function} levelSelectHandler - Función para iniciar el nivel.
  */
 function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHandler) {
@@ -233,8 +237,9 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
         // Estado Disponible
         const status = document.createElement('div');
         status.classList.add('level-status');
-        status.dataset.translate = 'level_status_available';
-        status.textContent = getTranslation('level_status_available') || "Available";
+        const statusKey = 'level_status_available';
+        status.dataset.translate = statusKey;
+        status.textContent = getTranslation(statusKey) || "Available";
         levelCardContent.appendChild(status);
 
         // Puntuación
@@ -246,10 +251,12 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
         const levelKey = `${levelName}-standard`; // Clave para la puntuación (asume standard)
         const bestScore = userScores[levelKey];
 
+        const scoreLabelKey = 'your_best_score';
+        const noScoreLabelKey = 'not_played_yet';
         if (bestScore !== undefined) {
-            scoreDiv.innerHTML = `${getTranslation('your_best_score') || 'Your Best Score'}: <strong>${bestScore}</strong>`;
+            scoreDiv.innerHTML = `${getTranslation(scoreLabelKey) || 'Your Best Score'}: <strong>${bestScore}</strong>`;
         } else {
-            scoreDiv.textContent = getTranslation('not_played_yet') || 'Not played yet';
+            scoreDiv.textContent = getTranslation(noScoreLabelKey) || 'Not played yet';
         }
         levelCardContent.appendChild(scoreDiv);
 
@@ -273,7 +280,8 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
         // Estado Bloqueado
         const status = document.createElement('div');
         status.classList.add('level-status', 'locked');
-        status.innerHTML = `<i class="fas fa-lock"></i> ${getTranslation('level_status_locked') || 'Locked'}`;
+        const lockedStatusKey = 'level_status_locked';
+        status.innerHTML = `<i class="fas fa-lock"></i> ${getTranslation(lockedStatusKey) || 'Locked'}`;
         levelCardContent.appendChild(status);
 
         // Requisito
@@ -291,7 +299,8 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
             requirementText = getTranslation(requirementKey, { prevLevel: getTranslation(prevLevelKey) || previousLevel });
             // Si la clave específica no existe, usa un texto genérico
             if (requirementText === requirementKey) {
-                 requirementText = getTranslation('requirement_default', { prevLevel: getTranslation(prevLevelKey) || previousLevel }) || `Complete ${previousLevel} first.`;
+                 const defaultReqKey = 'requirement_default';
+                 requirementText = getTranslation(defaultReqKey, { prevLevel: getTranslation(prevLevelKey) || previousLevel }) || `Complete ${previousLevel} first.`;
             }
         } else { // Caso raro (Essential bloqueado?)
             requirementKey = 'requirement_default_unknown';
@@ -317,6 +326,7 @@ function updateStepperProgressLine(lastUnlockedIndex, totalLevels) {
         : 10; // Mínimo 10%
 
     // Establece la variable CSS --progress-width
+    // Asegúrate que el CSS la use: #level-stepper-container::after { width: var(--progress-width, 10%); }
     levelStepperContainer.style.setProperty('--progress-width', `${progressPercentage}%`);
 }
 
@@ -326,7 +336,6 @@ function updateStepperProgressLine(lastUnlockedIndex, totalLevels) {
  */
 export function updateUnlockProgressUI(currentUserData) {
     // No hacer nada, la información está en la tarjeta.
-    // console.log("updateUnlockProgressUI llamada, pero es obsoleta.");
 }
 
 /**
@@ -551,7 +560,16 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
  * @param {string} playedLevel - El nivel que se acaba de jugar.
  */
 export function displayGameOver(score, currentUserData, playedLevel) {
-    if (!currentUserData) { console.error("displayGameOver llamado sin currentUserData"); return; }
+    if (!currentUserData || !currentUserData.name) { // Añadido chequeo por nombre
+         console.error("displayGameOver llamado sin currentUserData o sin nombre de usuario.");
+         // Podríamos mostrar un mensaje genérico o redirigir
+         if (gameOverSection) {
+             if(finalScoreDisplay) finalScoreDisplay.textContent = score;
+             if(highScoreMessage) highScoreMessage.textContent = getTranslation('error_displaying_results') || "Error displaying results.";
+             showSection(gameOverSection);
+         }
+         return;
+    }
     if(finalScoreDisplay) finalScoreDisplay.textContent = score;
     const maxScore = config.PERFECT_SCORE;
     const scorePercentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
@@ -561,29 +579,35 @@ export function displayGameOver(score, currentUserData, playedLevel) {
     let baseMessage = getTranslation('game_over_base_message', { score: score, maxScore: maxScore, percentage: scorePercentage });
     let extraMessage = '';
 
+    // Cargar el estado *previo* al guardado en endGame para comparar desbloqueos
+    const previousUserData = storage.getUserData(currentUserData.name);
+
     // Lógica de desbloqueo y mensajes
-    // (Asegúrate que las claves i18n como 'requirement_associate' existan)
     if (playedLevel === 'Essential') {
-         if (isPerfect) extraMessage = getTranslation('game_over_good_round_essential') || "¡Buen comienzo!";
+         if (isPerfect) extraMessage = getTranslation('game_over_good_round_essential') || "Good start!";
     } else if (playedLevel === 'Entry') {
-        if (isPerfect && currentUserData.entryPerfectStreak !== undefined) { // Chequeo añadido
-            const justUnlockedAssociate = currentUserData.unlockedLevels.includes('Associate') && currentUserData.entryPerfectStreak >= 3; // Asume que se actualizó antes de llamar
+        if (isPerfect && currentUserData.entryPerfectStreak !== undefined) {
+            const wasAssociateLocked = !previousUserData.unlockedLevels.includes('Associate');
+            const justUnlockedAssociate = currentUserData.unlockedLevels.includes('Associate') && wasAssociateLocked; // Ya se actualizó en endGame
+
             if (justUnlockedAssociate) {
                 extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') });
             } else if (!currentUserData.unlockedLevels.includes('Associate')) {
                 extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_entry'), streak: currentUserData.entryPerfectStreak });
-            } else {
+            } else { // Associate ya estaba desbloqueado
                 extraMessage = getTranslation('game_over_good_round_entry');
             }
         }
     } else if (playedLevel === 'Associate') {
-         if (meetsAssociateThreshold && currentUserData.associatePerfectStreak !== undefined) { // Chequeo añadido
-             const justUnlockedPro = currentUserData.unlockedLevels.includes('Professional') && currentUserData.associatePerfectStreak >= 3; // Asume que se actualizó antes de llamar
+         if (meetsAssociateThreshold && currentUserData.associatePerfectStreak !== undefined) {
+             const wasProLocked = !previousUserData.unlockedLevels.includes('Professional');
+             const justUnlockedPro = currentUserData.unlockedLevels.includes('Professional') && wasProLocked; // Ya se actualizó en endGame
+
              if (justUnlockedPro) {
                  extraMessage = getTranslation('game_over_level_unlocked_pro');
              } else if (!currentUserData.unlockedLevels.includes('Professional')) {
                  extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_associate'), streak: currentUserData.associatePerfectStreak });
-             } else {
+             } else { // Professional ya estaba desbloqueado
                  extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK });
              }
          }
@@ -610,11 +634,21 @@ export function displayHighScores(scoresData) {
      scoreList.innerHTML = '';
      if (!scoresData || scoresData.length === 0) { scoreList.innerHTML = `<li>${getTranslation('no_scores') || 'No scores yet.'}</li>`; return; }
      try {
-         scoresData.forEach(userData => {
+         // Ordenar por puntuación máxima descendente ANTES de limitar
+         scoresData.sort((a, b) => {
+             const maxA = Math.max(0, ...Object.values(a.scores || {}));
+             const maxB = Math.max(0, ...Object.values(b.scores || {}));
+             return maxB - maxA;
+         });
+
+         // Limitar al número máximo definido en config
+         const topScores = scoresData.slice(0, config.MAX_HIGH_SCORES);
+
+         topScores.forEach(userData => {
              const userEntry = document.createElement('li'); userEntry.classList.add('score-entry');
              const userNameElement = document.createElement('div'); userNameElement.classList.add('score-username'); userNameElement.textContent = userData.name; userEntry.appendChild(userNameElement);
              const levelScoresContainer = document.createElement('div'); levelScoresContainer.classList.add('level-scores');
-             // Orden de visualización (Añadir Expert si existe)
+             // Orden de visualización (Usar config.LEVELS para asegurar orden)
              const displayOrder = config.LEVELS.map(level => ({
                  key: `${level}-standard`, // Asume standard
                  labelKey: `level_${level.toLowerCase()}`
