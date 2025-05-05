@@ -435,7 +435,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         // 2. Redibujar Opciones (deshabilitadas y resaltadas)
         if (optionsContainer) {
             optionsContainer.innerHTML = '';
-            optionsContainer.classList.add('options-disabled');
+            optionsContainer.classList.add('options-disabled'); // Asegurar que estén deshabilitadas
             const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
             const correctAnswerValue = questionData.correctAnswer; // Valor/clave correcta
 
@@ -448,14 +448,17 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                 questionData.options.forEach((optionText) => { // options es array de strings
                     const button = document.createElement('button');
                     button.classList.add('option-button');
-                    button.disabled = true;
-                    button.textContent = optionText;
+                    button.disabled = true; // Deshabilitar botón
+                    button.textContent = optionText; // El texto ya está en el idioma correcto
 
-                    // Reconstruir data-original-value para comparación
-                    let originalValue = optionText;
+                    // --- Reconstruir data-original-value para comparación ---
+                    let originalValue = optionText; // Usar texto como fallback inicial
                     if (optionText === trueText) originalValue = 'option_true';
                     else if (optionText === falseText) originalValue = 'option_false';
-                    // TODO: Mejorar reconstrucción para otros tipos de opciones si es necesario
+                    // Para opciones complejas (no Essential), podríamos necesitar los datos originales
+                    // o una forma más robusta de mapear texto a valor si hubiera ambigüedad.
+                    // Por ahora, para MC de Essential, el texto es único y sirve como valor.
+                    // --- Fin Reconstrucción ---
 
                     button.setAttribute('data-original-value', originalValue);
 
