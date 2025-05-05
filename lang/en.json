@@ -9,7 +9,7 @@
   "login_title": "Get Ready to Sprint!",
   "login_username_label": "Your Network Alias:",
   "login_username_placeholder": "router_master",
-  "login_continue_button": "Enter!"
+  "login_continue_button": "Enter!",
   
   "choose_level_title": "Choose a Level",
   "loading_levels": "Loading levels...",
