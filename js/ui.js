@@ -5,7 +5,7 @@
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // CORREGIDO: Selección de elementos DOM movida dentro de las funciones.
 // CORREGIDO: displayQuestion guarda clave i18n para opciones V/F.
-// CORREGIDO: displayFeedback redibuja pregunta/opciones y aplica resaltado en refresco.
+// CORREGIDO: displayFeedback redibuja pregunta/opciones/TEORÍA y aplica resaltado en refresco.
 // CORREGIDO: displayGameOver añade listener a playAgainButton correctamente.
 // Versión sin console.log de depuración
 // ==================================================
@@ -24,16 +24,14 @@ import {
 } from './utils.js';
 
 // --- Selección de Elementos del DOM (SOLO los necesarios globalmente o para exportar) ---
-// Exportamos las secciones principales para que game.js/main.js puedan mostrarlas/ocultarlas
 export const userSetupSection = document.getElementById('user-setup');
 export const levelSelectSection = document.getElementById('level-select');
 export const gameAreaSection = document.getElementById('game-area');
 export const gameOverSection = document.getElementById('game-over');
 export const highScoresSection = document.getElementById('high-scores-section');
-// Exportamos elementos del formulario de login para main.js
 export const usernameForm = document.getElementById('username-form');
 export const usernameInput = document.getElementById('username');
-// NO exportamos elementos internos de las secciones (se buscarán en las funciones)
+// NO exportamos elementos internos de las secciones
 
 // Mapa para llamar a los generadores de explicaciones desde utils.js
 const explanationGenerators = {
@@ -61,7 +59,7 @@ export function showSection(sectionToShow) {
     const levelSelect = document.getElementById('level-select');
     const gameArea = document.getElementById('game-area');
     const gameOver = document.getElementById('game-over');
-    const unlockProgress = document.getElementById('unlock-progress-section'); // Mantener referencia si se usa
+    const unlockProgress = document.getElementById('unlock-progress-section');
     const highScores = document.getElementById('high-scores-section');
 
     const sections = [userSetup, levelSelect, gameArea, gameOver, unlockProgress, highScores];
@@ -104,7 +102,7 @@ export function updatePlayerInfo(username, level, score) {
  * @param {function} levelSelectHandler - Función a llamar al seleccionar un nivel.
  */
 export function displayLevelSelection(unlockedLevels, currentUserData, currentUsername, levelSelectHandler) {
-    // --- Buscar elementos del DOM AQUI ---
+    // Buscar elementos del DOM AQUI
     const levelStepperContainer = document.getElementById('level-stepper-container');
     const levelCardContent = document.getElementById('level-card-content');
     const currentLevelSelectSection = document.getElementById('level-select'); // Para mostrar error
@@ -126,8 +124,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
         }
         return; // Detener ejecución si hay error
     }
-    // --- Fin Chequeo ---
-
 
     levelStepperContainer.innerHTML = '';
     levelCardContent.innerHTML = `<p>${getTranslation('loading_levels') || 'Loading levels...'}</p>`;
@@ -166,11 +162,9 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
 
         stepperItem.addEventListener('click', () => {
             if (stepperItem.classList.contains('selected')) return;
-            // Buscar el contenedor de nuevo si es necesario o confiar en closure
             const container = document.getElementById('level-stepper-container');
             if(container) container.querySelectorAll('.stepper-item.selected').forEach(el => el.classList.remove('selected'));
             stepperItem.classList.add('selected');
-            // Llamar a updateLevelCard (que también buscará su elemento)
             updateLevelCard(level, isUnlocked, currentUsername, levelSelectHandler);
         });
 
@@ -191,7 +185,6 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
     }
 
     showSection(currentLevelSelectSection); // Mostrar la sección correcta
-    // Ocultar sección de progreso antigua (buscarla aquí si es necesario)
     const unlockProgressSect = document.getElementById('unlock-progress-section');
     if (unlockProgressSect) unlockProgressSect.style.display = 'none';
 }
@@ -205,7 +198,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
  * @param {function} levelSelectHandler - Función para iniciar el nivel.
  */
 function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHandler) {
-    // --- Buscar elemento AQUI ---
+    // Buscar elemento AQUI
     const levelCardContentElement = document.getElementById('level-card-content');
     if (!levelCardContentElement) {
          console.error("[UI] Elemento #level-card-content no encontrado en updateLevelCard.");
@@ -221,14 +214,14 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
 
     if (isUnlocked) {
         // Crear status, scoreDiv, startButton
-        const status = document.createElement('div');
+        const status = document.createElement('div'); /* ... */
         status.classList.add('level-status');
         const statusKey = 'level_status_available';
         status.dataset.translate = statusKey;
         status.textContent = getTranslation(statusKey) || "Available";
         levelCardContentElement.appendChild(status);
 
-        const scoreDiv = document.createElement('div');
+        const scoreDiv = document.createElement('div'); /* ... */
         scoreDiv.classList.add('level-score');
         const allHighScores = storage.loadHighScores();
         const userScoreData = allHighScores.find(user => user.name === currentUsername);
@@ -244,13 +237,12 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
         }
         levelCardContentElement.appendChild(scoreDiv);
 
-
-        const startButton = document.createElement('button');
+        const startButton = document.createElement('button'); /* ... */
         startButton.classList.add('start-level-button');
         const buttonKey = 'start_level_button';
         startButton.dataset.translate = buttonKey;
         startButton.textContent = getTranslation(buttonKey) || 'Start Level';
-        // Añadir listener al botón
+
         if (typeof levelSelectHandler === 'function') {
             startButton.addEventListener('click', () => {
                 levelSelectHandler(levelName, 'standard');
@@ -264,13 +256,13 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
 
     } else { // Nivel Bloqueado
         // Crear status, requirement
-        const status = document.createElement('div');
+        const status = document.createElement('div'); /* ... */
         status.classList.add('level-status', 'locked');
         const lockedStatusKey = 'level_status_locked';
         status.innerHTML = `<i class="fas fa-lock"></i> ${getTranslation(lockedStatusKey) || 'Locked'}`;
         levelCardContentElement.appendChild(status);
 
-        const requirement = document.createElement('div');
+        const requirement = document.createElement('div'); /* ... */
         requirement.classList.add('level-requirement');
         let requirementText = '';
         let requirementKey = '';
@@ -300,7 +292,7 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
  * @param {number} totalLevels - Número total de niveles.
  */
 function updateStepperProgressLine(lastUnlockedIndex, totalLevels) {
-    // --- Buscar elemento AQUI ---
+    // Buscar elemento AQUI
     const stepperContainer = document.getElementById('level-stepper-container');
     if (!stepperContainer || totalLevels <= 1) return;
     const progressPercentage = lastUnlockedIndex >= 0
@@ -323,7 +315,7 @@ export function updateUnlockProgressUI(currentUserData) {
  * @param {boolean} isMasteryMode - Si es modo Mastery.
  */
 export function updateRoundProgressUI(roundResults, isMasteryMode) {
-    // --- Buscar elemento AQUI ---
+    // Buscar elemento AQUI
     const roundProgressStarsDivElement = document.getElementById('round-progress-stars');
     try {
         if (!roundProgressStarsDivElement) return;
@@ -351,7 +343,7 @@ export function updateRoundProgressUI(roundResults, isMasteryMode) {
  * @param {function} answerClickHandler - Handler para el clic en opciones.
  */
 export function displayQuestion(questionData, answerClickHandler) {
-    // --- Buscar elementos AQUI ---
+    // Buscar elementos AQUI
     const questionTextElement = document.getElementById('question-text');
     const optionsContainerElement = document.getElementById('options-container');
     const feedbackAreaElement = document.getElementById('feedback-area');
@@ -435,7 +427,7 @@ export function displayQuestion(questionData, answerClickHandler) {
  * @param {boolean} [isRefresh=false] - Indica si esta llamada es para refrescar la UI.
  */
 export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStepHandler, selectedValueOriginal = null, isRefresh = false) {
-    // --- Buscar elementos AQUI ---
+    // Buscar elementos AQUI
     const feedbackAreaElement = document.getElementById('feedback-area');
     const questionTextElement = document.getElementById('question-text');
     const optionsContainerElement = document.getElementById('options-container');
@@ -447,16 +439,23 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 
     // --- Redibujar Pregunta y Opciones si es un Refresco ---
     if (isRefresh) {
-        // 1. Redibujar Texto de Pregunta
+        // 1. Redibujar Texto de Pregunta (Incluyendo Teoría)
         if (questionTextElement) {
             let finalQuestionHTML = '';
-            if (questionData.theoryKey) { /* ... (añadir teoría) ... */ }
+            // Añadir teoría si existe la clave
+            if (questionData.theoryKey) {
+                const theoryText = getTranslation(questionData.theoryKey);
+                if (theoryText && theoryText !== questionData.theoryKey) {
+                    finalQuestionHTML += `<div class="theory-presentation">${theoryText}</div><hr class="theory-separator">`;
+                }
+            }
+            // Añadir texto de la pregunta
             let questionDisplayHTML = '';
             if (questionData.question?.text) { questionDisplayHTML = questionData.question.text; }
             else if (questionData.question?.key) { questionDisplayHTML = getTranslation(questionData.question.key, questionData.question.replacements || {}); }
             else { questionDisplayHTML = "Error: Invalid Question."; }
             finalQuestionHTML += questionDisplayHTML;
-            questionTextElement.innerHTML = finalQuestionHTML;
+            questionTextElement.innerHTML = finalQuestionHTML; // Actualizar el HTML completo
         } else { console.error("Elemento #question-text no encontrado durante refresco de feedback."); }
 
         // 2. Redibujar Opciones (deshabilitadas y resaltadas)
@@ -554,7 +553,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
  * @param {function} playAgainHandler - La función de game.js a ejecutar al hacer clic en Play Again.
  */
 export function displayGameOver(score, currentUserData, playedLevel, playAgainHandler) {
-    // --- Buscar elementos AQUI ---
+    // Buscar elementos AQUI
     const finalScoreDisplayElement = document.getElementById('final-score');
     const highScoreMessageElement = document.getElementById('high-score-message');
     const playAgainButtonElement = document.getElementById('play-again-button'); // Buscar aquí
@@ -603,7 +602,7 @@ export function displayGameOver(score, currentUserData, playedLevel, playAgainHa
  * @param {Array<object>} scoresData - Array de objetos [{ name, scores: { levelMode: score } }]
  */
 export function displayHighScores(scoresData) {
-     // --- Buscar elemento AQUI ---
+     // Buscar elemento AQUI
      const scoreListElement = document.getElementById('score-list');
      if(!scoreListElement) return;
      scoreListElement.innerHTML = '';
@@ -620,7 +619,7 @@ export function displayHighScores(scoresData) {
  * @param {number} timeLeftValue - Segundos restantes.
  */
 export function updateTimerDisplay(timeLeftValue) {
-    // --- Buscar elementos AQUI ---
+    // Buscar elementos AQUI
     const timerDisplayDivElement = document.getElementById('timer-display');
     const timeLeftSpanElement = document.getElementById('time-left');
     if (!timerDisplayDivElement || !timeLeftSpanElement) return;
@@ -633,7 +632,7 @@ export function updateTimerDisplay(timeLeftValue) {
  * @param {boolean} show - True para mostrar, false para ocultar.
  */
 export function showTimerDisplay(show) {
-     // --- Buscar elemento AQUI ---
+     // Buscar elemento AQUI
      const timerDisplayDivElement = document.getElementById('timer-display');
      if (timerDisplayDivElement) {
          timerDisplayDivElement.style.display = show ? 'block' : 'none';
