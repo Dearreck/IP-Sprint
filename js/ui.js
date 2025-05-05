@@ -5,7 +5,8 @@
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // CORREGIDO: displayQuestion guarda clave i18n para opciones V/F.
 // CORREGIDO: displayFeedback redibuja pregunta/opciones y aplica resaltado en refresco.
-// Versión sin console.log
+// CORREGIDO: displayGameOver añade listener a playAgainButton correctamente.
+// Versión sin console.log de depuración
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -435,7 +436,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         // 2. Redibujar Opciones (deshabilitadas y resaltadas)
         if (optionsContainer) {
             optionsContainer.innerHTML = '';
-            optionsContainer.classList.add('options-disabled');
+            optionsContainer.classList.add('options-disabled'); // Asegurar que estén deshabilitadas
             const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
             const correctAnswerValue = questionData.correctAnswer; // Valor/clave correcta
 
@@ -448,8 +449,8 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                 questionData.options.forEach((optionText) => { // options es array de strings
                     const button = document.createElement('button');
                     button.classList.add('option-button');
-                    button.disabled = true;
-                    button.textContent = optionText;
+                    button.disabled = true; // Deshabilitar botón
+                    button.textContent = optionText; // El texto ya está en el idioma correcto
 
                     // Reconstruir data-original-value para comparación
                     let originalValue = optionText;
