@@ -4,80 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="IP Sprint: Juego interactivo para practicar y aprender direccionamiento IPv4. ¡Pon a prueba tu velocidad y conocimientos!">
-
     <title>IP Sprint</title>
-
     <link rel="icon" href="assets/images/favicon.png" type="image/png">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="css/style.css">
-
 </head>
 <body>
     <div class="global-controls">
         <div id="language-selector">
             <button id="language-toggle-button" title="Cambiar Idioma / Change Language">
-                 <i class="fas fa-globe"></i> <span id="language-toggle-text">EN</span> </button>
-            </div>
+                 <i class="fas fa-globe"></i>
+                 <span id="language-toggle-text">EN</span>
+            </button>
         </div>
-
+        </div>
 
     <header>
         <h1 data-translate="app_title">IP Sprint 🚀</h1>
     </header>
 
     <main>
+
         <section id="user-setup" class="game-section active">
-            <h2 data-translate="welcome_title">¡Bienvenidos!</h2>
+            <div class="login-icon-area">
+                <i class="fas fa-network-wired"></i> </div>
+            <h2 data-translate="login_title">¡Prepárate para el Sprint!</h2>
             <form id="username-form">
-                <label for="username" data-translate="username_label">Ingresa tu nombre de usuario:</label>
+                <label for="username" data-translate="login_username_label">Tu Alias de Red:</label>
                 <input type="text" id="username" name="username" required minlength="2" maxlength="20"
-                       data-translate-placeholder="username_placeholder" placeholder="usuario">
-                <button type="submit" data-translate="continue_button">Continuar</button>
+                       data-translate-placeholder="login_username_placeholder" placeholder="router_master">
+                <button type="submit" class="login-submit-button">
+                    <span data-translate="login_continue_button">¡Entrar!</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
             </form>
         </section>
-
         <section id="level-select" class="game-section" style="display: none;">
-            <h2 data-translate="choose_level_title">Elige un Nivel</h2>
-            <div id="level-stepper-container">
-                </div>
-            <div id="level-card-area">
-                <div id="level-card-content">
-                    <p data-translate="loading_levels">Selecciona un nivel arriba...</p>
-                </div>
-            </div>
-        </section>
+           </section>
 
         <section id="game-area" class="game-section" style="display: none;">
-            <div class="game-controls">
-                <button id="restart-round-button" title="Reiniciar Ronda Actual (mismo nivel)">
-                    <i class="fas fa-rotate-right"></i> <span data-translate="restart_round_button">Reiniciar Ronda</span>
-                </button>
-                <button id="exit-to-menu-button" title="Salir al Menú de Niveles (pierde progreso ronda)">
-                    <i class="fas fa-bars"></i> <span data-translate="exit_to_menu_button">Menú Niveles</span>
-                </button>
-            </div>
-            <div id="game-info">
-                 </div>
-            <hr>
-            <div id="question-container">
-                 <p id="question-text" data-translate="loading_question">Cargando pregunta...</p>
-            </div>
-            <div id="options-container">
-                 </div>
-            <div id="feedback-area" style="min-height: 1.5em; margin-top: 1em;">
-                 </div>
-        </section>
+            </section>
 
         <section id="game-over" class="game-section" style="display: none;">
-             </section>
-
-        <section id="unlock-progress-section" class="game-section" style="display: none;">
              </section>
 
         <section id="high-scores-section" class="game-section" style="display: none;">
@@ -86,14 +57,7 @@
     </main>
 
     <footer>
-        <p data-translate="footer_text_1">Juego "IP Sprint" creado como herramienta de aprendizaje.</p>
-        <p>
-            <a href="https://t.me/dearreck_channel" target="_blank" rel="noopener noreferrer">
-                <i class="fab fa-telegram-plane" style="margin-right: 5px;"></i>
-                <span data-translate="footer_link_text">Únete al canal CCNA con Dearreck en Telegram</span>
-            </a>
-        </p>
-    </footer>
+       </footer>
 
     <script type="module" src="js/main.js"></script>
 
