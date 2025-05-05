@@ -21,9 +21,9 @@
 <body>
     <div class="global-controls">
         <div id="language-selector">
-            <button data-lang="es">ES</button>
-            <button data-lang="en">EN</button>
-        </div>
+            <button id="language-toggle-button" title="Cambiar Idioma / Change Language">
+                 <i class="fas fa-globe"></i> <span id="language-toggle-text">EN</span> </button>
+            </div>
         </div>
 
 
@@ -32,7 +32,6 @@
     </header>
 
     <main>
-
         <section id="user-setup" class="game-section active">
             <h2 data-translate="welcome_title">¡Bienvenidos!</h2>
             <form id="username-form">
@@ -45,17 +44,14 @@
 
         <section id="level-select" class="game-section" style="display: none;">
             <h2 data-translate="choose_level_title">Elige un Nivel</h2>
-
             <div id="level-stepper-container">
                 </div>
-
             <div id="level-card-area">
                 <div id="level-card-content">
                     <p data-translate="loading_levels">Selecciona un nivel arriba...</p>
                 </div>
             </div>
-
-            </section>
+        </section>
 
         <section id="game-area" class="game-section" style="display: none;">
             <div class="game-controls">
@@ -66,19 +62,8 @@
                     <i class="fas fa-bars"></i> <span data-translate="exit_to_menu_button">Menú Niveles</span>
                 </button>
             </div>
-
             <div id="game-info">
-                <div id="main-game-info">
-                    <span><i class="fas fa-layer-group"></i> <span data-translate="level_label">Nivel:</span> <span id="level-display"></span></span>
-                    <span><i class="fas fa-user"></i> <span data-translate="user_label">Usuario:</span> <span id="username-display"></span></span>
-                    <span><i class="fas fa-star"></i> <span data-translate="points_label">Puntos:</span> <span id="score-display">0</span></span>
-                </div>
-                <div id="round-progress-stars" style="margin-top: 8px; font-size: 1.1em;">
-                    </div>
-                <div id="timer-display" style="margin-top: 8px; font-weight: bold; display: none;">
-                    ⏳ <span data-translate="timer_label">Tiempo:</span> <span id="time-left">--</span>s
-                </div>
-            </div>
+                 </div>
             <hr>
             <div id="question-container">
                  <p id="question-text" data-translate="loading_question">Cargando pregunta...</p>
@@ -90,25 +75,13 @@
         </section>
 
         <section id="game-over" class="game-section" style="display: none;">
-            <h2 data-translate="game_over_title">¡Juego Terminado!</h2>
-            <p><span data-translate="final_score_label">Tu puntuación final:</span> <strong id="final-score">0</strong></p>
-            <p id="high-score-message"></p>
-            <button id="play-again-button" data-translate="play_again_button">Elegir Nivel</button>
-        </section>
+             </section>
 
         <section id="unlock-progress-section" class="game-section" style="display: none;">
-             <div id="unlock-progress" style="text-align: center;">
-                 <h4></h4>
-                 <span id="progress-stars" style="font-size: 1.5em; color: #ffc107;"></span>
-             </div>
-        </section>
+             </section>
 
         <section id="high-scores-section" class="game-section" style="display: none;">
-            <h2 data-translate="high_scores_title">Mejores Puntuaciones (Local)</h2>
-            <ul id="score-list">
-                <li data-translate="loading_scores">Cargando...</li>
-            </ul>
-        </section>
+             </section>
 
     </main>
 
