@@ -2,20 +2,21 @@
 // ==================================================
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
 // Gestiona la manipulación del DOM y la presentación visual.
-// AHORA incluye lógica para generar el Stepper y la Tarjeta de Nivel.
+// Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // ==================================================
 
 // --- Importaciones de Módulos ---
 import * as config from './config.js';
-import { handleAnswerClick, selectLevelAndMode } from './game.js'; // Importar selectLevelAndMode
+import { handleAnswerClick } from './game.js'; // Handler para respuestas
 import { getTranslation } from './i18n.js';
-import * as storage from './storage.js'; // Necesitamos acceso a las puntuaciones
+import * as storage from './storage.js'; // Para leer puntuaciones
 import {
-    // Generadores de Explicaciones (sin cambios)
+    // Generadores de Explicaciones
     generateClassRangeTableHTML, generatePrivateRangeTableHTML, generatePortionExplanationHTML,
     generateSpecialAddressExplanationHTML, generateWildcardExplanationHTML, generateSubnettingExplanationHTML,
     generateIpTypeExplanationHTML, generateBitsForSubnetsExplanationHTML, generateBitsForHostsExplanationHTML,
-    generateMaskForHostsExplanationHTML, generateNumSubnetsExplanationHTML, generatePortionExplanationHTML
+    generateMaskForHostsExplanationHTML, generateNumSubnetsExplanationHTML // Incluir las específicas
+    // generatePortionExplanationHTML ya está importado
 } from './utils.js';
 
 // --- Selección de Elementos del DOM ---
@@ -23,11 +24,11 @@ export const userSetupSection = document.getElementById('user-setup');
 export const levelSelectSection = document.getElementById('level-select');
 export const gameAreaSection = document.getElementById('game-area');
 export const gameOverSection = document.getElementById('game-over');
-export const unlockProgressSection = document.getElementById('unlock-progress-section'); // Mantener por ahora, aunque podríamos eliminarlo
+export const unlockProgressSection = document.getElementById('unlock-progress-section'); // Se mantiene por si acaso, pero oculto
 export const highScoresSection = document.getElementById('high-scores-section');
 export const usernameForm = document.getElementById('username-form');
 export const usernameInput = document.getElementById('username');
-// NUEVOS Selectores para Stepper y Tarjeta
+// Selectores para Stepper y Tarjeta
 export const levelStepperContainer = document.getElementById('level-stepper-container');
 export const levelCardArea = document.getElementById('level-card-area');
 export const levelCardContent = document.getElementById('level-card-content');
@@ -51,8 +52,30 @@ export const highScoreMessage = document.getElementById('high-score-message');
 export const playAgainButton = document.getElementById('play-again-button');
 export const scoreList = document.getElementById('score-list');
 
-// Mapa para llamar a los generadores de explicaciones desde utils.js (sin cambios)
-const explanationGenerators = { /* ... (sin cambios) */ };
+// Mapa para llamar a los generadores de explicaciones desde utils.js
+const explanationGenerators = {
+    generateClassRangeTableHTML,
+    generatePrivateRangeTableHTML,
+    generatePortionExplanationHTML,
+    generateSpecialAddressExplanationHTML,
+    generateWildcardExplanationHTML,
+    generateSubnettingExplanationHTML,
+    generateIpTypeExplanationHTML,
+    generateBitsForSubnetsExplanationHTML,
+    generateBitsForHostsExplanationHTML,
+    generateMaskForHostsExplanationHTML,
+    generateNumSubnetsExplanationHTML // Asegurarse que esté aquí
+    // generatePortionExplanationHTML ya está incluido
+};
+
+// Iconos para cada nivel
+const levelIcons = {
+    'Essential': 'fa-book-open', // Icono de libro abierto/fundamentos
+    'Entry': 'fa-star',          // Estrella
+    'Associate': 'fa-graduation-cap', // Gorro de graduación
+    'Professional': 'fa-briefcase', // Maletín
+    'Expert': 'fa-trophy'         // Trofeo (Futuro)
+};
 
 // --- Funciones de Manipulación de la UI ---
 
@@ -69,14 +92,12 @@ export function showSection(sectionToShow) {
 
     if (sectionToShow) sectionToShow.style.display = 'block';
 
-    // Mostrar secciones auxiliares según la principal
-    // Decidimos si mostrar High Scores y Unlock Progress siempre o solo en ciertas pantallas
-    // Por ahora, las mostramos con levelSelect y gameOver
+    // Mostrar High Scores con Level Select y Game Over
     if (sectionToShow === levelSelectSection || sectionToShow === gameOverSection) {
-        // Podríamos decidir ocultar unlockProgressSection si la info ya está en la tarjeta
-        // if (unlockProgressSection) unlockProgressSection.style.display = 'block';
-        if (highScoresSection) highScoresSection.style.display = 'block'; // Mantener high scores por ahora
+        if (highScoresSection) highScoresSection.style.display = 'block';
     }
+     // Asegurarse que unlockProgressSection (el viejo) esté oculto
+     if (unlockProgressSection) unlockProgressSection.style.display = 'none';
 }
 
 /**
@@ -87,192 +108,197 @@ export function showSection(sectionToShow) {
  */
 export function updatePlayerInfo(username, level, score) {
     if (usernameDisplay) usernameDisplay.textContent = username;
+    // Traduce la clave del nivel antes de mostrarla
     if (levelDisplay) levelDisplay.textContent = level ? getTranslation(`level_${level.toLowerCase()}`) : '';
     if (scoreDisplay) scoreDisplay.textContent = score;
 }
 
 
-// --- NUEVA Lógica para Stepper y Tarjeta ---
-
-// Iconos para cada nivel (Asegúrate que Font Awesome esté cargado)
-const levelIcons = {
-    'Essential': 'fa-solid fa-book-open', // Icono de libro abierto/fundamentos
-    'Entry': 'fa-solid fa-star',          // Estrella (como antes)
-    'Associate': 'fa-solid fa-graduation-cap', // Gorro de graduación
-    'Professional': 'fa-solid fa-briefcase', // Maletín
-    'Expert': 'fa-solid fa-trophy'         // Trofeo
-};
+// --- Lógica para Stepper y Tarjeta ---
 
 /**
  * Genera y muestra el Stepper horizontal y prepara el área de la tarjeta.
  * @param {Array<string>} unlockedLevels - Array con los nombres de los niveles desbloqueados.
- * @param {object} currentUserData - Datos completos del usuario (para progreso y puntuaciones).
- * @param {function} levelSelectHandler - La función a llamar cuando se hace clic en un marcador de nivel.
+ * @param {object} currentUserData - Datos completos del usuario (nombre necesario).
+ * @param {function} levelSelectHandler - La función (de game.js) a llamar al hacer clic en un marcador.
  */
 export function displayLevelSelection(unlockedLevels, currentUserData, levelSelectHandler) {
-    if (!levelStepperContainer || !levelCardContent || !config.LEVELS) return;
+    // Chequeos de existencia de elementos y datos
+    if (!levelStepperContainer || !levelCardContent || !config.LEVELS || !currentUserData || !currentUserData.name) {
+        console.error("Error en displayLevelSelection: Faltan elementos del DOM o datos necesarios.", {
+            levelStepperContainerExists: !!levelStepperContainer,
+            levelCardContentExists: !!levelCardContent,
+            configLevelsExists: !!config.LEVELS,
+            currentUserDataExists: !!currentUserData,
+            usernameExists: !!currentUserData?.name
+        });
+        if (levelSelectSection) {
+             levelSelectSection.innerHTML = `<p>${getTranslation('error_loading_levels') || 'Error loading levels.'}</p>`;
+             showSection(levelSelectSection);
+        }
+        return;
+    }
 
-    levelStepperContainer.innerHTML = ''; // Limpiar stepper anterior
-    levelCardContent.innerHTML = `<p>${getTranslation('loading_levels')}</p>`; // Mensaje inicial tarjeta
+    levelStepperContainer.innerHTML = ''; // Limpiar stepper
+    levelCardContent.innerHTML = `<p>${getTranslation('loading_levels') || 'Loading levels...'}</p>`; // Mensaje inicial tarjeta
 
-    const allLevels = config.LEVELS; // ['Essential', 'Entry', ...]
+    const allLevels = config.LEVELS;
     let lastUnlockedIndex = -1;
+    let firstUnlockedLevelName = null;
 
     allLevels.forEach((level, index) => {
         const isUnlocked = unlockedLevels.includes(level);
         if (isUnlocked) {
-            lastUnlockedIndex = index; // Guarda el índice del último nivel desbloqueado
+            lastUnlockedIndex = index;
+            if (firstUnlockedLevelName === null) {
+                firstUnlockedLevelName = level;
+            }
         }
 
-        // Crear el marcador del stepper
         const stepperItem = document.createElement('div');
         stepperItem.classList.add('stepper-item');
-        stepperItem.dataset.level = level; // Guardar el nombre del nivel
+        stepperItem.dataset.level = level;
 
-        // Añadir clase de estado inicial (se actualizará al seleccionar)
-        if (isUnlocked) {
-            stepperItem.classList.add('unlocked');
-            // TODO: Añadir lógica para 'completed' si guardamos ese estado
-        } else {
-            stepperItem.classList.add('locked');
-        }
+        stepperItem.classList.toggle('unlocked', isUnlocked);
+        stepperItem.classList.toggle('locked', !isUnlocked);
+        // TODO: Añadir clase 'completed'
 
         // Icono
         const iconWrapper = document.createElement('div');
         iconWrapper.classList.add('stepper-icon-wrapper');
         const icon = document.createElement('i');
-        icon.className = levelIcons[level] || 'fa-solid fa-question-circle'; // Icono por defecto
+        icon.className = `fa-solid ${levelIcons[level] || 'fa-question-circle'}`;
         iconWrapper.appendChild(icon);
         stepperItem.appendChild(iconWrapper);
 
-        // Etiqueta (Nombre del nivel)
+        // Etiqueta
         const label = document.createElement('span');
         label.classList.add('stepper-label');
-        label.dataset.translate = `level_${level.toLowerCase()}`; // Para traducción
-        label.textContent = getTranslation(`level_${level.toLowerCase()}`) || level; // Texto inicial
+        const translationKey = `level_${level.toLowerCase()}`;
+        label.dataset.translate = translationKey;
+        label.textContent = getTranslation(translationKey) || level;
         stepperItem.appendChild(label);
 
-        // Añadir listener para actualizar tarjeta al hacer clic
+        // Listener
         stepperItem.addEventListener('click', () => {
-            // Marcar este item como seleccionado
+            if (stepperItem.classList.contains('selected')) return; // No hacer nada si ya está seleccionado
+
             document.querySelectorAll('.stepper-item.selected').forEach(el => el.classList.remove('selected'));
             stepperItem.classList.add('selected');
-            // Actualizar la tarjeta
-            updateLevelCard(level, isUnlocked, currentUserData, levelSelectHandler);
+            // Pasar username para buscar puntuación
+            updateLevelCard(level, isUnlocked, currentUserData.name, levelSelectHandler);
         });
 
         levelStepperContainer.appendChild(stepperItem);
-
-        // Añadir conector (excepto después del último) - Podría hacerse con CSS puro también
-        // if (index < allLevels.length - 1) {
-        //     const connector = document.createElement('div');
-        //     connector.classList.add('stepper-connector');
-        //     levelStepperContainer.appendChild(connector);
-        // }
     });
 
-    // Actualizar la línea de progreso azul
+    // Actualizar línea de progreso
     updateStepperProgressLine(lastUnlockedIndex, allLevels.length);
 
-    // Seleccionar y mostrar la tarjeta del primer nivel desbloqueado por defecto
-    const firstUnlockedLevel = unlockedLevels[0] || 'Essential'; // Asume Essential siempre está
-    const firstStepperItem = levelStepperContainer.querySelector(`.stepper-item[data-level="${firstUnlockedLevel}"]`);
+    // Seleccionar tarjeta del primer nivel desbloqueado por defecto
+    const effectiveFirstLevel = firstUnlockedLevelName || allLevels[0];
+    const firstStepperItem = levelStepperContainer.querySelector(`.stepper-item[data-level="${effectiveFirstLevel}"]`);
     if (firstStepperItem) {
         firstStepperItem.classList.add('selected');
-        updateLevelCard(firstUnlockedLevel, true, currentUserData, levelSelectHandler);
+        updateLevelCard(effectiveFirstLevel, unlockedLevels.includes(effectiveFirstLevel), currentUserData.name, levelSelectHandler);
     } else {
-        // Fallback si algo va mal
-        levelCardContent.innerHTML = `<p>${getTranslation('error_loading_levels')}</p>`;
+        levelCardContent.innerHTML = `<p>${getTranslation('error_loading_levels') || 'Error loading levels.'}</p>`;
+        console.error(`No se encontró el stepper item para el nivel por defecto: ${effectiveFirstLevel}`);
     }
 
-    // Mostrar la sección de selección de nivel
     showSection(levelSelectSection);
-    // Ocultar la sección de progreso de desbloqueo separada (ya no necesaria)
+    // Ocultar sección de progreso antigua
     if (unlockProgressSection) unlockProgressSection.style.display = 'none';
 }
 
 /**
  * Actualiza el contenido de la tarjeta única con la información del nivel seleccionado.
- * @param {string} levelName - Nombre del nivel seleccionado (e.g., 'Associate').
+ * @param {string} levelName - Nombre del nivel.
  * @param {boolean} isUnlocked - Si el nivel está desbloqueado.
- * @param {object} currentUserData - Datos del usuario.
+ * @param {string} currentUsername - Nombre del usuario actual.
  * @param {function} levelSelectHandler - Función para iniciar el nivel.
  */
-function updateLevelCard(levelName, isUnlocked, currentUserData, levelSelectHandler) {
+function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHandler) {
     if (!levelCardContent) return;
+    levelCardContent.innerHTML = ''; // Limpiar
 
-    levelCardContent.innerHTML = ''; // Limpiar contenido anterior
-
-    // Título del Nivel
+    // Título
     const title = document.createElement('h3');
-    title.dataset.translate = `level_${levelName.toLowerCase()}`;
-    title.textContent = getTranslation(`level_${levelName.toLowerCase()}`) || levelName;
+    const titleKey = `level_${levelName.toLowerCase()}`;
+    title.dataset.translate = titleKey;
+    title.textContent = getTranslation(titleKey) || levelName;
     levelCardContent.appendChild(title);
 
-    // Icono Grande (Opcional)
-    // const icon = document.createElement('i');
-    // icon.className = `level-icon ${levelIcons[levelName] || 'fa-solid fa-question-circle'}`;
-    // levelCardContent.appendChild(icon);
-
     if (isUnlocked) {
-        // Estado: Disponible
+        // Estado Disponible
         const status = document.createElement('div');
         status.classList.add('level-status');
-        // status.dataset.translate = 'level_status_available'; // Necesitaríamos esta clave i18n
-        status.textContent = "Disponible"; // Placeholder
+        status.dataset.translate = 'level_status_available';
+        status.textContent = getTranslation('level_status_available') || "Available";
         levelCardContent.appendChild(status);
 
-        // Mejor Puntuación Personal
+        // Puntuación
         const scoreDiv = document.createElement('div');
         scoreDiv.classList.add('level-score');
-        const userScores = storage.loadHighScores().find(user => user.name === currentUserData.name)?.scores || {};
-        const levelKey = `${levelName}-standard`; // Asumimos modo standard por ahora
+        const allHighScores = storage.loadHighScores(); // Carga todas las puntuaciones
+        const userScoreData = allHighScores.find(user => user.name === currentUsername); // Busca al usuario actual
+        const userScores = userScoreData?.scores || {}; // Obtiene sus puntuaciones o un objeto vacío
+        const levelKey = `${levelName}-standard`; // Clave para la puntuación (asume standard)
         const bestScore = userScores[levelKey];
 
         if (bestScore !== undefined) {
-            scoreDiv.innerHTML = `${getTranslation('your_best_score') || 'Tu Mejor Puntuación'}: <strong>${bestScore}</strong>`;
+            scoreDiv.innerHTML = `${getTranslation('your_best_score') || 'Your Best Score'}: <strong>${bestScore}</strong>`;
         } else {
-            scoreDiv.textContent = getTranslation('not_played_yet') || 'Aún no jugado';
+            scoreDiv.textContent = getTranslation('not_played_yet') || 'Not played yet';
         }
         levelCardContent.appendChild(scoreDiv);
 
-        // Botón Iniciar Nivel
+        // Botón Iniciar
         const startButton = document.createElement('button');
         startButton.classList.add('start-level-button');
-        startButton.dataset.translate = 'start_level_button'; // Clave i18n
-        startButton.textContent = getTranslation('start_level_button') || 'Iniciar Nivel';
-        startButton.addEventListener('click', () => {
-            // Llama al handler pasado desde game.js (que es selectLevelAndMode)
-            levelSelectHandler(levelName, 'standard'); // Asumimos modo standard
-        });
+        const buttonKey = 'start_level_button';
+        startButton.dataset.translate = buttonKey;
+        startButton.textContent = getTranslation(buttonKey) || 'Start Level';
+        if (typeof levelSelectHandler === 'function') {
+            startButton.addEventListener('click', () => {
+                levelSelectHandler(levelName, 'standard'); // Llama al handler de game.js
+            });
+        } else {
+            console.error("levelSelectHandler no es una función en updateLevelCard");
+            startButton.disabled = true;
+        }
         levelCardContent.appendChild(startButton);
 
-    } else {
-        // Estado: Bloqueado
+    } else { // Nivel Bloqueado
+        // Estado Bloqueado
         const status = document.createElement('div');
         status.classList.add('level-status', 'locked');
-        status.innerHTML = `<i class="fas fa-lock"></i> ${getTranslation('level_status_locked') || 'Bloqueado'}`;
+        status.innerHTML = `<i class="fas fa-lock"></i> ${getTranslation('level_status_locked') || 'Locked'}`;
         levelCardContent.appendChild(status);
 
-        // Requisito para Desbloquear
+        // Requisito
         const requirement = document.createElement('div');
         requirement.classList.add('level-requirement');
         let requirementText = '';
-        // Determinar el requisito basado en el nivel bloqueado
-        if (levelName === 'Entry') requirementText = getTranslation('requirement_entry'); // No debería pasar si Essential es base
-        else if (levelName === 'Associate') requirementText = getTranslation('requirement_associate'); // "Completa Nivel Entry..."
-        else if (levelName === 'Professional') requirementText = getTranslation('requirement_professional'); // "Completa Nivel Associate..."
-        else requirementText = getTranslation('requirement_default'); // Texto genérico
-
+        let requirementKey = '';
+        const levelsOrder = config.LEVELS;
+        const currentIndex = levelsOrder.indexOf(levelName);
+        if (currentIndex > 0) {
+            const previousLevel = levelsOrder[currentIndex - 1];
+            const prevLevelKey = `level_${previousLevel.toLowerCase()}`;
+            requirementKey = `requirement_${levelName.toLowerCase()}`;
+            // Intenta obtener la traducción con el nombre del nivel anterior como reemplazo
+            requirementText = getTranslation(requirementKey, { prevLevel: getTranslation(prevLevelKey) || previousLevel });
+            // Si la clave específica no existe, usa un texto genérico
+            if (requirementText === requirementKey) {
+                 requirementText = getTranslation('requirement_default', { prevLevel: getTranslation(prevLevelKey) || previousLevel }) || `Complete ${previousLevel} first.`;
+            }
+        } else { // Caso raro (Essential bloqueado?)
+            requirementKey = 'requirement_default_unknown';
+            requirementText = getTranslation(requirementKey) || "Unlock previous levels first.";
+        }
         requirement.innerHTML = `<i class="fas fa-info-circle"></i> ${requirementText}`;
         levelCardContent.appendChild(requirement);
-
-        // Botón (Desactivado o no presente)
-        // const startButton = document.createElement('button');
-        // startButton.classList.add('start-level-button');
-        // startButton.disabled = true;
-        // startButton.textContent = getTranslation('start_level_button') || 'Iniciar Nivel';
-        // levelCardContent.appendChild(startButton);
     }
 }
 
@@ -284,42 +310,27 @@ function updateLevelCard(levelName, isUnlocked, currentUserData, levelSelectHand
 function updateStepperProgressLine(lastUnlockedIndex, totalLevels) {
     if (!levelStepperContainer || totalLevels <= 1) return;
 
+    // Calcula el porcentaje basado en los espacios entre marcadores
+    // Deja 10% de margen a cada lado, escala el progreso al 80% restante
     const progressPercentage = lastUnlockedIndex >= 0
-        ? (lastUnlockedIndex / (totalLevels - 1)) * 100 // Porcentaje basado en el espacio entre marcadores
-        : 0;
+        ? (lastUnlockedIndex / (totalLevels - 1)) * 80 + 10
+        : 10; // Mínimo 10%
 
-    // Ajustar el ancho de la línea ::after
+    // Establece la variable CSS --progress-width
     levelStepperContainer.style.setProperty('--progress-width', `${progressPercentage}%`);
-
-    // Necesitamos añadir la variable al CSS para que funcione:
-    /*
-    #level-stepper-container::after {
-        ...
-        width: var(--progress-width, 0%); // Usa la variable con fallback 0%
-        ...
-    }
-    */
-   // ¡Hecho! Ya está añadido en la versión anterior del CSS.
 }
 
 
-// --- FIN NUEVA Lógica ---
-
-
 /**
- * Actualiza la UI de progreso de DESBLOQUEO de nivel (AHORA OBSOLETA O REDUNDANTE).
- * Mantenida por si se decide reutilizar en otro lugar.
- * @param {object} currentUserData - Datos del usuario con niveles y rachas.
+ * Actualiza la UI de progreso de DESBLOQUEO de nivel (OBSOLETA).
  */
 export function updateUnlockProgressUI(currentUserData) {
-    // Esta función probablemente ya no sea necesaria en la pantalla de selección,
-    // ya que la información de bloqueo/requisito está en la tarjeta.
-    // Se podría eliminar o adaptar para mostrarse en otro lugar si es útil.
-    if (unlockProgressSection) unlockProgressSection.style.display = 'none'; // Ocultarla por defecto
+    // No hacer nada, la información está en la tarjeta.
+    // console.log("updateUnlockProgressUI llamada, pero es obsoleta.");
 }
 
 /**
- * Actualiza las estrellas de progreso DENTRO de la ronda actual. (Sin cambios)
+ * Actualiza las estrellas de progreso DENTRO de la ronda actual.
  * @param {Array<boolean>} roundResults - Array con los resultados (true/false) de la ronda.
  * @param {boolean} isMasteryMode - Indica si se debe usar el estilo de corona.
  */
@@ -345,45 +356,49 @@ export function updateRoundProgressUI(roundResults, isMasteryMode) {
 
 /**
  * Muestra la pregunta actual y genera los botones de opción traducidos.
- * Incluye la presentación teórica si existe (para Nivel Essential).
+ * Incluye la presentación teórica si existe.
  * @param {object} questionData - Objeto con la información de la pregunta.
  * @param {function} answerClickHandler - La función que manejará el clic en una opción.
  */
 export function displayQuestion(questionData, answerClickHandler) {
     try {
-        if(!questionText || !optionsContainer || !feedbackArea) return;
-        feedbackArea.innerHTML = ''; feedbackArea.className = ''; // Limpiar feedback
-        optionsContainer.innerHTML = ''; // Limpiar opciones anteriores
-        optionsContainer.classList.remove('options-disabled'); // Habilitar opciones
+        if(!questionText || !optionsContainer || !feedbackArea) {
+             console.error("Error en displayQuestion: Faltan elementos del DOM.");
+             return;
+        }
+        feedbackArea.innerHTML = ''; feedbackArea.className = '';
+        optionsContainer.innerHTML = '';
+        optionsContainer.classList.remove('options-disabled');
 
         let finalQuestionHTML = '';
 
-        // --- Añadir texto teórico si existe ---
+        // Añadir texto teórico si existe
         if (questionData.theoryKey) {
             const theoryText = getTranslation(questionData.theoryKey);
             if (theoryText && theoryText !== questionData.theoryKey) {
                 finalQuestionHTML += `<div class="theory-presentation">${theoryText}</div><hr class="theory-separator">`;
             }
         }
-        // --- FIN Añadir teoría ---
 
-        // Añadir el texto de la pregunta principal
+        // Añadir texto de la pregunta principal
         const questionReplacements = questionData.question.replacements || {};
         finalQuestionHTML += getTranslation(questionData.question.key, questionReplacements);
-        questionText.innerHTML = finalQuestionHTML; // Establecer HTML combinado
+        questionText.innerHTML = finalQuestionHTML;
 
         // Crear botones de opción
-        if (!questionData.options || !Array.isArray(questionData.options)) throw new Error("optionsArray inválido.");
+        if (!questionData.options || !Array.isArray(questionData.options)) {
+             throw new Error("optionsArray inválido o no es un array.");
+        }
         questionData.options.forEach((optionData) => {
             const button = document.createElement('button'); button.classList.add('option-button');
             let buttonText = ''; let originalValue = '';
 
-            // Manejar opciones simples (string: clave i18n o valor directo) y complejas (objeto)
+            // Manejar opciones simples (string) y complejas (objeto)
             if (typeof optionData === 'string') {
                 const translated = getTranslation(optionData);
                 buttonText = (translated && translated !== optionData) ? translated : optionData;
                 originalValue = optionData;
-            } else if (typeof optionData === 'object' && optionData !== null) { // Opción compleja (Clase/Tipo/Máscara/Porción)
+            } else if (typeof optionData === 'object' && optionData !== null) {
                 let textParts = []; let originalValueParts = [];
                 if (optionData.classKey) { textParts.push(getTranslation(optionData.classKey)); originalValueParts.push(optionData.classKey); }
                 if (optionData.typeKey) { textParts.push(getTranslation(optionData.typeKey)); originalValueParts.push(optionData.typeKey); }
@@ -392,17 +407,21 @@ export function displayQuestion(questionData, answerClickHandler) {
                 buttonText = textParts.join(', ');
                 originalValue = originalValueParts.join(',');
                 if (textParts.length === 0) { buttonText = JSON.stringify(optionData); originalValue = buttonText; }
-            } else { buttonText = 'Opción Inválida'; originalValue = 'invalid'; }
+            } else { buttonText = 'Invalid Option'; originalValue = 'invalid'; }
 
             button.textContent = buttonText;
             button.setAttribute('data-original-value', originalValue);
-            if (typeof answerClickHandler === 'function') { button.addEventListener('click', answerClickHandler); }
+            if (typeof answerClickHandler === 'function') {
+                button.addEventListener('click', answerClickHandler);
+            } else {
+                 console.warn("answerClickHandler no es una función en displayQuestion");
+            }
             optionsContainer.appendChild(button);
         });
 
     } catch (error) {
         console.error("Error en displayQuestion:", error);
-        if(questionText) questionText.textContent = getTranslation('error_displaying_question');
+        if(questionText) questionText.textContent = getTranslation('error_displaying_question') || 'Error displaying question.';
         if(optionsContainer) optionsContainer.innerHTML = "";
     }
 }
@@ -416,22 +435,19 @@ export function displayQuestion(questionData, answerClickHandler) {
  * @param {function} nextStepHandler - Función a llamar al hacer clic en "Siguiente".
  */
 export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStepHandler) {
-    if (!feedbackArea || !questionData || questionData.correctAnswer === undefined) return;
+    if (!feedbackArea || !questionData || questionData.correctAnswer === undefined) {
+         console.error("Error en displayFeedback: Faltan elementos o datos.", {feedbackArea, questionData});
+         return;
+    }
     let feedbackText = ''; let explanationHTML = '';
     const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
 
-    // Traducir la respuesta correcta para el mensaje de feedback
+    // Traducir la respuesta correcta para el mensaje
     let translatedCorrectAnswer = ''; const ca = questionData.correctAnswer;
+    // (Lógica de traducción de 'ca' - igual que antes)
     if (typeof ca === 'string') { const translated = getTranslation(ca); translatedCorrectAnswer = (translated && translated !== ca) ? translated : ca; }
-    else if (typeof ca === 'object' && ca !== null) {
-        let textParts = [];
-        if (ca.classKey) textParts.push(getTranslation(ca.classKey));
-        if (ca.typeKey) textParts.push(getTranslation(ca.typeKey));
-        if (ca.maskValue) textParts.push(getTranslation('option_mask', { mask: ca.maskValue }));
-        if (ca.portionKey) { const portionVal = ca.portionValue || getTranslation('option_none'); textParts.push(getTranslation(ca.portionKey, { portion: portionVal })); }
-        if (textParts.length > 0) { translatedCorrectAnswer = textParts.join(', '); }
-        else { translatedCorrectAnswer = JSON.stringify(ca); }
-    } else { translatedCorrectAnswer = ca?.toString() ?? 'N/A'; } // Convertir números, etc. a string
+    else if (typeof ca === 'object' && ca !== null) { let textParts = []; if (ca.classKey) textParts.push(getTranslation(ca.classKey)); if (ca.typeKey) textParts.push(getTranslation(ca.typeKey)); if (ca.maskValue) textParts.push(getTranslation('option_mask', { mask: ca.maskValue })); if (ca.portionKey) { const portionVal = ca.portionValue || getTranslation('option_none'); textParts.push(getTranslation(ca.portionKey, { portion: portionVal })); } if (textParts.length > 0) { translatedCorrectAnswer = textParts.join(', '); } else { translatedCorrectAnswer = JSON.stringify(ca); } }
+    else { translatedCorrectAnswer = ca?.toString() ?? 'N/A'; }
 
     // Texto base del feedback
     if (isCorrect) {
@@ -441,7 +457,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     }
     feedbackArea.className = isCorrect ? (isMasteryMode ? 'mastery' : 'correct') : 'incorrect';
 
-    // Generar HTML de la explicación si la respuesta es incorrecta
+    // Generar HTML de la explicación si es incorrecto
     if (!isCorrect && questionData.explanation) {
         try {
             const expInfo = questionData.explanation;
@@ -451,44 +467,53 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
             }
 
             let generatedExplanationHTML = '';
-            if (expInfo.generatorName && explanationGenerators[expInfo.generatorName]) {
+            // Manejar explicación simple (solo texto base)
+            if (expInfo.baseTextKey && !expInfo.generatorName && !expInfo.generators) {
+                explanationHTML = `<p>${baseExplanationText}</p>`;
+            }
+            // Manejar generador único
+            else if (expInfo.generatorName && explanationGenerators[expInfo.generatorName]) {
                 const generatorFunc = explanationGenerators[expInfo.generatorName];
                 if (typeof generatorFunc === 'function') {
                     generatedExplanationHTML = generatorFunc.apply(null, expInfo.args || []);
-                } else { console.error(`Generator '${expInfo.generatorName}' not found or not a function.`); generatedExplanationHTML = `<p>Error: Generator not found.</p>`; }
-            } else if (Array.isArray(expInfo.generators)) {
+                    explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedExplanationHTML}` : generatedExplanationHTML;
+                } else { throw new Error(`Generator '${expInfo.generatorName}' no es una función.`); }
+            }
+            // Manejar múltiples generadores
+            else if (Array.isArray(expInfo.generators)) {
                 const separator = expInfo.separator || '<br>';
                 generatedExplanationHTML = expInfo.generators.map(genInfo => {
                     if (genInfo.generatorName && explanationGenerators[genInfo.generatorName]) {
                         const generatorFunc = explanationGenerators[genInfo.generatorName];
                         if (typeof generatorFunc === 'function') { return generatorFunc.apply(null, genInfo.args || []); }
-                        else { console.error(`Generator '${genInfo.generatorName}' not found or not a function.`); return `<p>Error: Generator not found.</p>`; }
+                        else { throw new Error(`Generator '${genInfo.generatorName}' no es una función.`); }
                     } return '';
                 }).join(separator);
-            } else if (expInfo.baseTextKey && !expInfo.generatorName && !expInfo.generators) {
-                // Caso de explicación simple (solo baseTextKey) - ya está en baseExplanationText
-                 generatedExplanationHTML = ''; // No hay HTML generado adicional
+                 explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedExplanationHTML}` : generatedExplanationHTML;
             }
+             else {
+                 // Si solo hay baseTextKey, ya se asignó arriba
+                 if (!explanationHTML && baseExplanationText) {
+                     explanationHTML = `<p>${baseExplanationText}</p>`;
+                 }
+             }
 
-            explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedExplanationHTML}` : generatedExplanationHTML;
-
-        } catch (genError) { console.error("Error generando explicación HTML:", genError, questionData.explanation); explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' })}</p>`; }
+        } catch (genError) {
+            console.error("Error generando explicación HTML:", genError, questionData.explanation);
+            explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' }) || 'Error generating explanation.'}</p>`;
+        }
 
         // Resaltar botón correcto
         try {
             if(optionsContainer) {
                 let correctOriginalValueStr = '';
+                // (Lógica para obtener correctOriginalValueStr - igual que antes)
                 if (typeof ca === 'string') { correctOriginalValueStr = ca; }
-                else if (typeof ca === 'object' && ca !== null) {
-                    let originalValueParts = [];
-                    if (ca.classKey) originalValueParts.push(ca.classKey);
-                    if (ca.typeKey) originalValueParts.push(ca.typeKey);
-                    if (ca.maskValue) originalValueParts.push(ca.maskValue);
-                    if (ca.portionKey) { originalValueParts.push(ca.portionKey); originalValueParts.push(ca.portionValue || 'None'); }
-                    correctOriginalValueStr = originalValueParts.join(',');
-                } else { correctOriginalValueStr = ca?.toString() ?? 'N/A'; }
+                else if (typeof ca === 'object' && ca !== null) { let parts = []; if (ca.classKey) parts.push(ca.classKey); if (ca.typeKey) parts.push(ca.typeKey); if (ca.maskValue) parts.push(ca.maskValue); if (ca.portionKey) { parts.push(ca.portionKey); parts.push(ca.portionValue || 'None'); } correctOriginalValueStr = parts.join(','); }
+                else { correctOriginalValueStr = ca?.toString() ?? 'N/A'; }
 
                 Array.from(optionsContainer.children).forEach(button => {
+                    // Usar el valor original guardado en el atributo data-original-value
                     if (button.getAttribute('data-original-value') === correctOriginalValueStr) {
                         button.classList.add(correctButtonClass);
                     }
@@ -501,7 +526,6 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     let finalFeedbackHTML = `<div id="feedback-text-content"><span>${feedbackText}</span>`;
     if (explanationHTML) { finalFeedbackHTML += `<span class="explanation">${explanationHTML}</span>`; }
     finalFeedbackHTML += `</div>`;
-    // Añadir botón "Siguiente" solo si la respuesta fue incorrecta
     if (!isCorrect) {
         const buttonTextKey = (questionData.questionsAnswered + 1 >= config.TOTAL_QUESTIONS_PER_GAME) ? 'final_result_button' : 'next_button';
         finalFeedbackHTML += `<button id="next-question-button">${getTranslation(buttonTextKey)}</button>`;
@@ -537,13 +561,13 @@ export function displayGameOver(score, currentUserData, playedLevel) {
     let baseMessage = getTranslation('game_over_base_message', { score: score, maxScore: maxScore, percentage: scorePercentage });
     let extraMessage = '';
 
-    // Lógica de desbloqueo y mensajes (simplificada asumiendo Essential es base)
+    // Lógica de desbloqueo y mensajes
+    // (Asegúrate que las claves i18n como 'requirement_associate' existan)
     if (playedLevel === 'Essential') {
-        // Essential no desbloquea nada, quizás un mensaje de ánimo
-        if (isPerfect) extraMessage = "¡Buen comienzo!";
+         if (isPerfect) extraMessage = getTranslation('game_over_good_round_essential') || "¡Buen comienzo!";
     } else if (playedLevel === 'Entry') {
-        if (isPerfect) {
-            const justUnlockedAssociate = currentUserData.unlockedLevels.includes('Associate') && (currentUserData.entryPerfectStreak === 1); // Se desbloquea a la primera racha perfecta >= 3
+        if (isPerfect && currentUserData.entryPerfectStreak !== undefined) { // Chequeo añadido
+            const justUnlockedAssociate = currentUserData.unlockedLevels.includes('Associate') && currentUserData.entryPerfectStreak >= 3; // Asume que se actualizó antes de llamar
             if (justUnlockedAssociate) {
                 extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') });
             } else if (!currentUserData.unlockedLevels.includes('Associate')) {
@@ -553,8 +577,8 @@ export function displayGameOver(score, currentUserData, playedLevel) {
             }
         }
     } else if (playedLevel === 'Associate') {
-         if (meetsAssociateThreshold) {
-             const justUnlockedPro = currentUserData.unlockedLevels.includes('Professional') && (currentUserData.associatePerfectStreak === 1); // Se desbloquea a la primera racha >= 3
+         if (meetsAssociateThreshold && currentUserData.associatePerfectStreak !== undefined) { // Chequeo añadido
+             const justUnlockedPro = currentUserData.unlockedLevels.includes('Professional') && currentUserData.associatePerfectStreak >= 3; // Asume que se actualizó antes de llamar
              if (justUnlockedPro) {
                  extraMessage = getTranslation('game_over_level_unlocked_pro');
              } else if (!currentUserData.unlockedLevels.includes('Professional')) {
@@ -563,74 +587,70 @@ export function displayGameOver(score, currentUserData, playedLevel) {
                  extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK });
              }
          }
-    } // Añadir lógica para Professional -> Expert si es necesario
+    }
+    // Añadir lógica para Professional -> Expert si es necesario
 
     const finalMessage = extraMessage ? `${baseMessage} ${extraMessage}` : baseMessage;
     if(highScoreMessage) highScoreMessage.textContent = finalMessage;
 
-    // Actualizar texto del botón "Jugar de Nuevo"
     if (playAgainButton) {
-        playAgainButton.textContent = getTranslation('play_again_button'); // Siempre "Elegir Nivel" ahora
+        playAgainButton.textContent = getTranslation('play_again_button') || 'Choose Level';
     }
 
-    // Ya no necesitamos llamar a updateUnlockProgressUI aquí
     showSection(gameOverSection);
 }
 
 
 /**
- * Actualiza la lista de High Scores en la UI. (Sin cambios significativos)
+ * Actualiza la lista de High Scores en la UI.
  * @param {Array<object>} scoresData - Array de objetos [{ name, scores: { levelMode: score } }]
  */
 export function displayHighScores(scoresData) {
      if(!scoreList) return;
      scoreList.innerHTML = '';
-     if (!scoresData || scoresData.length === 0) { scoreList.innerHTML = `<li>${getTranslation('no_scores')}</li>`; return; }
+     if (!scoresData || scoresData.length === 0) { scoreList.innerHTML = `<li>${getTranslation('no_scores') || 'No scores yet.'}</li>`; return; }
      try {
          scoresData.forEach(userData => {
              const userEntry = document.createElement('li'); userEntry.classList.add('score-entry');
              const userNameElement = document.createElement('div'); userNameElement.classList.add('score-username'); userNameElement.textContent = userData.name; userEntry.appendChild(userNameElement);
              const levelScoresContainer = document.createElement('div'); levelScoresContainer.classList.add('level-scores');
-             // Orden de visualización de puntuaciones (ajustar si añadimos Expert)
-             const displayOrder = [
-                 { key: 'Essential-standard', labelKey: 'level_essential' },
-                 { key: 'Entry-standard', labelKey: 'level_entry' }, // No mostramos modo aquí
-                 // { key: 'Entry-mastery', labelKey: 'level_entry_mastery' }, // Oculto por simplicidad
-                 { key: 'Associate-standard', labelKey: 'level_associate' },
-                 { key: 'Professional-standard', labelKey: 'level_professional' },
-                 { key: 'Expert-standard', labelKey: 'level_expert' } // Futuro
-             ];
+             // Orden de visualización (Añadir Expert si existe)
+             const displayOrder = config.LEVELS.map(level => ({
+                 key: `${level}-standard`, // Asume standard
+                 labelKey: `level_${level.toLowerCase()}`
+             }));
+
              let hasScores = false;
              displayOrder.forEach(levelInfo => {
-                 if (userData.scores && userData.scores[levelInfo.key] !== undefined) {
+                 // Asegurarse que exista la clave en scores antes de acceder
+                 if (userData.scores && userData.scores.hasOwnProperty(levelInfo.key)) {
                      const levelScoreElement = document.createElement('span');
                      levelScoreElement.classList.add('level-score-item');
-                     const label = getTranslation(levelInfo.labelKey);
+                     const label = getTranslation(levelInfo.labelKey) || levelInfo.key.split('-')[0]; // Fallback label
                      levelScoreElement.innerHTML = `${label}: <strong>${userData.scores[levelInfo.key]}</strong>`;
                      levelScoresContainer.appendChild(levelScoreElement);
                      hasScores = true;
                  }
              });
              if(hasScores) { userEntry.appendChild(levelScoresContainer); }
-             else { const noScoreMsg = document.createElement('div'); noScoreMsg.textContent = `(${getTranslation('no_scores_recorded')})`; noScoreMsg.style.fontSize = "0.8em"; noScoreMsg.style.color = "#888"; userEntry.appendChild(noScoreMsg); }
+             else { const noScoreMsg = document.createElement('div'); noScoreMsg.textContent = `(${getTranslation('no_scores_recorded') || 'No scores recorded'})`; noScoreMsg.style.fontSize = "0.8em"; noScoreMsg.style.color = "#888"; userEntry.appendChild(noScoreMsg); }
              scoreList.appendChild(userEntry);
          });
-     } catch (error) { console.error("Error generando la lista de high scores:", error); scoreList.innerHTML = `<li>${getTranslation('error_displaying_scores')}</li>`; }
+     } catch (error) { console.error("Error generando la lista de high scores:", error); scoreList.innerHTML = `<li>${getTranslation('error_displaying_scores') || 'Error displaying scores.'}</li>`; }
 }
 
 /**
- * Actualiza el display del temporizador. (Sin cambios)
+ * Actualiza el display del temporizador.
  * @param {number} timeLeftValue - Segundos restantes.
  */
 export function updateTimerDisplay(timeLeftValue) {
     if (!timerDisplayDiv || !timeLeftSpan) return;
     timeLeftSpan.textContent = timeLeftValue;
-    if (timeLeftValue <= 5) { timerDisplayDiv.classList.add('low-time'); }
-    else { timerDisplayDiv.classList.remove('low-time'); }
+    timerDisplayDiv.classList.toggle('low-time', timeLeftValue <= 5); // Forma más corta
 }
 
 /**
- * Muestra u oculta el display del temporizador. (Sin cambios)
+ * Muestra u oculta el display del temporizador.
  * @param {boolean} show - True para mostrar, false para ocultar.
  */
 export function showTimerDisplay(show) {
