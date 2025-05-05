@@ -3,9 +3,8 @@
 // Lógica Principal del Juego IP Sprint
 // Adaptado para Nivel Essential y UI Stepper+Tarjeta
 // Maneja carga async de preguntas Essential desde JSON.
-// Pasa handlers correctamente y maneja refresco de UI por idioma,
-// incluyendo el estado de feedback.
-// Versión sin console.log
+// CORREGIDO: refreshActiveGameUI ahora pasa datos completos a ui.displayFeedback.
+// Versión sin console.log de depuración
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -33,7 +32,7 @@ let timeLeft = 0;
 let isFeedbackActive = false;
 let lastAnswerCorrect = null;
 let lastMasteryMode = false;
-let lastSelectedOriginalValue = null;
+let lastSelectedOriginalValue = null; // Valor original de la opción incorrecta seleccionada
 
 // --- Funciones Auxiliares ---
 
@@ -153,11 +152,9 @@ async function loadNextQuestion() {
             // Guardar datos originales si existen (adjuntados por questions.js para Essential)
             if (currentQuestionData.rawData) {
                 originalQuestionData = currentQuestionData.rawData;
-                // delete currentQuestionData.rawData; // Opcional: limpiar si no se necesita más
+                // delete currentQuestionData.rawData; // Opcional
             } else {
-                 originalQuestionData = null; // No hay datos crudos para otros niveles (por ahora)
-                 // Podríamos guardar una copia de formattedQuestionData si el refresco de no-Essential lo necesitara
-                 // originalQuestionData = JSON.parse(JSON.stringify(formattedQuestionData)); // Ejemplo de copia profunda
+                 originalQuestionData = null; // O guardar copia si es necesario para refresco no-Essential
             }
 
             const duration = getTimerDurationForCurrentLevel();
@@ -202,7 +199,7 @@ async function loadNextQuestion() {
         isFeedbackActive = true;
         lastAnswerCorrect = false;
         lastMasteryMode = isMasteryStyle;
-        lastSelectedOriginalValue = null;
+        lastSelectedOriginalValue = null; // No hubo selección
 
         // Usar los datos formateados actuales para el feedback
         const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
@@ -213,7 +210,8 @@ async function loadNextQuestion() {
              timeoutFeedbackData.correctAnswerDisplay = (translated && translated !== ca) ? translated : ca;
         }
         // Pasar null como último argumento (no hubo selección incorrecta)
-        ui.displayFeedback(false, isMasteryStyle, timeoutFeedbackData, proceedToNextStep, null);
+        // El último argumento 'false' indica que NO es un refresco de UI
+        ui.displayFeedback(false, isMasteryStyle, timeoutFeedbackData, proceedToNextStep, null, false);
 
         // Modificar texto para indicar Timeout
         if (ui.feedbackArea) {
@@ -275,14 +273,16 @@ async function loadNextQuestion() {
         currentScore += config.POINTS_PER_QUESTION;
         ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
         // Pasar null como último argumento ya que no hubo selección incorrecta
-        ui.displayFeedback(isCorrect, isMasteryStyle, currentQuestionData, proceedToNextStep, null);
+        // El último 'false' indica que no es un refresco
+        ui.displayFeedback(isCorrect, isMasteryStyle, currentQuestionData, proceedToNextStep, null, false);
         if (selectedButton) selectedButton.classList.add(isMasteryStyle ? 'mastery' : 'correct');
         setTimeout(proceedToNextStep, 1200);
     } else {
         // Pasar los datos formateados actuales a displayFeedback
         const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
         // Pasar el valor original incorrecto seleccionado
-        ui.displayFeedback(isCorrect, isMasteryStyle, feedbackData, proceedToNextStep, lastSelectedOriginalValue);
+        // El último 'false' indica que no es un refresco
+        ui.displayFeedback(isCorrect, isMasteryStyle, feedbackData, proceedToNextStep, lastSelectedOriginalValue, false);
         if (selectedButton) selectedButton.classList.add('incorrect');
     }
     ui.updateRoundProgressUI(roundResults, isMasteryStyle);
@@ -397,7 +397,7 @@ export function refreshActiveGameUI() {
     if (!currentUsername) { return; } // Salir si no hay usuario
     const newLang = getCurrentLanguage(); // Obtener el nuevo idioma
 
-    // Refresco Básico (Info jugador, estrellas, timer)
+    // Refresco Básico
     ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
     ui.updateRoundProgressUI(roundResults, lastMasteryMode);
     if (questionTimerInterval) {
@@ -418,9 +418,8 @@ export function refreshActiveGameUI() {
         // Adjuntar rawData de nuevo por si se cambia idioma otra vez antes de avanzar
         if(dataForUI) dataForUI.rawData = originalQuestionData;
     } else if (currentQuestionData) {
-        // Para niveles no-Essential, por ahora reusamos los datos actuales.
-        // TODO: Idealmente, los generadores no-Essential deberían devolver también
-        // datos originales/claves para permitir un refresco completo aquí.
+        // Para niveles no-Essential, reusamos los datos actuales.
+        // TODO: Mejorar esto si los generadores no-Essential no usan claves i18n
         dataForUI = currentQuestionData;
         console.warn(`[Game] Refrescando UI no-Essential (${currentLevel}), el texto puede no actualizarse si no usa claves i18n.`); // Mantener warning
     }
