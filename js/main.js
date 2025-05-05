@@ -1,7 +1,7 @@
 // js/main.js
 // ==================================================
 // Punto de Entrada Principal y Manejo de Eventos Globales
-// CORREGIDO: Soluciona SyntaxError al refrescar UI tras cambio de idioma.
+// Añadidos logs para depurar paso de handler en cambio de idioma.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -24,20 +24,20 @@ import { setLanguage, getCurrentLanguage, getTranslation } from './i18n.js';
 
 // --- Ejecución Principal al Cargar el DOM ---
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log("[Main] DOMContentLoaded"); // Log
 
     // --- Inicialización del Idioma ---
     const initialLang = getCurrentLanguage();
+    console.log(`[Main] Idioma inicial detectado: ${initialLang}`); // Log
     try {
-        await setLanguage(initialLang); // Carga idioma y aplica traducciones estáticas
+        await setLanguage(initialLang);
+        console.log("[Main] Idioma inicial cargado y aplicado."); // Log
     } catch (error) {
-        console.error("Error inicializando idioma:", error);
-        // Podríamos mostrar un mensaje al usuario aquí si falla la carga inicial
+        console.error("[Main] Error inicializando idioma:", error);
     }
 
 
     // --- Inicialización del Juego (Muestra Login) ---
-    // Llama a la función de inicialización en game.js
-    // Esta función ahora es responsable de mostrar la pantalla de login inicial
     initializeGame();
 
 
@@ -46,86 +46,95 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Listener para el formulario de nombre de usuario
     if (ui.usernameForm) {
         ui.usernameForm.addEventListener('submit', (event) => {
-            event.preventDefault(); // Evita recarga de página
+            event.preventDefault();
+            console.log("[Main] Formulario de usuario enviado."); // Log
             const enteredUsername = ui.usernameInput.value.trim();
             if (enteredUsername) {
                 try {
-                    // Llama a la lógica de login en game.js, que a su vez llama a ui.displayLevelSelection
                     handleUserLogin(enteredUsername);
                 } catch (error) {
-                    console.error("Error en handleUserLogin:", error);
-                    // Muestra alerta traducida o fallback
+                    console.error("[Main] Error en handleUserLogin:", error);
                     alert(getTranslation('error_loading_user_data', { message: error.message }) || `Error loading user data: ${error.message}`);
                 }
             } else {
-                // Alerta si no se ingresa nombre
                 alert(getTranslation('alert_enter_username') || "Por favor, ingresa un nombre de usuario.");
             }
         });
     } else {
-        console.error("#username-form no encontrado");
+        console.error("[Main] #username-form no encontrado");
     }
 
-    // Listener para el botón "Jugar de Nuevo / Elegir Nivel" en Game Over
+    // Listener para botón "Jugar de Nuevo"
     if(ui.playAgainButton) {
         ui.playAgainButton.addEventListener('click', handlePlayAgain);
     } else {
-         console.error("#play-again-button no encontrado");
+         console.error("[Main] #play-again-button no encontrado");
     }
 
-    // Listeners para botones de control durante el juego
+    // Listeners botones control juego
     if (ui.restartRoundButton) {
         ui.restartRoundButton.addEventListener('click', handleRestartRound);
-    } else { console.error("#restart-round-button no encontrado"); }
+    } else { console.error("[Main] #restart-round-button no encontrado"); }
 
     if (ui.exitToMenuButton) {
         ui.exitToMenuButton.addEventListener('click', handleExitToMenu);
-    } else { console.error("#exit-to-menu-button no encontrado"); }
+    } else { console.error("[Main] #exit-to-menu-button no encontrado"); }
 
-    // Listeners para los botones de selección de idioma
+    // Listeners para botones de idioma
     const langButtons = document.querySelectorAll('#language-selector button');
     langButtons.forEach(button => {
         button.addEventListener('click', async (event) => {
             const selectedLang = event.target.getAttribute('data-lang');
+            console.log(`[Main] Botón de idioma clickeado: ${selectedLang}`); // Log
             if (selectedLang) {
                 try {
                     // 1. Cambia idioma y aplica traducciones estáticas
                     await setLanguage(selectedLang);
+                    console.log(`[Main] Idioma cambiado a ${selectedLang} y traducciones estáticas aplicadas.`); // Log
 
                     // --- 2. Refrescar Elementos Dinámicos ---
+                    console.log("[Main] Iniciando refresco de UI dinámica..."); // Log
+
                     // Recargar y mostrar High Scores (si están visibles)
-                    // Añadimos chequeo de existencia del elemento antes de acceder a style
                     if (ui.highScoresSection && ui.highScoresSection.style.display !== 'none') {
+                        console.log("[Main] Refrescando High Scores..."); // Log
                         const currentHighScores = storage.loadHighScores();
-                        ui.displayHighScores(currentHighScores); // ui.js usa getTranslation
+                        ui.displayHighScores(currentHighScores);
                     }
 
-                    // Refrescar la pantalla activa (Menú, Game Over, Juego)
                     const username = getCurrentUsername();
-                    if (username) { // Solo si hay usuario logueado
-                        const currentUserData = storage.getUserData(username); // Recargar datos
+                    if (username) {
+                        console.log(`[Main] Refrescando UI para usuario: ${username}`); // Log
+                        const currentUserData = storage.getUserData(username);
 
-                        // Añadimos chequeos de existencia de las secciones antes de acceder a style
                         // Si la pantalla de selección de nivel está visible...
                         if (ui.levelSelectSection && ui.levelSelectSection.style.display !== 'none' && currentUserData) {
-                             ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, selectLevelAndMode);
+                             // --- Log para verificar handler ANTES de pasar ---
+                             console.log(`[Main] Refrescando Level Selection. typeof selectLevelAndMode: ${typeof selectLevelAndMode}`);
+                             ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, username, selectLevelAndMode); // Pasar handler
                         }
                         // Si la pantalla de Game Over está visible...
                         else if (ui.gameOverSection && ui.gameOverSection.style.display !== 'none' && currentUserData) {
-                             const lastScoreText = ui.finalScoreDisplay?.textContent; // Optional chaining
+                             console.log("[Main] Refrescando Game Over..."); // Log
+                             const lastScoreText = ui.finalScoreDisplay?.textContent;
                              const lastScore = parseInt(lastScoreText || '0', 10);
                              const lastLevelPlayed = getCurrentLevel();
                              ui.displayGameOver(lastScore, currentUserData, lastLevelPlayed);
                         }
                         // Si el área de juego está activa...
                         else if (ui.gameAreaSection && ui.gameAreaSection.style.display !== 'none') {
+                            console.log("[Main] Refrescando Game Area..."); // Log
                             refreshActiveGameUI(); // Llama a la función de refresco en game.js
+                        } else {
+                            console.log("[Main] Ninguna sección principal activa para refrescar."); // Log
                         }
+                    } else {
+                         console.log("[Main] No hay usuario logueado, no se refresca UI dinámica."); // Log
                     }
+                    console.log("[Main] Refresco de UI dinámica completado."); // Log
                     // --- Fin Refresco Elementos Dinámicos ---
                 } catch (error) {
-                    console.error("Error al cambiar idioma y refrescar UI:", error);
-                    // Podríamos mostrar un mensaje al usuario aquí
+                    console.error("[Main] Error al cambiar idioma y refrescar UI:", error);
                 }
             }
         });
