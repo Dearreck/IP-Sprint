@@ -3,6 +3,8 @@
 // Generadores de Preguntas - Nivel Professional
 // CORREGIDO: generateSubnettingQuestion usa generateNumSubnetsExplanationHTML para el caso específico.
 // CORREGIDO: generateIdentifyIpTypeQuestion para incluir tabla de cálculo en la explicación.
+// MODIFICADO: generateSubnettingQuestion para generar IPs con probabilidad ponderada por clase (C:40%, A:30%, B:30%).
+// MODIFICADO: generateBitsForHostsQuestion para generar requisitos de hosts más pequeños con mayor frecuencia.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -176,35 +178,78 @@ export function generateSubnettingQuestion() {
     try {
         let ip, info, subnetMask, prefixLength, originalClassMask, originalPrefix, subnetBits;
         let attempts = 0;
-        // Generate a valid subnetting scenario (subnet mask different from default, prefix <= 30)
+        const maxAttempts = 100; // Max attempts to find a suitable IP/mask combo
+
+        // Generate a valid subnetting scenario with weighted class probability
         do {
-            ip = generateRandomIp();
+            // --- Weighted Class IP Generation ---
+            let targetClass = '';
+            const classRoll = Math.random();
+            let firstOctetMin, firstOctetMax;
+
+            if (classRoll < 0.4) { // 40% chance for Class C
+                targetClass = 'C';
+                firstOctetMin = 192;
+                firstOctetMax = 223;
+            } else if (classRoll < 0.7) { // 30% chance for Class A (0.4 to 0.69...)
+                targetClass = 'A';
+                firstOctetMin = 1;
+                firstOctetMax = 126; // Exclude 127 (Loopback)
+            } else { // 30% chance for Class B (0.7 to 1.0)
+                targetClass = 'B';
+                firstOctetMin = 128;
+                firstOctetMax = 191;
+            }
+
+            // Generate IP targeting the chosen class
+            let oct1 = getRandomInt(firstOctetMin, firstOctetMax);
+            // Avoid APIPA range start if targeting Class B accidentally hits 169
+            let oct2 = (oct1 === 169) ? getRandomInt(0, 253) : getRandomInt(0, 255);
+            let oct3 = getRandomInt(0, 255);
+            let oct4 = getRandomInt(1, 254); // Avoid .0 and .255 for host part
+            ip = `${oct1}.${oct2}.${oct3}.${oct4}`;
             info = getIpInfo(ip);
-            if (info.class !== 'A' && info.class !== 'B' && info.class !== 'C') continue; // Need classful IP for default mask comparison
+
+            // Ensure the generated IP actually matches the target class (should generally work)
+            if (info.class !== targetClass || info.typeKey === 'loopback') {
+                attempts++;
+                continue; // Retry IP generation if class mismatch or loopback
+            }
+            // --- End Weighted Class IP Generation ---
+
             originalClassMask = info.defaultMask;
             originalPrefix = getMaskPrefixLength(originalClassMask);
-            subnetMask = generateRandomSubnetMask();
+            subnetMask = generateRandomSubnetMask(); // Generate a random subnet mask
             prefixLength = getMaskPrefixLength(subnetMask);
+
             // Check if valid subnetting scenario generated
             if (prefixLength !== null && subnetMask !== originalClassMask && prefixLength > originalPrefix && prefixLength <= 30) {
-                subnetBits = prefixLength - originalPrefix; // Calculate subnet bits here
-                break;
+                subnetBits = prefixLength - originalPrefix; // Calculate subnet bits
+                // Ensure all calculations are possible
+                const networkAddrCheck = calculateNetworkAddress(ip, subnetMask);
+                const usableHostsCheck = calculateUsableHosts(subnetMask);
+                const numSubnetsCheck = calculateNumberOfSubnets(originalClassMask, subnetMask);
+                if (networkAddrCheck !== null && usableHostsCheck !== null && numSubnetsCheck !== null) {
+                     break; // Found a valid scenario
+                }
             }
             attempts++;
-        } while (attempts < 100);
+        } while (attempts < maxAttempts);
 
-        if (attempts >= 100) { // Fallback scenario
+        if (attempts >= maxAttempts) { // Fallback scenario if weighted generation fails repeatedly
+            console.warn("Weighted IP generation failed, using fallback for subnetting question.");
             ip = '192.168.1.150'; info = getIpInfo(ip); subnetMask = '255.255.255.192'; prefixLength = 26;
             originalClassMask = '255.255.255.0'; originalPrefix = 24; subnetBits = 2;
         }
 
-        // Calculate necessary values
+        // Calculate necessary values (use values from the successful loop or fallback)
         const networkAddr = calculateNetworkAddress(ip, subnetMask);
         const wildcardMask = calculateWildcardMask(subnetMask);
         const broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
         const usableHosts = calculateUsableHosts(subnetMask);
         const numSubnets = calculateNumberOfSubnets(originalClassMask, subnetMask);
 
+        // Final check for calculation errors
         if (networkAddr === null || broadcastAddr === null || usableHosts === null || numSubnets === null || subnetBits === undefined) {
             throw new Error(`Error calculating subnetting values for ${ip}/${subnetMask}`);
         }
@@ -222,15 +267,13 @@ export function generateSubnettingQuestion() {
                 questionKey = 'question_subnetting_calculate_network';
                 correctAnswer = networkAddr;
                 options.add(correctAnswer);
-                options.add(broadcastAddr); // Add broadcast as distractor
-                if(ip !== networkAddr) options.add(ip); // Add original IP if different
-                // Add another network address from a different IP but same mask
+                options.add(broadcastAddr);
+                if(ip !== networkAddr) options.add(ip);
                 let randomNetAddr;
                 do { randomNetAddr = calculateNetworkAddress(generateRandomIp(), subnetMask); }
                 while (!randomNetAddr || randomNetAddr === correctAnswer);
                 options.add(randomNetAddr);
                 correctAnswerFormatted = correctAnswer;
-                // Use full explanation for Network Address
                 explanationInfo = {
                     generatorName: 'generateSubnettingExplanationHTML',
                     args: [ip, subnetMask, networkAddr, broadcastAddr, usableHosts, numSubnets, originalClassMask]
@@ -240,9 +283,8 @@ export function generateSubnettingQuestion() {
                 questionKey = 'question_subnetting_calculate_broadcast';
                 correctAnswer = broadcastAddr;
                 options.add(correctAnswer);
-                options.add(networkAddr); // Add network as distractor
-                if(ip !== broadcastAddr) options.add(ip); // Add original IP if different
-                // Add another broadcast address
+                options.add(networkAddr);
+                if(ip !== broadcastAddr) options.add(ip);
                 let randomBroadAddr;
                 do {
                     const tempNet = calculateNetworkAddress(generateRandomIp(), subnetMask);
@@ -251,7 +293,6 @@ export function generateSubnettingQuestion() {
                 } while (!randomBroadAddr || randomBroadAddr === correctAnswer);
                 options.add(randomBroadAddr);
                 correctAnswerFormatted = correctAnswer;
-                 // Use full explanation for Broadcast Address
                 explanationInfo = {
                     generatorName: 'generateSubnettingExplanationHTML',
                     args: [ip, subnetMask, networkAddr, broadcastAddr, usableHosts, numSubnets, originalClassMask]
@@ -262,13 +303,10 @@ export function generateSubnettingQuestion() {
                 correctAnswer = usableHosts;
                 options.add(correctAnswer);
                 const hostBits = 32 - prefixLength;
-                // Add total hosts (2^h) as distractor
                 if (hostBits >= 2) options.add(Number(BigInt(2) ** BigInt(hostBits)));
-                // Add hosts from adjacent prefixes as distractors
                 if (hostBits > 2) options.add(Number(BigInt(2) ** BigInt(hostBits - 1) - BigInt(2)));
                 if (hostBits < 30 && prefixLength > originalPrefix) options.add(Number(BigInt(2) ** BigInt(hostBits + 1) - BigInt(2)));
-                correctAnswerFormatted = formatNumber(correctAnswer); // Format number for display
-                 // Use full explanation for Usable Hosts
+                correctAnswerFormatted = formatNumber(correctAnswer);
                 explanationInfo = {
                     generatorName: 'generateSubnettingExplanationHTML',
                     args: [ip, subnetMask, networkAddr, broadcastAddr, usableHosts, numSubnets, originalClassMask]
@@ -278,7 +316,6 @@ export function generateSubnettingQuestion() {
                 questionKey = 'question_subnetting_calculate_num_subnets';
                 correctAnswer = numSubnets;
                 options.add(correctAnswer);
-                // Add subnets from adjacent prefixes as distractors
                 if (subnetBits > 0) {
                     const lowerPower = Number(BigInt(2) ** BigInt(subnetBits - 1));
                     if (lowerPower >= 1 && lowerPower !== correctAnswer) options.add(lowerPower);
@@ -288,14 +325,12 @@ export function generateSubnettingQuestion() {
                     const higherPower = Number(BigInt(2) ** BigInt(nextSubnetBits));
                     if (higherPower !== correctAnswer) options.add(higherPower);
                 }
-                // Add number of subnet bits or prefix length as distractors
                 if (subnetBits > 0 && subnetBits !== correctAnswer) options.add(subnetBits);
                 if (prefixLength !== correctAnswer) options.add(prefixLength);
-                correctAnswerFormatted = formatNumber(correctAnswer); // Format number for display
-                // *** USE NEW SPECIFIC EXPLANATION GENERATOR ***
+                correctAnswerFormatted = formatNumber(correctAnswer);
                 explanationInfo = {
-                    generatorName: 'generateNumSubnetsExplanationHTML', // <-- Changed
-                    args: [info.class, originalClassMask, originalPrefix, subnetMask, prefixLength, subnetBits, numSubnets] // <-- Specific args
+                    generatorName: 'generateNumSubnetsExplanationHTML',
+                    args: [info.class, originalClassMask, originalPrefix, subnetMask, prefixLength, subnetBits, numSubnets]
                 };
                 break;
         }
@@ -310,12 +345,11 @@ export function generateSubnettingQuestion() {
                 }
             } else { // Fill with random numbers close to the answer
                 let randomNumOption;
-                // Ensure correctAnswer is treated as a number for comparison
                 const correctNum = (typeof correctAnswer === 'string') ? parseFloat(correctAnswer.replace(/,/g, '')) : correctAnswer;
                 const base = correctNum > 4 ? correctNum : 2;
                 const range = Math.max(10, Math.ceil(base / 2));
                 randomNumOption = getRandomInt(Math.max(1, base - range), base + range);
-                if (correctNum !== 0 && randomNumOption === 0) randomNumOption = 1; // Avoid 0 unless answer is 0
+                if (correctNum !== 0 && randomNumOption === 0) randomNumOption = 1;
                 if (randomNumOption !== correctNum && !options.has(randomNumOption)) {
                     options.add(randomNumOption);
                 }
@@ -328,10 +362,10 @@ export function generateSubnettingQuestion() {
             return (questionType >= 2) ? formatNumber(opt) : opt.toString();
         });
 
-        if (!optionsArray.includes(correctAnswerFormatted)) { // Ensure correct answer is present
+        if (!optionsArray.includes(correctAnswerFormatted)) {
              optionsArray.pop(); optionsArray.push(correctAnswerFormatted);
         }
-        optionsArray = optionsArray.slice(0, 4); // Limit to 4
+        optionsArray = optionsArray.slice(0, 4);
         shuffleArray(optionsArray);
 
         const question = {
@@ -340,11 +374,10 @@ export function generateSubnettingQuestion() {
                 ip: `<strong>${ip}</strong>`,
                 mask: `<strong>${subnetMask}</strong>`,
                 prefixLength: prefixLength,
-                class: info.class // Needed for num_subnets question
+                class: info.class
             }
         };
 
-        // explanationInfo is already set within the switch statement
         return { question, options: optionsArray, correctAnswer: correctAnswerFormatted, explanation: explanationInfo };
     } catch (error) {
         console.error("Error en generateSubnettingQuestion:", error);
@@ -352,7 +385,7 @@ export function generateSubnettingQuestion() {
     }
 }
 
-// *** CORRECTED Function (Explanation Logic) ***
+
 export function generateIdentifyIpTypeQuestion() {
     try {
         let ip, info, subnetMask, prefixLength, networkAddr, broadcastAddr, firstUsable, lastUsable, wildcardMask;
@@ -537,12 +570,32 @@ export function generateBitsForSubnetsQuestion() {
     }
 }
 
+// *** MODIFIED Function (Weighted Host Requirements) ***
 export function generateBitsForHostsQuestion() {
     try {
         const minHostBitsNeeded = 2; // Need at least 2 bits for Net+Broad+Usable
-        const maxHostBitsPossible = 16; // Practical upper limit for required hosts calculation
-        // Generate a random number of required usable hosts
-        const requiredHosts = getRandomInt(2, Math.pow(2, maxHostBitsPossible) - 2);
+
+        // --- Weighted Host Bits Generation ---
+        let maxHostBitsPossible;
+        const hostRangeRoll = Math.random();
+
+        if (hostRangeRoll < 0.6) { // 60% chance for Class C typical scenarios (up to 8 bits)
+            maxHostBitsPossible = 8;
+        } else if (hostRangeRoll < 0.9) { // 30% chance for Class B typical scenarios (9 to 12 bits)
+            maxHostBitsPossible = getRandomInt(9, 12);
+        } else { // 10% chance for larger scenarios (13 to 16 bits)
+            maxHostBitsPossible = getRandomInt(13, 16);
+        }
+        // --- End Weighted Host Bits Generation ---
+
+        // Ensure maxHostBitsPossible is at least minHostBitsNeeded
+        maxHostBitsPossible = Math.max(minHostBitsNeeded, maxHostBitsPossible);
+
+        // Generate a random number of required usable hosts within the selected range
+        // Calculate max hosts for the chosen bit count: 2^bits - 2
+        const maxHostsForBits = Number(BigInt(2) ** BigInt(maxHostBitsPossible)) - 2;
+        // Ensure minimum is 2 usable hosts
+        const requiredHosts = getRandomInt(2, maxHostsForBits);
 
         // Calculate minimum host bits (h) needed: 2^h >= requiredHosts + 2
         const hostBits = Math.ceil(Math.log2(requiredHosts + 2));
@@ -552,9 +605,10 @@ export function generateBitsForHostsQuestion() {
         let options = new Set([correctAnswer]);
         // Add adjacent bit counts
         if (correctAnswer > minHostBitsNeeded) options.add(correctAnswer - 1);
-        if (correctAnswer < 30) options.add(correctAnswer + 1); // Cannot have more than 30 host bits realistically
-        // Add required hosts number as distractor
-        options.add(requiredHosts);
+        // Ensure adding 1 doesn't exceed reasonable limits (e.g., 30)
+        if (correctAnswer < 30) options.add(correctAnswer + 1);
+        // Add required hosts number as distractor (only if it's different from the bit count)
+        if (requiredHosts !== correctAnswer) options.add(requiredHosts);
         // Add common network bit counts as distractors
         const commonNetBits = [8, 16, 24];
         options.add(commonNetBits[getRandomInt(0, commonNetBits.length - 1)]);
@@ -563,7 +617,8 @@ export function generateBitsForHostsQuestion() {
         let fillAttempts = 0;
         while(options.size < 4 && fillAttempts < 50) {
             let randomNumOption = getRandomInt(Math.max(minHostBitsNeeded, correctAnswer - 3), correctAnswer + 3);
-            if (randomNumOption !== correctAnswer && !options.has(randomNumOption)) {
+            // Ensure the random option is valid and not already included
+            if (randomNumOption >= minHostBitsNeeded && randomNumOption !== correctAnswer && !options.has(randomNumOption)) {
                 options.add(randomNumOption);
             }
             fillAttempts++;
@@ -592,11 +647,20 @@ export function generateBitsForHostsQuestion() {
     }
 }
 
+
 export function generateMaskForHostsQuestion() {
     try {
         const minHostBitsNeeded = 2;
-        const maxHostBitsPossible = 16; // Practical limit
-        const requiredHosts = getRandomInt(2, Math.pow(2, maxHostBitsPossible) - 2);
+         // --- Use the same weighted logic as generateBitsForHostsQuestion ---
+         let maxHostBitsPossible;
+         const hostRangeRoll = Math.random();
+         if (hostRangeRoll < 0.6) { maxHostBitsPossible = 8; }
+         else if (hostRangeRoll < 0.9) { maxHostBitsPossible = getRandomInt(9, 12); }
+         else { maxHostBitsPossible = getRandomInt(13, 16); }
+         maxHostBitsPossible = Math.max(minHostBitsNeeded, maxHostBitsPossible);
+         const maxHostsForBits = Number(BigInt(2) ** BigInt(maxHostBitsPossible)) - 2;
+         const requiredHosts = getRandomInt(2, maxHostsForBits);
+         // --- End weighted logic ---
 
         // Calculate host bits needed
         const hostBits = Math.ceil(Math.log2(requiredHosts + 2));
@@ -604,7 +668,8 @@ export function generateMaskForHostsQuestion() {
         const prefixLength = 32 - hostBits;
         // Ensure prefix is valid (e.g., not /31 or /32 for this question type)
         if (prefixLength < 1 || prefixLength > 30) {
-            return generateMaskForHostsQuestion(); // Retry if invalid prefix generated
+            // Retry if invalid prefix generated (less likely now with weighted hosts)
+            return generateMaskForHostsQuestion();
         }
 
         // Calculate the correct subnet mask string
@@ -630,12 +695,22 @@ export function generateMaskForHostsQuestion() {
         // Fill remaining options with random valid masks
         let fillAttempts = 0;
         while(options.size < 4 && fillAttempts < 50) {
-            const randomMask = generateRandomSubnetMask(); // Generates a valid mask string
-            if (randomMask !== correctAnswer && !options.has(randomMask)) {
+            // Generate a mask with a prefix length relatively close to the correct one
+            const randomPrefix = getRandomInt(Math.max(1, prefixLength - 4), Math.min(30, prefixLength + 4));
+            const randomMask = prefixToMaskString(randomPrefix);
+            if (randomMask && randomMask !== correctAnswer && !options.has(randomMask)) {
                 options.add(randomMask);
             }
             fillAttempts++;
         }
+         // Final fallback if needed
+         while(options.size < 4) {
+             const randomMask = generateRandomSubnetMask();
+             if (randomMask !== correctAnswer && !options.has(randomMask)) {
+                 options.add(randomMask);
+             }
+         }
+
 
         let optionsArray = Array.from(options);
         if (!optionsArray.includes(correctAnswer)) { // Ensure correct is present
