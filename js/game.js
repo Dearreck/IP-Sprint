@@ -3,7 +3,7 @@
 // Lógica Principal del Juego IP Sprint
 // Adaptado para Nivel Essential y UI Stepper+Tarjeta
 // Maneja carga async de preguntas Essential desde JSON.
-// CORREGIDO: Exportar handleAnswerClick.
+// CORREGIDO: refreshActiveGameUI ahora redibuja pregunta/opciones ANTES de feedback.
 // Versión sin console.log de depuración
 // ==================================================
 
@@ -123,6 +123,30 @@ export function startGame() {
     ui.showTimerDisplay(false);
     if (ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time');
 
+    // --- Añadir listeners a botones de control de juego ---
+    // Buscar botones dentro del área de juego AHORA que está visible
+    const restartBtn = document.getElementById('restart-round-button');
+    const exitBtn = document.getElementById('exit-to-menu-button');
+
+    if (restartBtn) {
+        // Limpiar listeners antiguos (importante si startGame se llama múltiples veces)
+        const newRestartBtn = restartBtn.cloneNode(true);
+        restartBtn.parentNode.replaceChild(newRestartBtn, restartBtn);
+        newRestartBtn.addEventListener('click', handleRestartRound);
+    } else {
+         console.error("[Game] #restart-round-button no encontrado en startGame."); // Mantener error crítico
+    }
+
+    if (exitBtn) {
+        const newExitBtn = exitBtn.cloneNode(true);
+        exitBtn.parentNode.replaceChild(newExitBtn, exitBtn);
+        newExitBtn.addEventListener('click', handleExitToMenu);
+    } else {
+         console.error("[Game] #exit-to-menu-button no encontrado en startGame."); // Mantener error crítico
+    }
+    // --- Fin añadir listeners ---
+
+
     loadNextQuestion(); // Cargar primera pregunta (es async)
 }
 
@@ -155,6 +179,7 @@ async function loadNextQuestion() {
                 // delete currentQuestionData.rawData; // Opcional
             } else {
                  originalQuestionData = null; // O guardar copia si es necesario para refresco no-Essential
+                 // originalQuestionData = JSON.parse(JSON.stringify(formattedQuestionData)); // Ejemplo
             }
 
             const duration = getTimerDurationForCurrentLevel();
@@ -202,6 +227,7 @@ async function loadNextQuestion() {
         lastSelectedOriginalValue = null; // No hubo selección
 
         const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
+        // Asegurar que correctAnswerDisplay exista para el mensaje de timeout
         if (!timeoutFeedbackData.correctAnswerDisplay && timeoutFeedbackData.correctAnswer) {
              const ca = timeoutFeedbackData.correctAnswer;
              const translated = getTranslation(ca);
@@ -245,7 +271,7 @@ async function loadNextQuestion() {
  * ESTA FUNCIÓN AHORA SE EXPORTA.
  * @param {Event} event - El evento de clic.
  */
- export function handleAnswerClick(event) { // <--- Añadido export
+ export function handleAnswerClick(event) {
     clearInterval(questionTimerInterval);
     if (!currentQuestionData || currentQuestionData.correctAnswer === undefined) {
         console.error("[Game] handleAnswerClick llamado sin datos de pregunta válidos."); // Mantener error crítico
@@ -256,6 +282,7 @@ async function loadNextQuestion() {
     const selectedOriginalValue = selectedButton.getAttribute('data-original-value');
     if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled');
 
+    // Comparar valor original del botón con el valor 'correctAnswer' de los datos formateados
     const isCorrect = (selectedOriginalValue === currentQuestionData.correctAnswer);
 
     roundResults.push(isCorrect);
@@ -274,6 +301,7 @@ async function loadNextQuestion() {
         if (selectedButton) selectedButton.classList.add(isMasteryStyle ? 'mastery' : 'correct');
         setTimeout(proceedToNextStep, 1200);
     } else {
+        // Pasar los datos formateados actuales a displayFeedback
         const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
         // Pasar el valor original incorrecto seleccionado y isRefresh=false
         ui.displayFeedback(isCorrect, isMasteryStyle, feedbackData, proceedToNextStep, lastSelectedOriginalValue, false);
@@ -385,13 +413,13 @@ export function initializeGame() {
 
 /**
  * Refresca la UI activa si el idioma cambia.
- * AHORA reformatea datos y pasa info completa a displayFeedback.
+ * AHORA reformatea datos y llama a UI para redibujar pregunta/opciones/feedback.
  */
 export function refreshActiveGameUI() {
     if (!currentUsername) { return; } // Salir si no hay usuario
     const newLang = getCurrentLanguage(); // Obtener el nuevo idioma
 
-    // Refresco Básico
+    // Refresco Básico (Info jugador, estrellas, timer)
     ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
     ui.updateRoundProgressUI(roundResults, lastMasteryMode);
     if (questionTimerInterval) {
@@ -427,7 +455,8 @@ export function refreshActiveGameUI() {
              dataForUI.questionsAnswered = questionsAnswered; // Añadir info necesaria
              dataForUI.totalQuestions = config.TOTAL_QUESTIONS_PER_GAME;
              // Llamar a ui.displayFeedback con los datos reformateados, la selección incorrecta original y el flag isRefresh=true
-             ui.displayFeedback(lastAnswerCorrect, lastMasteryMode, dataForUI, proceedToNextStep, lastSelectedOriginalValue, true); // <--- Añadido isRefresh=true
+             // ui.js se encargará de redibujar pregunta, opciones y feedback
+             ui.displayFeedback(lastAnswerCorrect, lastMasteryMode, dataForUI, proceedToNextStep, lastSelectedOriginalValue, true); // <--- isRefresh = true
         } else { console.error("[Game] No se pudieron obtener/formatear datos para refrescar feedback."); } // Mantener error crítico
 
     } else if (currentQuestionData && dataForUI) { // Si se estaba mostrando una pregunta y tenemos datos...
