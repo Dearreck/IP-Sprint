@@ -4,6 +4,7 @@
 // Gestiona la manipulación del DOM y la presentación visual.
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // CORREGIDO: Recibe 'currentUsername' explícitamente.
+// Añadidos logs para depurar Essential y paso de handler.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -126,9 +127,12 @@ export function updatePlayerInfo(username, level, score) {
  * @param {function} levelSelectHandler - La función (de game.js) a llamar al hacer clic en un marcador.
  */
 export function displayLevelSelection(unlockedLevels, currentUserData, currentUsername, levelSelectHandler) {
+    // --- Log para ver qué recibe la función ---
+    console.log(`[UI] displayLevelSelection llamada. User: ${currentUsername}, Unlocked: ${JSON.stringify(unlockedLevels)}, typeof Handler: ${typeof levelSelectHandler}`);
+
     // Chequeos de existencia de elementos y datos
     if (!levelStepperContainer || !levelCardContent || !config.LEVELS || !currentUserData || !currentUsername) {
-        console.error("Error en displayLevelSelection: Faltan elementos del DOM o datos necesarios.", {
+        console.error("[UI] Error en displayLevelSelection: Faltan elementos del DOM o datos necesarios.", {
             levelStepperContainerExists: !!levelStepperContainer,
             levelCardContentExists: !!levelCardContent,
             configLevelsExists: !!config.LEVELS,
@@ -149,8 +153,13 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
     let lastUnlockedIndex = -1;
     let firstUnlockedLevelName = null;
 
+    // --- Log para verificar allLevels ---
+    console.log(`[UI] Iterando sobre niveles de config:`, JSON.stringify(allLevels));
+
     allLevels.forEach((level, index) => {
         const isUnlocked = unlockedLevels.includes(level);
+        // --- Log para isUnlocked ---
+        console.log(`[UI] Procesando nivel: ${level}, Desbloqueado: ${isUnlocked}`);
         if (isUnlocked) {
             lastUnlockedIndex = index;
             if (firstUnlockedLevelName === null) {
@@ -182,13 +191,16 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
         label.textContent = getTranslation(translationKey) || level;
         stepperItem.appendChild(label);
 
-        // Listener
+        // --- Listener revisado ---
+        // Añadir listener siempre, pero la acción dentro de updateLevelCard dependerá de isUnlocked
         stepperItem.addEventListener('click', () => {
             if (stepperItem.classList.contains('selected')) return; // No hacer nada si ya está seleccionado
-
+            console.log(`[UI] Clic en Stepper Item: ${level}`); // Log
             document.querySelectorAll('.stepper-item.selected').forEach(el => el.classList.remove('selected'));
             stepperItem.classList.add('selected');
-            // --- Pasar currentUsername a updateLevelCard ---
+            // --- Log antes de llamar a updateLevelCard desde listener ---
+            console.log(`[UI] Llamando a updateLevelCard desde listener. typeof Handler: ${typeof levelSelectHandler}`);
+            // Pasar siempre el handler, updateLevelCard decidirá si usarlo
             updateLevelCard(level, isUnlocked, currentUsername, levelSelectHandler);
         });
 
@@ -198,22 +210,27 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
     // Actualizar línea de progreso
     updateStepperProgressLine(lastUnlockedIndex, allLevels.length);
 
-    // Seleccionar tarjeta del primer nivel desbloqueado por defecto
+    // --- Lógica para seleccionar el nivel por defecto REVISADA ---
     const effectiveFirstLevel = firstUnlockedLevelName || allLevels[0]; // Essential como fallback
+    console.log(`[UI] Nivel por defecto a mostrar: ${effectiveFirstLevel}`); // Log
     const firstStepperItem = levelStepperContainer.querySelector(`.stepper-item[data-level="${effectiveFirstLevel}"]`);
+
     if (firstStepperItem) {
         firstStepperItem.classList.add('selected');
-        // --- Pasar currentUsername a updateLevelCard ---
+        // --- Log antes de llamar a updateLevelCard por defecto ---
+        console.log(`[UI] Llamando a updateLevelCard por defecto. typeof Handler: ${typeof levelSelectHandler}`);
+        // Asegurarse de pasar el estado de desbloqueo correcto
         updateLevelCard(effectiveFirstLevel, unlockedLevels.includes(effectiveFirstLevel), currentUsername, levelSelectHandler);
     } else {
         levelCardContent.innerHTML = `<p>${getTranslation('error_loading_levels') || 'Error loading levels.'}</p>`;
-        console.error(`No se encontró el stepper item para el nivel por defecto: ${effectiveFirstLevel}`);
+        console.error(`[UI] No se encontró el stepper item para el nivel por defecto: ${effectiveFirstLevel}`);
     }
 
     showSection(levelSelectSection);
     // Ocultar sección de progreso antigua
     if (unlockProgressSection) unlockProgressSection.style.display = 'none';
 }
+
 
 /**
  * Actualiza el contenido de la tarjeta única con la información del nivel seleccionado.
@@ -223,6 +240,9 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
  * @param {function} levelSelectHandler - Función para iniciar el nivel.
  */
 function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHandler) {
+    // --- Log para ver qué recibe la función ---
+    console.log(`[UI] updateLevelCard llamada para: ${levelName}. User: ${currentUsername}, Unlocked: ${isUnlocked}, typeof Handler: ${typeof levelSelectHandler}`);
+
     if (!levelCardContent) return;
     levelCardContent.innerHTML = ''; // Limpiar
 
@@ -266,13 +286,17 @@ function updateLevelCard(levelName, isUnlocked, currentUsername, levelSelectHand
         const buttonKey = 'start_level_button';
         startButton.dataset.translate = buttonKey;
         startButton.textContent = getTranslation(buttonKey) || 'Start Level';
+        // --- Chequeo explícito y log si no es función ---
         if (typeof levelSelectHandler === 'function') {
             startButton.addEventListener('click', () => {
-                levelSelectHandler(levelName, 'standard'); // Llama al handler de game.js
+                console.log(`[UI] Botón 'Iniciar Nivel' (${levelName}) clickeado.`); // Log
+                levelSelectHandler(levelName, 'standard'); // Llama al handler
             });
         } else {
-            console.error("levelSelectHandler no es una función en updateLevelCard");
+            // Este es el error que veías en la consola
+            console.error(`[UI] ERROR: levelSelectHandler NO es una función en updateLevelCard para nivel ${levelName}. Tipo: ${typeof levelSelectHandler}`);
             startButton.disabled = true;
+            startButton.textContent += ' (Error Handler)'; // Indicar error
         }
         levelCardContent.appendChild(startButton);
 
@@ -336,6 +360,7 @@ function updateStepperProgressLine(lastUnlockedIndex, totalLevels) {
  */
 export function updateUnlockProgressUI(currentUserData) {
     // No hacer nada, la información está en la tarjeta.
+    // console.log("updateUnlockProgressUI llamada, pero es obsoleta.");
 }
 
 /**
@@ -560,9 +585,9 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
  * @param {string} playedLevel - El nivel que se acaba de jugar.
  */
 export function displayGameOver(score, currentUserData, playedLevel) {
-    if (!currentUserData || !currentUserData.name) { // Añadido chequeo por nombre
+    // Añadido chequeo por nombre de usuario también
+    if (!currentUserData || !currentUserData.name) {
          console.error("displayGameOver llamado sin currentUserData o sin nombre de usuario.");
-         // Podríamos mostrar un mensaje genérico o redirigir
          if (gameOverSection) {
              if(finalScoreDisplay) finalScoreDisplay.textContent = score;
              if(highScoreMessage) highScoreMessage.textContent = getTranslation('error_displaying_results') || "Error displaying results.";
@@ -580,6 +605,7 @@ export function displayGameOver(score, currentUserData, playedLevel) {
     let extraMessage = '';
 
     // Cargar el estado *previo* al guardado en endGame para comparar desbloqueos
+    // Esto es importante para mostrar el mensaje de "Nivel Desbloqueado" correctamente
     const previousUserData = storage.getUserData(currentUserData.name);
 
     // Lógica de desbloqueo y mensajes
@@ -587,27 +613,29 @@ export function displayGameOver(score, currentUserData, playedLevel) {
          if (isPerfect) extraMessage = getTranslation('game_over_good_round_essential') || "Good start!";
     } else if (playedLevel === 'Entry') {
         if (isPerfect && currentUserData.entryPerfectStreak !== undefined) {
+            // Comprueba si Associate estaba bloqueado ANTES de esta ronda
             const wasAssociateLocked = !previousUserData.unlockedLevels.includes('Associate');
-            const justUnlockedAssociate = currentUserData.unlockedLevels.includes('Associate') && wasAssociateLocked; // Ya se actualizó en endGame
+            // Comprueba si Associate está desbloqueado AHORA
+            const isAssociateUnlockedNow = currentUserData.unlockedLevels.includes('Associate');
 
-            if (justUnlockedAssociate) {
+            if (isAssociateUnlockedNow && wasAssociateLocked) { // Si se acaba de desbloquear
                 extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') });
-            } else if (!currentUserData.unlockedLevels.includes('Associate')) {
+            } else if (!isAssociateUnlockedNow) { // Si aún no se ha desbloqueado
                 extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_entry'), streak: currentUserData.entryPerfectStreak });
-            } else { // Associate ya estaba desbloqueado
+            } else { // Si ya estaba desbloqueado
                 extraMessage = getTranslation('game_over_good_round_entry');
             }
         }
     } else if (playedLevel === 'Associate') {
          if (meetsAssociateThreshold && currentUserData.associatePerfectStreak !== undefined) {
              const wasProLocked = !previousUserData.unlockedLevels.includes('Professional');
-             const justUnlockedPro = currentUserData.unlockedLevels.includes('Professional') && wasProLocked; // Ya se actualizó en endGame
+             const isProUnlockedNow = currentUserData.unlockedLevels.includes('Professional');
 
-             if (justUnlockedPro) {
+             if (isProUnlockedNow && wasProLocked) { // Si se acaba de desbloquear
                  extraMessage = getTranslation('game_over_level_unlocked_pro');
-             } else if (!currentUserData.unlockedLevels.includes('Professional')) {
+             } else if (!isProUnlockedNow) { // Si aún no se ha desbloqueado
                  extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_associate'), streak: currentUserData.associatePerfectStreak });
-             } else { // Professional ya estaba desbloqueado
+             } else { // Si ya estaba desbloqueado
                  extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK });
              }
          }
