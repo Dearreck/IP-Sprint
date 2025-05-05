@@ -2,8 +2,8 @@
 // ==================================================
 // Lógica Principal del Juego IP Sprint
 // Adaptado para Nivel Essential y UI Stepper+Tarjeta
-// MODIFICADO: loadNextQuestion ahora usa await para getNextQuestion.
-// Incluye logs para depuración.
+// Incluye manejo async para preguntas Essential y logs de depuración.
+// CORREGIDO: Pasa handlers correctamente, asegura Essential en datos de usuario.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -98,7 +98,7 @@ export function handleUserLogin(username) {
 
         // --- Log para verificar handler antes de pasar ---
         console.log(`[Game] Pasando a displayLevelSelection. typeof selectLevelAndMode: ${typeof selectLevelAndMode}`);
-        // Pasar los niveles desbloqueados (que deben incluir Essential) y el handler
+        // Pasar los niveles desbloqueados (que deben incluir Essential), los datos del usuario, el nombre y el handler
         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, currentUsername, selectLevelAndMode);
 
         const highScores = storage.loadHighScores();
@@ -172,9 +172,8 @@ async function loadNextQuestion() { // <--- Marcada como async
 
     try {
         console.log(`[Game] Obteniendo pregunta para nivel: ${currentLevel}`);
-        // --- MODIFICADO: Usar await para esperar la promesa de getNextQuestion ---
+        // --- Usar await para esperar la promesa de getNextQuestion ---
         const questionDataResult = await getNextQuestion(currentLevel);
-        // --- FIN MODIFICADO ---
 
         // Validar que los datos recibidos son correctos y completos
         if (questionDataResult) // Simplificado: si no es null/undefined, asumimos válido
@@ -420,8 +419,8 @@ async function loadNextQuestion() { // <--- Marcada como async
 
         const highScores = storage.loadHighScores();
         ui.displayHighScores(highScores);
-        // Pasar currentUserData actualizado a displayGameOver
-        ui.displayGameOver(currentScore, currentUserData, currentLevel);
+        // --- Pasar handlePlayAgain a ui.displayGameOver ---
+        ui.displayGameOver(currentScore, currentUserData, currentLevel, handlePlayAgain);
 
         currentQuestionData = null; // Limpiar datos de la última pregunta
 
@@ -430,7 +429,8 @@ async function loadNextQuestion() { // <--- Marcada como async
         // Intentar mostrar Game Over incluso con error, pasando datos disponibles
         // Asegurarse de pasar un objeto con 'name' si currentUserData es null
         const fallbackData = currentUserData || { error: true, unlockedLevels: ['Essential'], name: currentUsername };
-        ui.displayGameOver(currentScore, fallbackData, currentLevel);
+        // Pasar el handler incluso en caso de error
+        ui.displayGameOver(currentScore, fallbackData, currentLevel, handlePlayAgain);
     }
 }
 
@@ -462,9 +462,10 @@ export function handleExitToMenu() {
 /**
  * Vuelve a la pantalla de selección de nivel.
  * Llamada desde el botón en Game Over o desde handleExitToMenu.
+ * AHORA es principalmente un handler, la lógica de UI está en ui.js.
  */
 export function handlePlayAgain() {
-    console.log("[Game] Volviendo a selección de nivel..."); // Log
+    console.log("[Game] handlePlayAgain ejecutado."); // Log
     if (currentUsername) {
          // Recargar datos frescos por si hubo desbloqueos
          currentUserData = storage.getUserData(currentUsername);
@@ -500,9 +501,8 @@ export function initializeGame() {
 }
 
 /**
- * Refresca la UI del área de juego si el idioma cambia mientras se está jugando.
- * Reconstruye la pregunta o el feedback con las nuevas traducciones.
- * Llamada desde main.js.
+ * Refresca la UI activa si el idioma cambia.
+ * AHORA necesita pasar handlePlayAgain si refresca Game Over.
  */
 export function refreshActiveGameUI() {
     if (!currentUsername) { console.warn("Intentando refrescar UI sin usuario activo."); return; }
@@ -574,6 +574,16 @@ export function refreshActiveGameUI() {
         console.log(`[Game] Pasando a displayLevelSelection desde Refresh. typeof selectLevelAndMode: ${typeof selectLevelAndMode}`);
         // Asegurarse que selectLevelAndMode es la función correcta
         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, currentUsername, selectLevelAndMode);
+    }
+    // --- Refrescar Game Over si estaba activo ---
+    else if (ui.gameOverSection && ui.gameOverSection.style.display !== 'none') {
+        console.log("[Game] Refrescando Game Over UI...");
+        currentUserData = storage.getUserData(currentUsername); // Recargar por si acaso
+        const lastScoreText = ui.finalScoreDisplay?.textContent;
+        const lastScore = parseInt(lastScoreText || '0', 10);
+        const lastLevelPlayed = getCurrentLevel(); // Obtener nivel jugado
+        // Pasar el handler handlePlayAgain
+        ui.displayGameOver(lastScore, currentUserData, lastLevelPlayed, handlePlayAgain);
     }
     // Si no hay ni pregunta ni feedback activo (estado inesperado)
     else {
