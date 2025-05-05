@@ -2,6 +2,7 @@
 // ==================================================
 // Generadores de Preguntas - Nivel Professional
 // CORREGIDO: generateSubnettingQuestion usa generateNumSubnetsExplanationHTML para el caso específico.
+// CORREGIDO: generateIdentifyIpTypeQuestion para incluir tabla de cálculo en la explicación.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -16,7 +17,9 @@ import {
     generateBitsForSubnetsExplanationHTML, generateBitsForHostsExplanationHTML,
     generateMaskForHostsExplanationHTML,
     // Importar la nueva función de explicación específica
-    generateNumSubnetsExplanationHTML
+    generateNumSubnetsExplanationHTML,
+    // Importar la función de tabla de cálculo
+    generatePortionExplanationHTML
 } from './utils.js'; // Import necessary utils
 import { getTranslation } from './i18n.js';
 
@@ -349,10 +352,10 @@ export function generateSubnettingQuestion() {
     }
 }
 
-
+// *** CORRECTED Function (Explanation Logic) ***
 export function generateIdentifyIpTypeQuestion() {
     try {
-        let ip, info, subnetMask, prefixLength, networkAddr, broadcastAddr, firstUsable, lastUsable;
+        let ip, info, subnetMask, prefixLength, networkAddr, broadcastAddr, firstUsable, lastUsable, wildcardMask;
         let attempts = 0;
         // Generate a valid subnetting scenario
         do {
@@ -364,11 +367,12 @@ export function generateIdentifyIpTypeQuestion() {
             // Ensure it's actual subnetting and prefix allows usable hosts
             if (prefixLength !== null && subnetMask !== info.defaultMask && prefixLength <= 30) {
                 networkAddr = calculateNetworkAddress(ip, subnetMask);
-                const wildcardMask = calculateWildcardMask(subnetMask);
+                wildcardMask = calculateWildcardMask(subnetMask); // Calculate wildcard
                 broadcastAddr = calculateBroadcastAddress(networkAddr, wildcardMask);
                 firstUsable = getFirstUsableHost(networkAddr, subnetMask);
                 lastUsable = getLastUsableHost(broadcastAddr, subnetMask);
-                if (networkAddr && broadcastAddr && firstUsable && lastUsable) {
+                // Check if all calculations were successful
+                if (networkAddr && wildcardMask && broadcastAddr && firstUsable && lastUsable) {
                     break; // Found a valid scenario
                 }
             }
@@ -379,6 +383,7 @@ export function generateIdentifyIpTypeQuestion() {
             ip = '192.168.1.150'; subnetMask = '255.255.255.192'; prefixLength = 26;
             networkAddr = '192.168.1.128'; broadcastAddr = '192.168.1.191';
             firstUsable = '192.168.1.129'; lastUsable = '192.168.1.190';
+            wildcardMask = '0.0.0.63'; // Calculate fallback wildcard
         }
 
         // Choose which type of IP to present as the target
@@ -386,20 +391,24 @@ export function generateIdentifyIpTypeQuestion() {
         let targetIp = '';
         let correctAnswerKey = ''; // Key for the correct option (e.g., 'option_network_address')
         let correctIpType = ''; // Internal type key ('network', 'broadcast', 'usable') for explanation
+        let highlightKey = ''; // Key for highlighting row in explanation table
 
         if (typeChoice === 0) {
             targetIp = networkAddr;
             correctAnswerKey = 'option_network_address';
             correctIpType = 'network';
+            highlightKey = 'netaddr'; // Highlight network row
         } else if (typeChoice === 1) {
             targetIp = broadcastAddr;
             correctAnswerKey = 'option_broadcast_address';
             correctIpType = 'broadcast';
+            highlightKey = 'broadaddr'; // Highlight broadcast row
         } else {
             // Choose randomly between first and last usable host
             targetIp = (Math.random() < 0.5) ? firstUsable : lastUsable;
             correctAnswerKey = 'option_usable_host_address';
             correctIpType = 'usable';
+            highlightKey = 'usable'; // Highlight usable range row
         }
 
         const question = {
@@ -432,16 +441,31 @@ export function generateIdentifyIpTypeQuestion() {
         }
         options = options.slice(0, 4); // Limit to 4 options
 
+        // --- Structure the Explanation ---
         const explanationInfo = {
-            generatorName: 'generateIpTypeExplanationHTML',
-            args: [targetIp, correctIpType, networkAddr, broadcastAddr, prefixLength]
+            generators: [
+                {
+                    // Generator 1: Portion Calculation Table
+                    generatorName: 'generatePortionExplanationHTML',
+                    // Pass all necessary args, including the highlight key
+                    args: [ip, subnetMask, wildcardMask, networkAddr, broadcastAddr, firstUsable, lastUsable, highlightKey]
+                },
+                {
+                    // Generator 2: Textual explanation of the type
+                    generatorName: 'generateIpTypeExplanationHTML',
+                    args: [targetIp, correctIpType, networkAddr, broadcastAddr, prefixLength]
+                }
+            ],
+            separator: '<hr style="margin: 15px 0; border-color: #eee;">' // Separator
         };
+
         return { question, options, correctAnswer: correctAnswerKey, explanation: explanationInfo };
     } catch (error) {
         console.error("Error en generateIdentifyIpTypeQuestion:", error);
         return null;
     }
 }
+
 
 export function generateBitsForSubnetsQuestion() {
     try {
