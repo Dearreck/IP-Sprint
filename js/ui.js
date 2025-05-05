@@ -5,7 +5,7 @@
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // CORREGIDO: Selección de elementos DOM movida dentro de las funciones.
 // CORREGIDO: displayQuestion guarda clave i18n para opciones V/F.
-// CORREGIDO: displayFeedback redibuja pregunta/opciones/TEORÍA y aplica resaltado en refresco.
+// CORREGIDO: displayFeedback redibuja pregunta/opciones/TEORÍA y aplica resaltado COMPLETO (correcto E incorrecto) en refresco.
 // CORREGIDO: displayGameOver añade listener a playAgainButton correctamente.
 // Versión sin console.log de depuración
 // ==================================================
@@ -445,23 +445,25 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
             // Añadir teoría si existe la clave
             if (questionData.theoryKey) {
                 const theoryText = getTranslation(questionData.theoryKey);
+                // Comprobar que la traducción no sea la clave misma
                 if (theoryText && theoryText !== questionData.theoryKey) {
                     finalQuestionHTML += `<div class="theory-presentation">${theoryText}</div><hr class="theory-separator">`;
                 }
             }
             // Añadir texto de la pregunta
             let questionDisplayHTML = '';
+            // Usar texto directo o traducir clave
             if (questionData.question?.text) { questionDisplayHTML = questionData.question.text; }
             else if (questionData.question?.key) { questionDisplayHTML = getTranslation(questionData.question.key, questionData.question.replacements || {}); }
-            else { questionDisplayHTML = "Error: Invalid Question."; }
+            else { questionDisplayHTML = "Error: Invalid Question."; } // Fallback
             finalQuestionHTML += questionDisplayHTML;
             questionTextElement.innerHTML = finalQuestionHTML; // Actualizar el HTML completo
         } else { console.error("Elemento #question-text no encontrado durante refresco de feedback."); }
 
         // 2. Redibujar Opciones (deshabilitadas y resaltadas)
         if (optionsContainerElement) {
-            optionsContainerElement.innerHTML = '';
-            optionsContainerElement.classList.add('options-disabled');
+            optionsContainerElement.innerHTML = ''; // Limpiar opciones viejas
+            optionsContainerElement.classList.add('options-disabled'); // Asegurar que estén deshabilitadas
             const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
             const correctAnswerValue = questionData.correctAnswer; // Valor/clave correcta
 
@@ -474,23 +476,24 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                 questionData.options.forEach((optionText) => { // options es array de strings
                     const button = document.createElement('button');
                     button.classList.add('option-button');
-                    button.disabled = true;
-                    button.textContent = optionText;
+                    button.disabled = true; // Deshabilitar botón
+                    button.textContent = optionText; // El texto ya está en el idioma correcto
 
                     // Reconstruir data-original-value para comparación
-                    let originalValue = optionText;
+                    let originalValue = optionText; // Usar texto como fallback inicial
                     if (optionText === trueText) originalValue = 'option_true';
                     else if (optionText === falseText) originalValue = 'option_false';
-                    // TODO: Mejorar reconstrucción para otros tipos de opciones
+                    // TODO: Mejorar reconstrucción para otros tipos de opciones si es necesario
 
                     button.setAttribute('data-original-value', originalValue);
 
-                    // Aplicar resaltado
+                    // --- CORREGIDO: Aplicar resaltado a AMBOS botones ---
                     if (originalValue === correctAnswerValue) {
-                        button.classList.add(correctButtonClass);
-                    } else if (!isCorrect && originalValue === selectedValueOriginal) { // Usar selectedValueOriginal
+                        button.classList.add(correctButtonClass); // Resaltar correcto (verde/mastery)
+                    } else if (!isCorrect && originalValue === selectedValueOriginal) { // Resaltar incorrecto seleccionado
                         button.classList.add('incorrect');
                     }
+                    // --- FIN CORRECCIÓN ---
                     optionsContainerElement.appendChild(button);
                 });
             }
@@ -514,8 +517,29 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     if (!isCorrect && questionData.explanation) {
         try {
             const expInfo = questionData.explanation;
-            if (expInfo.text) { explanationHTML = `<p>${expInfo.text}</p>`; }
-            else { /* ... (lógica anterior para claves/generadores) ... */ }
+            if (expInfo.text) { // Priorizar texto directo
+                explanationHTML = `<p>${expInfo.text}</p>`;
+            } else { // Lógica anterior para claves/generadores
+                let baseExplanationText = '';
+                if (expInfo.baseTextKey) { baseExplanationText = getTranslation(expInfo.baseTextKey, expInfo.replacements || {}); }
+                let generatedExplanationHTML = '';
+                if (expInfo.generatorName && explanationGenerators[expInfo.generatorName]) {
+                    const generatorFunc = explanationGenerators[expInfo.generatorName];
+                    if (typeof generatorFunc === 'function') { generatedExplanationHTML = generatorFunc.apply(null, expInfo.args || []); }
+                    else { throw new Error(`Generator '${expInfo.generatorName}' no es una función.`); }
+                } else if (Array.isArray(expInfo.generators)) {
+                    const separator = expInfo.separator || '<br>';
+                    generatedExplanationHTML = expInfo.generators.map(genInfo => {
+                         if (genInfo.generatorName && explanationGenerators[genInfo.generatorName]) {
+                             const generatorFunc = explanationGenerators[genInfo.generatorName];
+                             if (typeof generatorFunc === 'function') { return generatorFunc.apply(null, genInfo.args || []); }
+                             else { throw new Error(`Generator '${genInfo.generatorName}' no es una función.`); }
+                         } return '';
+                    }).join(separator);
+                }
+                explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedExplanationHTML}` : generatedExplanationHTML;
+                if (!explanationHTML && baseExplanationText) { explanationHTML = `<p>${baseExplanationText}</p>`; }
+            }
         } catch (genError) {
             console.error("Error generando explicación HTML:", genError);
             explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' }) || 'Error generating explanation.'}</p>`;
