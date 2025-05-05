@@ -4,6 +4,7 @@
 // Gestiona la manipulación del DOM y la presentación visual.
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // CORREGIDO: Recibe 'currentUsername' explícitamente.
+// CORREGIDO: displayGameOver recibe y añade listener para playAgainButton.
 // Añadidos logs para depurar Essential y paso de handler.
 // Adaptado para esperar texto directo en preguntas/explicaciones de Essential.
 // ==================================================
@@ -51,7 +52,7 @@ export const restartRoundButton = document.getElementById('restart-round-button'
 export const exitToMenuButton = document.getElementById('exit-to-menu-button');
 export const finalScoreDisplay = document.getElementById('final-score');
 export const highScoreMessage = document.getElementById('high-score-message');
-export const playAgainButton = document.getElementById('play-again-button');
+export const playAgainButton = document.getElementById('play-again-button'); // Referencia al botón
 export const scoreList = document.getElementById('score-list');
 
 // Mapa para llamar a los generadores de explicaciones desde utils.js (para niveles no-Essential)
@@ -438,10 +439,11 @@ export function displayQuestion(questionData, answerClickHandler) {
 
             // Determinar si la opción es texto directo o clave i18n
             if (typeof optionData === 'string') {
-                const translated = getTranslation(optionData);
-                buttonText = (translated && translated !== optionData) ? translated : optionData;
-                originalValue = optionData; // Guardar la clave o el texto original
+                const translated = getTranslation(optionData); // Intenta traducir
+                buttonText = (translated && translated !== optionData) ? translated : optionData; // Usa traducción si existe, si no, el valor directo
+                originalValue = optionData; // El valor original es la clave o el texto original
             } else if (typeof optionData === 'object' && optionData !== null) { // Opción compleja
+                // ... (lógica existente para objetos complejos sin cambios) ...
                 let textParts = []; let originalValueParts = [];
                 if (optionData.classKey) { textParts.push(getTranslation(optionData.classKey)); originalValueParts.push(optionData.classKey); }
                 if (optionData.typeKey) { textParts.push(getTranslation(optionData.typeKey)); originalValueParts.push(optionData.typeKey); }
@@ -522,11 +524,11 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     if (!isCorrect && questionData.explanation) {
         try {
             const expInfo = questionData.explanation;
-            // Priorizar texto directo si existe
+            // Priorizar texto directo si existe (Essential JSON)
             if (expInfo.text) {
                 explanationHTML = `<p>${expInfo.text}</p>`;
             }
-            // Si no, usar lógica anterior
+            // Si no hay texto directo, usar lógica anterior con claves/generadores
             else {
                 let baseExplanationText = '';
                 if (expInfo.baseTextKey) {
@@ -548,7 +550,9 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                          } return '';
                     }).join(separator);
                 }
+                // Combinar texto base y generado si ambos existen
                 explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedExplanationHTML}` : generatedExplanationHTML;
+                // Si solo había baseTextKey, usarlo
                 if (!explanationHTML && baseExplanationText) {
                     explanationHTML = `<p>${baseExplanationText}</p>`;
                 }
@@ -562,6 +566,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         try {
             if(optionsContainer) {
                 Array.from(optionsContainer.children).forEach(button => {
+                    // Comparar el atributo data-original-value con el valor correcto
                     if (button.getAttribute('data-original-value') === correctAnswerValue) {
                         button.classList.add(correctButtonClass);
                     }
@@ -594,13 +599,14 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 
 
 /**
- * Actualiza la pantalla de Game Over.
+ * Actualiza la pantalla de Game Over y AÑADE el listener al botón Play Again.
  * @param {number} score - Puntuación final de la ronda.
  * @param {object} currentUserData - Datos actualizados del usuario (debe incluir .name).
  * @param {string} playedLevel - El nivel que se acaba de jugar.
+ * @param {function} playAgainHandler - La función de game.js a ejecutar al hacer clic en Play Again.
  */
-export function displayGameOver(score, currentUserData, playedLevel) {
-    // Añadido chequeo por nombre de usuario también
+export function displayGameOver(score, currentUserData, playedLevel, playAgainHandler) {
+    // Chequeo inicial
     if (!currentUserData || !currentUserData.name) {
          console.error("displayGameOver llamado sin currentUserData o sin nombre de usuario.");
          if (gameOverSection) {
@@ -610,20 +616,19 @@ export function displayGameOver(score, currentUserData, playedLevel) {
          }
          return;
     }
+
+    // Actualizar puntuación y mensaje
     if(finalScoreDisplay) finalScoreDisplay.textContent = score;
     const maxScore = config.PERFECT_SCORE;
     const scorePercentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
     const isPerfect = score === maxScore;
     const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK;
-
     let baseMessage = getTranslation('game_over_base_message', { score: score, maxScore: maxScore, percentage: scorePercentage });
     let extraMessage = '';
+    const previousUserData = storage.getUserData(currentUserData.name); // Necesario para comparar desbloqueos
 
-    // Cargar el estado *previo* al guardado en endGame para comparar desbloqueos
-    const previousUserData = storage.getUserData(currentUserData.name);
-
-    // Lógica de desbloqueo y mensajes
-    if (playedLevel === 'Essential') {
+    // Lógica de mensajes de desbloqueo
+     if (playedLevel === 'Essential') {
          if (isPerfect) extraMessage = getTranslation('game_over_good_round_essential') || "Good start!";
     } else if (playedLevel === 'Entry') {
         if (isPerfect && currentUserData.entryPerfectStreak !== undefined) {
@@ -655,11 +660,27 @@ export function displayGameOver(score, currentUserData, playedLevel) {
     const finalMessage = extraMessage ? `${baseMessage} ${extraMessage}` : baseMessage;
     if(highScoreMessage) highScoreMessage.textContent = finalMessage;
 
+    // --- Añadir listener al botón Play Again ---
     if (playAgainButton) {
         playAgainButton.textContent = getTranslation('play_again_button') || 'Choose Level';
-    }
+        // Clonar y reemplazar para limpiar listeners antiguos
+        const newPlayAgainButton = playAgainButton.cloneNode(true);
+        playAgainButton.parentNode.replaceChild(newPlayAgainButton, playAgainButton);
 
-    showSection(gameOverSection);
+        // Añadir el nuevo listener con el handler recibido
+        if (typeof playAgainHandler === 'function') {
+            console.log("[UI] Añadiendo listener a #play-again-button clonado."); // Log
+            newPlayAgainButton.addEventListener('click', playAgainHandler);
+        } else {
+            console.error("[UI] playAgainHandler no es una función en displayGameOver.");
+            newPlayAgainButton.disabled = true; // Deshabilitar si no hay handler
+        }
+    } else {
+        console.error("[UI] La referencia al elemento #play-again-button es nula.");
+    }
+    // --- FIN Añadir listener ---
+
+    showSection(gameOverSection); // Mostrar la sección
 }
 
 
