@@ -3,10 +3,7 @@
 // Módulo de Interfaz de Usuario (UI) para IP Sprint
 // Gestiona la manipulación del DOM y la presentación visual.
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
-// CORREGIDO: Selección de elementos DOM movida dentro de las funciones.
-// CORREGIDO: displayQuestion guarda clave i18n para opciones V/F.
-// CORREGIDO: displayFeedback redibuja pregunta/opciones/TEORÍA y aplica resaltado COMPLETO (correcto E incorrecto) en refresco.
-// CORREGIDO: displayGameOver añade listener a playAgainButton correctamente.
+// CORREGIDO: displayFeedback ahora aplica resaltado correcto E incorrecto siempre.
 // Versión sin console.log de depuración
 // ==================================================
 
@@ -105,9 +102,9 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
     // Buscar elementos del DOM AQUI
     const levelStepperContainer = document.getElementById('level-stepper-container');
     const levelCardContent = document.getElementById('level-card-content');
-    const currentLevelSelectSection = document.getElementById('level-select'); // Para mostrar error
+    const currentLevelSelectSection = document.getElementById('level-select');
 
-    // Chequeo Detallado (usando las variables locales)
+    // Chequeo Detallado
     let errorFound = false;
     if (!levelStepperContainer) { console.error("[UI] Error: levelStepperContainer no encontrado."); errorFound = true; }
     if (!levelCardContent) { console.error("[UI] Error: levelCardContent no encontrado."); errorFound = true; }
@@ -118,11 +115,11 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
     if (typeof levelSelectHandler !== 'function') { console.error("[UI] Error: levelSelectHandler NO es una función."); errorFound = true; }
 
     if (errorFound) {
-        if (currentLevelSelectSection) { // Usar variable local
+        if (currentLevelSelectSection) {
              currentLevelSelectSection.innerHTML = `<p>${getTranslation('error_loading_levels') || 'Error loading levels.'}</p>`;
-             showSection(currentLevelSelectSection); // Mostrar la sección con el error
+             showSection(currentLevelSelectSection);
         }
-        return; // Detener ejecución si hay error
+        return;
     }
 
     levelStepperContainer.innerHTML = '';
@@ -139,20 +136,20 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
             if (firstUnlockedLevelName === null) firstUnlockedLevelName = level;
         }
         // Creación de stepperItem, iconWrapper, icon, label
-        const stepperItem = document.createElement('div');
+        const stepperItem = document.createElement('div'); /* ... */
         stepperItem.classList.add('stepper-item');
         stepperItem.dataset.level = level;
         stepperItem.classList.toggle('unlocked', isUnlocked);
         stepperItem.classList.toggle('locked', !isUnlocked);
 
-        const iconWrapper = document.createElement('div');
+        const iconWrapper = document.createElement('div'); /* ... */
         iconWrapper.classList.add('stepper-icon-wrapper');
-        const icon = document.createElement('i');
+        const icon = document.createElement('i'); /* ... */
         icon.className = `fa-solid ${levelIcons[level] || 'fa-question-circle'}`;
         iconWrapper.appendChild(icon);
         stepperItem.appendChild(iconWrapper);
 
-        const label = document.createElement('span');
+        const label = document.createElement('span'); /* ... */
         label.classList.add('stepper-label');
         const translationKey = `level_${level.toLowerCase()}`;
         label.dataset.translate = translationKey;
@@ -171,7 +168,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
         levelStepperContainer.appendChild(stepperItem);
     });
 
-    updateStepperProgressLine(lastUnlockedIndex, allLevels.length); // Esta función también buscará el elemento
+    updateStepperProgressLine(lastUnlockedIndex, allLevels.length);
 
     const effectiveFirstLevel = firstUnlockedLevelName || allLevels[0];
     const firstStepperItem = levelStepperContainer.querySelector(`.stepper-item[data-level="${effectiveFirstLevel}"]`);
@@ -184,7 +181,7 @@ export function displayLevelSelection(unlockedLevels, currentUserData, currentUs
         console.error(`[UI] No se encontró el stepper item para el nivel por defecto: ${effectiveFirstLevel}`);
     }
 
-    showSection(currentLevelSelectSection); // Mostrar la sección correcta
+    showSection(currentLevelSelectSection);
     const unlockProgressSect = document.getElementById('unlock-progress-section');
     if (unlockProgressSect) unlockProgressSect.style.display = 'none';
 }
@@ -442,28 +439,24 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
         // 1. Redibujar Texto de Pregunta (Incluyendo Teoría)
         if (questionTextElement) {
             let finalQuestionHTML = '';
-            // Añadir teoría si existe la clave
             if (questionData.theoryKey) {
                 const theoryText = getTranslation(questionData.theoryKey);
-                // Comprobar que la traducción no sea la clave misma
                 if (theoryText && theoryText !== questionData.theoryKey) {
                     finalQuestionHTML += `<div class="theory-presentation">${theoryText}</div><hr class="theory-separator">`;
                 }
             }
-            // Añadir texto de la pregunta
             let questionDisplayHTML = '';
-            // Usar texto directo o traducir clave
             if (questionData.question?.text) { questionDisplayHTML = questionData.question.text; }
             else if (questionData.question?.key) { questionDisplayHTML = getTranslation(questionData.question.key, questionData.question.replacements || {}); }
-            else { questionDisplayHTML = "Error: Invalid Question."; } // Fallback
+            else { questionDisplayHTML = "Error: Invalid Question."; }
             finalQuestionHTML += questionDisplayHTML;
-            questionTextElement.innerHTML = finalQuestionHTML; // Actualizar el HTML completo
+            questionTextElement.innerHTML = finalQuestionHTML;
         } else { console.error("Elemento #question-text no encontrado durante refresco de feedback."); }
 
         // 2. Redibujar Opciones (deshabilitadas y resaltadas)
         if (optionsContainerElement) {
-            optionsContainerElement.innerHTML = ''; // Limpiar opciones viejas
-            optionsContainerElement.classList.add('options-disabled'); // Asegurar que estén deshabilitadas
+            optionsContainerElement.innerHTML = '';
+            optionsContainerElement.classList.add('options-disabled');
             const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
             const correctAnswerValue = questionData.correctAnswer; // Valor/clave correcta
 
@@ -476,14 +469,14 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                 questionData.options.forEach((optionText) => { // options es array de strings
                     const button = document.createElement('button');
                     button.classList.add('option-button');
-                    button.disabled = true; // Deshabilitar botón
-                    button.textContent = optionText; // El texto ya está en el idioma correcto
+                    button.disabled = true;
+                    button.textContent = optionText;
 
                     // Reconstruir data-original-value para comparación
-                    let originalValue = optionText; // Usar texto como fallback inicial
+                    let originalValue = optionText;
                     if (optionText === trueText) originalValue = 'option_true';
                     else if (optionText === falseText) originalValue = 'option_false';
-                    // TODO: Mejorar reconstrucción para otros tipos de opciones si es necesario
+                    // TODO: Mejorar reconstrucción para otros tipos de opciones
 
                     button.setAttribute('data-original-value', originalValue);
 
@@ -544,7 +537,23 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
             console.error("Error generando explicación HTML:", genError);
             explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' }) || 'Error generating explanation.'}</p>`;
         }
-        // El resaltado ya se hizo (en handleAnswerClick o en el bloque isRefresh)
+        // --- CORREGIDO: Aplicar resaltado aquí también para el caso NO refresh ---
+        if (!isRefresh) { // Solo si no es un refresco (el resaltado ya se hizo si isRefresh=true)
+            try {
+                if(optionsContainerElement) { // Usar la variable local
+                    const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
+                    const correctAnswerValue = questionData.correctAnswer; // Valor/clave correcta
+                    Array.from(optionsContainerElement.children).forEach(button => {
+                        // Comparar el atributo data-original-value
+                        if (button.getAttribute('data-original-value') === correctAnswerValue) {
+                            button.classList.add(correctButtonClass); // Resaltar correcto
+                        }
+                        // El resaltado incorrecto ya se aplicó en handleAnswerClick
+                    });
+                }
+            } catch (highlightError) { console.error("Error resaltando botón correcto en displayFeedback (no refresh):", highlightError); }
+        }
+        // --- FIN CORRECCIÓN ---
     }
 
     // Construir HTML final del feedback y mostrarlo
