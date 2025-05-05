@@ -3,32 +3,32 @@
 // Lógica Principal del Juego IP Sprint
 // Adaptado para Nivel Essential y UI Stepper+Tarjeta
 // Maneja carga async de preguntas Essential desde JSON.
-// Pasa handlers correctamente y maneja refresco de UI por idioma.
+// CORREGIDO: refreshActiveGameUI ahora pasa datos completos a ui.displayFeedback.
 // Versión sin console.log
 // ==================================================
 
 // --- Importaciones de Módulos ---
-import * as config from './config.js';        // Constantes de configuración
-import * as storage from './storage.js';       // Funciones de LocalStorage
-import * as ui from './ui.js';             // Funciones y selectores de UI
-import { getNextQuestion } from './questions.js'; // Función para obtener preguntas (async)
+import * as config from './config.js';
+import * as storage from './storage.js';
+import * as ui from './ui.js';
+import { getNextQuestion } from './questions.js';
 // Importar formateador específico para Essential (usado en refresh)
 import { formatEssentialQuestionForUI } from './questions_essential.js';
 import { getCurrentLanguage, getTranslation } from './i18n.js'; // Funciones de idioma
 
 // --- Variables de Estado del Juego ---
-let currentUsername = '';           // Nombre del usuario actual
-let currentUserData = {};           // Datos del usuario (niveles desbloq., rachas)
-let currentScore = 0;               // Puntuación de la ronda actual
-let currentLevel = '';              // Nivel seleccionado para jugar
-let currentGameMode = 'standard';   // Modo de juego
-let currentQuestionData = null;     // Datos formateados de la pregunta actual para la UI
-let originalQuestionData = null;   // Datos crudos/originales de la pregunta (para refresco Essential)
-let questionsAnswered = 0;          // Contador de preguntas respondidas
-let roundResults = [];              // Array para guardar resultados (true/false) de la ronda
-let questionTimerInterval = null;   // Intervalo del temporizador
-let timeLeft = 0;                   // Tiempo restante
-// Variables para refrescar UI en cambio de idioma durante feedback
+let currentUsername = '';
+let currentUserData = {};
+let currentScore = 0;
+let currentLevel = '';
+let currentGameMode = 'standard';
+let currentQuestionData = null;     // Datos formateados para la UI
+let originalQuestionData = null;   // Datos crudos/originales (especialmente para Essential)
+let questionsAnswered = 0;
+let roundResults = [];
+let questionTimerInterval = null;
+let timeLeft = 0;
+// Variables para refrescar UI durante feedback
 let isFeedbackActive = false;
 let lastAnswerCorrect = null;
 let lastMasteryMode = false;
@@ -37,7 +37,7 @@ let lastSelectedOriginalValue = null;
 // --- Funciones Auxiliares ---
 
 /**
- * Obtiene la duración del temporizador para el nivel y modo actual desde config.js.
+ * Obtiene la duración del temporizador para el nivel y modo actual.
  * @returns {number|null} Duración en segundos o null si no hay timer.
  */
 function getTimerDurationForCurrentLevel() {
@@ -49,7 +49,7 @@ function getTimerDurationForCurrentLevel() {
         }
         return config.TIMER_DURATION_BY_LEVEL['default'] ?? null;
     } catch (error) {
-        console.error("Error obteniendo duración del timer:", error); // Mantener error crítico
+        console.error("Error obteniendo duración del timer:", error);
         return config.TIMER_DURATION_BY_LEVEL['default'] ?? 20;
     }
 }
@@ -57,7 +57,7 @@ function getTimerDurationForCurrentLevel() {
 // --- Funciones Principales del Flujo del Juego ---
 
 /**
- * Maneja el login del usuario. Carga/Crea datos y muestra selección de nivel.
+ * Maneja el login del usuario.
  * @param {string} username - Nombre de usuario ingresado.
  */
 export function handleUserLogin(username) {
@@ -75,24 +75,22 @@ export function handleUserLogin(username) {
             currentUserData = defaultData;
         }
         storage.saveUserData(username, currentUserData);
-        // Recargar para asegurar consistencia
-        currentUserData = storage.getUserData(currentUsername);
+        currentUserData = storage.getUserData(currentUsername); // Recargar
 
         ui.updatePlayerInfo(currentUsername, '', '');
-        // Pasar handler 'selectLevelAndMode' a la UI
         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, currentUsername, selectLevelAndMode);
         const highScores = storage.loadHighScores();
         ui.displayHighScores(highScores);
 
     } catch (error) {
-        console.error("Error durante handleUserLogin:", error); // Mantener error crítico
+        console.error("Error durante handleUserLogin:", error);
         alert(getTranslation('error_loading_user_data', { message: error.message }));
         ui.showSection(ui.userSetupSection);
     }
 }
 
 /**
- * Callback llamado desde la UI al seleccionar un nivel. Inicia el juego.
+ * Callback llamado desde la UI al seleccionar un nivel.
  * @param {string} level - Nivel seleccionado.
  * @param {string} [mode='standard'] - Modo seleccionado.
  */
@@ -103,7 +101,7 @@ export function selectLevelAndMode(level, mode = 'standard') {
 }
 
 /**
- * Inicia una nueva ronda del juego. Resetea estado y carga la primera pregunta.
+ * Inicia una nueva ronda del juego.
  */
 export function startGame() {
     clearInterval(questionTimerInterval);
@@ -115,8 +113,8 @@ export function startGame() {
     lastAnswerCorrect = null;
     lastMasteryMode = (currentLevel === 'Entry' && currentGameMode === 'mastery');
     lastSelectedOriginalValue = null;
-    currentQuestionData = null; // Asegurar que se limpia
-    originalQuestionData = null; // Asegurar que se limpia
+    currentQuestionData = null;
+    originalQuestionData = null;
 
     ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
     ui.showSection(ui.gameAreaSection);
@@ -134,7 +132,7 @@ async function loadNextQuestion() {
     isFeedbackActive = false;
     lastAnswerCorrect = null;
     lastSelectedOriginalValue = null;
-    originalQuestionData = null; // Resetear datos originales
+    originalQuestionData = null;
 
     if (ui.feedbackArea) { ui.feedbackArea.innerHTML = ''; ui.feedbackArea.className = ''; }
     if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
@@ -144,18 +142,16 @@ async function loadNextQuestion() {
     if (ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time');
 
     try {
-        // Esperar a que getNextQuestion (que puede ser async) resuelva
         const formattedQuestionData = await getNextQuestion(currentLevel);
 
         if (formattedQuestionData)
         {
-            currentQuestionData = formattedQuestionData; // Guardar datos formateados
-            // Guardar datos originales si existen (adjuntados por questions.js para Essential)
+            currentQuestionData = formattedQuestionData;
             if (currentQuestionData.rawData) {
                 originalQuestionData = currentQuestionData.rawData;
-                // delete currentQuestionData.rawData; // Opcional: limpiar si no se necesita más
+                // delete currentQuestionData.rawData; // Opcional
             } else {
-                 originalQuestionData = null; // No hay datos crudos para otros niveles (por ahora)
+                 originalQuestionData = null; // O guardar copia si es necesario para refresco no-Essential
             }
 
             const duration = getTimerDurationForCurrentLevel();
@@ -167,15 +163,14 @@ async function loadNextQuestion() {
             } else {
                 ui.showTimerDisplay(false);
             }
-            // Mostrar pregunta usando los datos formateados
             ui.displayQuestion(currentQuestionData, handleAnswerClick);
 
         } else {
-            console.error("[Game] No se pudo obtener la siguiente pregunta (getNextQuestion devolvió null)."); // Mantener error crítico
+            console.error("[Game] No se pudo obtener la siguiente pregunta (getNextQuestion devolvió null).");
             throw new Error(getTranslation('error_loading_question_msg', { message: 'No question available' }) || 'Error loading question.');
         }
     } catch (error) {
-        console.error("[Game] Error en loadNextQuestion:", error); // Mantener error crítico
+        console.error("[Game] Error en loadNextQuestion:", error);
         if (ui.questionText) ui.questionText.innerHTML = error.message || getTranslation('error_loading_question_msg', { message: 'Unknown error' });
         if (ui.optionsContainer) ui.optionsContainer.innerHTML = '';
         setTimeout(endGame, 2500);
@@ -202,21 +197,20 @@ async function loadNextQuestion() {
         lastMasteryMode = isMasteryStyle;
         lastSelectedOriginalValue = null;
 
-        // Usar los datos formateados actuales para el feedback
         const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
-        // Asegurarse que displayFeedback tenga la info necesaria (correctAnswerDisplay)
+        // Asegurar que correctAnswerDisplay exista para el mensaje de timeout
         if (!timeoutFeedbackData.correctAnswerDisplay && timeoutFeedbackData.correctAnswer) {
-             // Si falta, intentar obtenerla (esto puede fallar si correctAnswer es complejo y no string/clave)
              const ca = timeoutFeedbackData.correctAnswer;
-             const translated = getTranslation(ca); // Intenta traducir clave V/F
+             const translated = getTranslation(ca);
              timeoutFeedbackData.correctAnswerDisplay = (translated && translated !== ca) ? translated : ca;
         }
-        ui.displayFeedback(false, isMasteryStyle, timeoutFeedbackData, proceedToNextStep);
+        // Pasar el valor original seleccionado (null en este caso)
+        ui.displayFeedback(false, isMasteryStyle, timeoutFeedbackData, proceedToNextStep, lastSelectedOriginalValue);
 
         // Modificar texto para indicar Timeout
         if (ui.feedbackArea) {
             const feedbackContent = ui.feedbackArea.querySelector('#feedback-text-content span:first-child');
-            const correctAnswerText = timeoutFeedbackData.correctAnswerDisplay || 'N/A'; // Usar el texto guardado
+            const correctAnswerText = timeoutFeedbackData.correctAnswerDisplay || 'N/A';
             const timeoutMsg = getTranslation('feedback_timeout', { correctAnswer: `<strong>${correctAnswerText}</strong>` });
             if (feedbackContent) {
                 feedbackContent.innerHTML = timeoutMsg;
@@ -250,7 +244,7 @@ async function loadNextQuestion() {
  export function handleAnswerClick(event) {
     clearInterval(questionTimerInterval);
     if (!currentQuestionData || currentQuestionData.correctAnswer === undefined) {
-        console.error("[Game] handleAnswerClick llamado sin datos de pregunta válidos."); // Mantener error crítico
+        console.error("[Game] handleAnswerClick llamado sin datos de pregunta válidos.");
         return;
     }
 
@@ -258,7 +252,6 @@ async function loadNextQuestion() {
     const selectedOriginalValue = selectedButton.getAttribute('data-original-value');
     if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled');
 
-    // Comparar valor original del botón con el valor 'correctAnswer' de los datos formateados
     const isCorrect = (selectedOriginalValue === currentQuestionData.correctAnswer);
 
     roundResults.push(isCorrect);
@@ -267,19 +260,19 @@ async function loadNextQuestion() {
     isFeedbackActive = true;
     lastAnswerCorrect = isCorrect;
     lastMasteryMode = isMasteryStyle;
-    lastSelectedOriginalValue = isCorrect ? null : selectedOriginalValue;
+    lastSelectedOriginalValue = isCorrect ? null : selectedOriginalValue; // Guardar selección si fue incorrecta
 
     if (isCorrect) {
         currentScore += config.POINTS_PER_QUESTION;
         ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
-        // Pasar los datos formateados actuales a displayFeedback
-        ui.displayFeedback(isCorrect, isMasteryStyle, currentQuestionData, proceedToNextStep);
+        // Pasar null como último argumento ya que no hubo selección incorrecta
+        ui.displayFeedback(isCorrect, isMasteryStyle, currentQuestionData, proceedToNextStep, null);
         if (selectedButton) selectedButton.classList.add(isMasteryStyle ? 'mastery' : 'correct');
         setTimeout(proceedToNextStep, 1200);
     } else {
-        // Pasar los datos formateados actuales a displayFeedback
         const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
-        ui.displayFeedback(isCorrect, isMasteryStyle, feedbackData, proceedToNextStep);
+        // Pasar el valor original incorrecto seleccionado
+        ui.displayFeedback(isCorrect, isMasteryStyle, feedbackData, proceedToNextStep, lastSelectedOriginalValue);
         if (selectedButton) selectedButton.classList.add('incorrect');
     }
     ui.updateRoundProgressUI(roundResults, isMasteryStyle);
@@ -311,18 +304,14 @@ async function loadNextQuestion() {
                  if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) {
                      currentUserData.unlockedLevels.push('Associate');
                  }
-             } else {
-                 currentUserData.entryPerfectStreak = 0;
-             }
+             } else { currentUserData.entryPerfectStreak = 0; }
         } else if (currentLevel === 'Associate') {
               if (meetsAssociateThreshold) {
                  currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1;
                  if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) {
                      currentUserData.unlockedLevels.push('Professional');
                  }
-              } else {
-                  currentUserData.associatePerfectStreak = 0;
-              }
+              } else { currentUserData.associatePerfectStreak = 0; }
         }
         // Añadir lógica para Professional -> Expert
 
@@ -337,7 +326,7 @@ async function loadNextQuestion() {
         currentQuestionData = null; // Limpiar datos pregunta
 
     } catch (error) {
-        console.error("Error en endGame:", error); // Mantener error crítico
+        console.error("Error en endGame:", error);
         const fallbackData = currentUserData || { error: true, unlockedLevels: ['Essential'], name: currentUsername };
         ui.displayGameOver(currentScore, fallbackData, currentLevel, handlePlayAgain);
     }
@@ -392,9 +381,10 @@ export function initializeGame() {
 
 /**
  * Refresca la UI activa si el idioma cambia.
+ * AHORA reformatea datos y pasa info completa a displayFeedback.
  */
 export function refreshActiveGameUI() {
-    if (!currentUsername) { return; } // Salir si no hay usuario
+    if (!currentUsername) { return; }
     const newLang = getCurrentLanguage();
 
     // Refresco Básico
@@ -409,47 +399,54 @@ export function refreshActiveGameUI() {
     }
 
     // Refresco de Contenido Específico
+    let dataForUI = null;
+
+    // --- Obtener/Reformatear Datos para el Nuevo Idioma ---
+    if (currentLevel === 'Essential' && originalQuestionData) {
+        // Reformatear desde los datos crudos guardados
+        dataForUI = formatEssentialQuestionForUI(originalQuestionData, newLang);
+        // Adjuntar rawData de nuevo por si se cambia idioma otra vez antes de avanzar
+        if(dataForUI) dataForUI.rawData = originalQuestionData;
+    } else if (currentQuestionData) {
+        // Para niveles no-Essential, por ahora reusamos los datos actuales.
+        // TODO: Idealmente, los generadores no-Essential deberían devolver también
+        // datos originales/claves para permitir un refresco completo aquí.
+        dataForUI = currentQuestionData;
+        console.warn(`[Game] Refrescando UI no-Essential (${currentLevel}), el texto puede no actualizarse si no usa claves i18n.`);
+    }
+    // --- Fin Obtener/Reformatear ---
+
+
+    // --- Actualizar la UI correcta con los datos obtenidos/reformateados ---
     if (isFeedbackActive && lastAnswerCorrect !== null) {
-        let feedbackDataForUI = null;
-        if (currentLevel === 'Essential' && originalQuestionData) {
-            feedbackDataForUI = formatEssentialQuestionForUI(originalQuestionData, newLang);
-        } else if (currentQuestionData) {
-             // Para no-Essential, necesitamos regenerar o tener datos originales
-             // Por ahora, reusamos los datos actuales (puede mostrar idioma incorrecto)
-             feedbackDataForUI = currentQuestionData;
-             console.warn("[Game] Refrescando feedback no-Essential, puede mostrar idioma anterior.");
-        }
-        if (feedbackDataForUI) {
-             feedbackDataForUI.questionsAnswered = questionsAnswered;
-             feedbackDataForUI.totalQuestions = config.TOTAL_QUESTIONS_PER_GAME;
-             ui.displayFeedback(lastAnswerCorrect, lastMasteryMode, feedbackDataForUI, proceedToNextStep);
+        // Si estábamos en feedback y tenemos datos...
+        if (dataForUI) {
+             dataForUI.questionsAnswered = questionsAnswered; // Añadir info necesaria
+             dataForUI.totalQuestions = config.TOTAL_QUESTIONS_PER_GAME;
+             // Llamar a ui.displayFeedback con los datos reformateados y la selección incorrecta original
+             ui.displayFeedback(lastAnswerCorrect, lastMasteryMode, dataForUI, proceedToNextStep, lastSelectedOriginalValue);
         } else { console.error("[Game] No se pudieron obtener/formatear datos para refrescar feedback."); }
 
-    } else if (currentQuestionData) {
-        let questionDataForUI = null;
-        if (currentLevel === 'Essential' && originalQuestionData) {
-             questionDataForUI = formatEssentialQuestionForUI(originalQuestionData, newLang);
-        } else if (currentQuestionData) {
-            // Reusar datos actuales para no-Essential (misma advertencia)
-             questionDataForUI = currentQuestionData;
-              console.warn("[Game] Refrescando pregunta no-Essential, puede mostrar idioma anterior.");
-        }
-        if (questionDataForUI) {
-            ui.displayQuestion(questionDataForUI, handleAnswerClick);
+    } else if (currentQuestionData) { // Si se estaba mostrando una pregunta y tenemos datos...
+        if (dataForUI) {
+            // Llamar a ui.displayQuestion con los datos reformateados
+            ui.displayQuestion(dataForUI, handleAnswerClick);
             if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
         } else { console.error("[Game] No se pudieron obtener/formatear datos para refrescar pregunta."); }
 
     } else if (ui.levelSelectSection && ui.levelSelectSection.style.display !== 'none') {
+        // Refrescar selección de nivel (no necesita dataForUI)
         currentUserData = storage.getUserData(currentUsername);
         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, currentUsername, selectLevelAndMode);
     } else if (ui.gameOverSection && ui.gameOverSection.style.display !== 'none') {
+        // Refrescar Game Over (no necesita dataForUI)
         currentUserData = storage.getUserData(currentUsername);
         const lastScoreText = ui.finalScoreDisplay?.textContent;
         const lastScore = parseInt(lastScoreText || '0', 10);
         const lastLevelPlayed = getCurrentLevel();
         ui.displayGameOver(lastScore, currentUserData, lastLevelPlayed, handlePlayAgain);
     } else {
-        // Estado desconocido, no hacer nada o limpiar
+        // Estado desconocido
     }
 }
 
