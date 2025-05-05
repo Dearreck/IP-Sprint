@@ -1,19 +1,14 @@
 // js/questions.js
 // ==================================================
 // Módulo Principal de Preguntas para IP Sprint
-// Importa generadores de módulos específicos por nivel
-// y selecciona uno aleatoriamente según el nivel actual.
-// MODIFICADO: Maneja generadores asíncronos para Nivel Essential.
+// MODIFICADO: Añade lógica de reintento para Essential si se elige un fundamento sin preguntas.
 // ==================================================
 
 // --- Importaciones de Módulos ---
-// Importar los arrays de generadores de cada nivel
 import { entryQuestionGenerators } from './questions_entry.js';
 import { associateQuestionGenerators } from './questions_associate.js';
 import { professionalQuestionGenerators } from './questions_professional.js';
-// Importar generadores Essential (que ahora son async)
 import { essentialQuestionGenerators } from './questions_essential.js';
-// Importar utilidades generales
 import { getRandomInt } from './utils.js';
 
 // --- Función Principal para Obtener Pregunta ---
@@ -23,85 +18,101 @@ import { getRandomInt } from './utils.js';
  * Es ASÍNCRONA para poder esperar la carga de preguntas de Essential desde JSON.
  * @param {string} level - El nivel actual ('Essential', 'Entry', 'Associate', 'Professional', 'Expert').
  * @returns {Promise<object|null>} Una PROMESA que resuelve con el objeto de la pregunta formateado
- * para la UI, o null si ocurre un error.
+ * para la UI, o null si ocurre un error persistente.
  */
-export async function getNextQuestion(level) { // Marcada como async
-     let generators = [];      // Array para los generadores del nivel seleccionado
-     let isEssential = false;  // Flag para saber si estamos pidiendo una pregunta Essential
+export async function getNextQuestion(level) {
+     let generators = [];
+     let isEssential = false;
+     let availableGeneratorsIndexes = []; // Para reintentos en Essential
 
-     // Seleccionar el conjunto correcto de generadores según el nivel
+     // Seleccionar generadores según el nivel
      switch (level) {
         case 'Essential':
             generators = essentialQuestionGenerators;
-            isEssential = true; // Marcar que usaremos generadores async
+            isEssential = true;
+            // Crear array de índices para poder reintentar sin repetir inmediatamente
+            availableGeneratorsIndexes = generators.map((_, index) => index);
             break;
         case 'Entry':
             generators = entryQuestionGenerators;
             break;
         case 'Associate':
-            // Combinar Associate y Entry para más variedad
             generators = [...entryQuestionGenerators, ...associateQuestionGenerators];
             break;
         case 'Professional':
-            // Combinar Professional y Associate
-            // Podríamos añadir también Entry si quisiéramos repaso completo
             generators = [...associateQuestionGenerators, ...professionalQuestionGenerators];
             break;
-        // Añadir caso para 'Expert' cuando se implemente
         // case 'Expert':
         //    generators = [...professionalQuestionGenerators, ...expertQuestionGenerators];
         //    break;
         default:
             console.error("Nivel desconocido solicitado:", level);
-            return null; // Nivel no reconocido
+            return null;
      }
 
-     // Verificar que tenemos generadores para el nivel seleccionado
      if (!generators || generators.length === 0) {
-         console.error(`No hay generadores de preguntas definidos o disponibles para el nivel: ${level}`);
+         console.error(`No hay generadores de preguntas definidos para el nivel: ${level}`);
          return null;
      }
 
-     // Seleccionar una función generadora aleatoria del array correspondiente
-     const randomIndex = getRandomInt(0, generators.length - 1);
-     const generatorFunction = generators[randomIndex];
+     let attempts = 0; // Contador para evitar bucles infinitos
+     const maxAttempts = generators.length + 1; // Intentar cada generador una vez como máximo
 
-     // Verificar que el elemento seleccionado sea una función válida
-     if (generatorFunction && typeof generatorFunction === 'function') {
-         try {
-             let questionData = null;
-             // Ejecutar el generador: usar await si es Essential (async), sino llamada normal (sync)
-             if (isEssential) {
-                 console.log(`[Questions] Llamando a generador ASYNC Essential: ${generatorFunction.name}`);
-                 // Esperar a que la promesa del generador Essential resuelva (fetch del JSON + selección)
-                 questionData = await generatorFunction();
-             } else {
-                 // Llamada síncrona normal para los generadores de Entry, Associate, etc.
-                 console.log(`[Questions] Llamando a generador SYNC: ${generatorFunction.name}`);
-                 questionData = generatorFunction();
-             }
+     while (attempts < maxAttempts) {
+         attempts++;
+         let randomIndex;
+         let generatorFunction;
 
-             // Validar el resultado obtenido del generador
-             // (La validación más estricta se hizo en la versión anterior, aquí simplificamos
-             // asumiendo que si no es null/undefined, es válido para pasar a la UI)
-             if (questionData) {
-                 console.log("[Questions] Datos de pregunta obtenidos:", questionData);
-                 // Devolver los datos formateados (la función generadora ya lo hizo)
-                 return questionData;
-             } else {
-                 // Error si el generador devolvió null (posiblemente por error interno o falta de preguntas)
-                 console.error(`El generador ${generatorFunction.name || 'anónimo'} devolvió null o datos inválidos para ${level}.`);
-                 // Devolver null para que game.js maneje el error (evita recursión infinita)
-                 return null;
-             }
-         } catch (error) {
-             // Capturar cualquier error que ocurra DENTRO del generador (sync o async)
-             console.error(`Error al ejecutar el generador ${generatorFunction.name || 'anónimo'} para ${level}:`, error);
-             return null; // Devolver null en caso de error
+         if (isEssential && availableGeneratorsIndexes.length > 0) {
+             // Elegir un índice aleatorio de los disponibles y quitarlo para no repetir
+             const availableIndexPosition = getRandomInt(0, availableGeneratorsIndexes.length - 1);
+             randomIndex = availableGeneratorsIndexes.splice(availableIndexPosition, 1)[0];
+             generatorFunction = generators[randomIndex];
+             console.log(`[Questions] Intento ${attempts} (Essential): Seleccionado generador índice ${randomIndex} (${generatorFunction.name})`);
+         } else if (!isEssential) {
+             // Para otros niveles, elegir aleatoriamente como antes
+             randomIndex = getRandomInt(0, generators.length - 1);
+             generatorFunction = generators[randomIndex];
+             console.log(`[Questions] Intento ${attempts} (${level}): Seleccionado generador índice ${randomIndex} (${generatorFunction.name})`);
+         } else {
+             // Si es Essential pero ya no quedan índices disponibles (todos fallaron)
+             console.error(`[Questions] No quedan generadores Essential disponibles tras ${attempts - 1} intentos.`);
+             return null;
          }
-     } else {
-         // Error si el elemento seleccionado del array no era una función
-         console.error(`El generador seleccionado para ${level} en índice ${randomIndex} no es una función válida.`);
-         return null;
-     }
+
+
+         if (generatorFunction && typeof generatorFunction === 'function') {
+             try {
+                 let questionData = null;
+                 if (isEssential) {
+                     // Esperar la promesa (puede devolver null si el fundamento está vacío)
+                     questionData = await generatorFunction();
+                 } else {
+                     questionData = generatorFunction(); // Llamada síncrona
+                 }
+
+                 // --- Si obtuvimos datos válidos, devolverlos ---
+                 if (questionData) {
+                     console.log("[Questions] Datos de pregunta obtenidos:", questionData);
+                     return questionData; // ¡Éxito! Salir del bucle y la función.
+                 } else {
+                     // Si questionData es null (pasó en Essential con fundamento vacío),
+                     // el bucle while continuará para intentar con otro generador.
+                     console.warn(`[Questions] El generador ${generatorFunction.name || 'anónimo'} devolvió null para ${level}. Reintentando...`);
+                 }
+             } catch (error) {
+                 // Capturar error DENTRO del generador
+                 console.error(`Error al ejecutar el generador ${generatorFunction.name || 'anónimo'} para ${level}:`, error);
+                 // Considerar si reintentar o devolver null. Por ahora, continuamos el bucle.
+                 console.warn(`[Questions] Error en generador ${generatorFunction.name}. Reintentando...`);
+             }
+         } else {
+             console.error(`El generador seleccionado para ${level} en índice ${randomIndex} no es una función válida.`);
+             // Continuar el bucle para intentar otro índice si es posible
+         }
+     } // Fin del bucle while
+
+     // Si salimos del bucle porque se agotaron los intentos
+     console.error(`[Questions] No se pudo obtener una pregunta válida para el nivel ${level} después de ${attempts} intentos.`);
+     return null;
 }
