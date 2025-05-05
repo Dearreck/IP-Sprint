@@ -5,6 +5,7 @@
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // CORREGIDO: Recibe 'currentUsername' explícitamente.
 // Añadidos logs para depurar Essential y paso de handler.
+// Adaptado para esperar texto directo en preguntas/explicaciones de Essential.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -13,12 +14,11 @@ import { handleAnswerClick } from './game.js'; // Handler para respuestas
 import { getTranslation } from './i18n.js';
 import * as storage from './storage.js'; // Para leer puntuaciones
 import {
-    // Generadores de Explicaciones
+    // Generadores de Explicaciones (para niveles no-Essential)
     generateClassRangeTableHTML, generatePrivateRangeTableHTML, generatePortionExplanationHTML,
     generateSpecialAddressExplanationHTML, generateWildcardExplanationHTML, generateSubnettingExplanationHTML,
     generateIpTypeExplanationHTML, generateBitsForSubnetsExplanationHTML, generateBitsForHostsExplanationHTML,
-    generateMaskForHostsExplanationHTML, generateNumSubnetsExplanationHTML // Incluir las específicas
-    // generatePortionExplanationHTML ya está importado
+    generateMaskForHostsExplanationHTML, generateNumSubnetsExplanationHTML
 } from './utils.js';
 
 // --- Selección de Elementos del DOM ---
@@ -54,7 +54,7 @@ export const highScoreMessage = document.getElementById('high-score-message');
 export const playAgainButton = document.getElementById('play-again-button');
 export const scoreList = document.getElementById('score-list');
 
-// Mapa para llamar a los generadores de explicaciones desde utils.js
+// Mapa para llamar a los generadores de explicaciones desde utils.js (para niveles no-Essential)
 const explanationGenerators = {
     generateClassRangeTableHTML,
     generatePrivateRangeTableHTML,
@@ -66,8 +66,7 @@ const explanationGenerators = {
     generateBitsForSubnetsExplanationHTML,
     generateBitsForHostsExplanationHTML,
     generateMaskForHostsExplanationHTML,
-    generateNumSubnetsExplanationHTML // Asegurarse que esté aquí
-    // generatePortionExplanationHTML ya está incluido
+    generateNumSubnetsExplanationHTML
 };
 
 // Iconos para cada nivel
@@ -389,8 +388,8 @@ export function updateRoundProgressUI(roundResults, isMasteryMode) {
 }
 
 /**
- * Muestra la pregunta actual y genera los botones de opción traducidos.
- * Incluye la presentación teórica si existe.
+ * Muestra la pregunta actual y genera los botones de opción.
+ * Adaptado para esperar texto directo o claves i18n.
  * @param {object} questionData - Objeto con la información de la pregunta.
  * @param {function} answerClickHandler - La función que manejará el clic en una opción.
  */
@@ -406,7 +405,7 @@ export function displayQuestion(questionData, answerClickHandler) {
 
         let finalQuestionHTML = '';
 
-        // Añadir texto teórico si existe
+        // Añadir texto teórico (usa clave i18n)
         if (questionData.theoryKey) {
             const theoryText = getTranslation(questionData.theoryKey);
             if (theoryText && theoryText !== questionData.theoryKey) {
@@ -414,9 +413,19 @@ export function displayQuestion(questionData, answerClickHandler) {
             }
         }
 
-        // Añadir texto de la pregunta principal
-        const questionReplacements = questionData.question.replacements || {};
-        finalQuestionHTML += getTranslation(questionData.question.key, questionReplacements);
+        // Usar texto directo o clave i18n para la pregunta
+        let questionDisplayHTML = '';
+        if (questionData.question?.text) { // Optional chaining
+            questionDisplayHTML = questionData.question.text;
+        } else if (questionData.question?.key) { // Optional chaining
+            const questionReplacements = questionData.question.replacements || {};
+            questionDisplayHTML = getTranslation(questionData.question.key, questionReplacements);
+        } else {
+            console.warn("[UI] Datos de pregunta inválidos:", questionData.question);
+            questionDisplayHTML = "Error: Invalid Question."; // Fallback
+        }
+        finalQuestionHTML += questionDisplayHTML;
+
         questionText.innerHTML = finalQuestionHTML;
 
         // Crear botones de opción
@@ -425,26 +434,26 @@ export function displayQuestion(questionData, answerClickHandler) {
         }
         questionData.options.forEach((optionData) => {
             const button = document.createElement('button'); button.classList.add('option-button');
-            let buttonText = ''; let originalValue = '';
+            let buttonText = ''; let originalValue = ''; // Valor para comparación lógica
 
-            // Manejar opciones simples (string) y complejas (objeto)
+            // Determinar si la opción es texto directo o clave i18n
             if (typeof optionData === 'string') {
                 const translated = getTranslation(optionData);
                 buttonText = (translated && translated !== optionData) ? translated : optionData;
-                originalValue = optionData;
-            } else if (typeof optionData === 'object' && optionData !== null) {
+                originalValue = optionData; // Guardar la clave o el texto original
+            } else if (typeof optionData === 'object' && optionData !== null) { // Opción compleja
                 let textParts = []; let originalValueParts = [];
                 if (optionData.classKey) { textParts.push(getTranslation(optionData.classKey)); originalValueParts.push(optionData.classKey); }
                 if (optionData.typeKey) { textParts.push(getTranslation(optionData.typeKey)); originalValueParts.push(optionData.typeKey); }
                 if (optionData.maskValue) { textParts.push(getTranslation('option_mask', { mask: optionData.maskValue })); originalValueParts.push(optionData.maskValue); }
                 if (optionData.portionKey) { const portionVal = optionData.portionValue || getTranslation('option_none'); textParts.push(getTranslation(optionData.portionKey, { portion: portionVal })); originalValueParts.push(optionData.portionKey); originalValueParts.push(optionData.portionValue || 'None'); }
                 buttonText = textParts.join(', ');
-                originalValue = originalValueParts.join(',');
+                originalValue = originalValueParts.join(','); // Valor original compuesto
                 if (textParts.length === 0) { buttonText = JSON.stringify(optionData); originalValue = buttonText; }
             } else { buttonText = 'Invalid Option'; originalValue = 'invalid'; }
 
             button.textContent = buttonText;
-            button.setAttribute('data-original-value', originalValue);
+            button.setAttribute('data-original-value', originalValue); // Guardar valor original
             if (typeof answerClickHandler === 'function') {
                 button.addEventListener('click', answerClickHandler);
             } else {
@@ -463,6 +472,7 @@ export function displayQuestion(questionData, answerClickHandler) {
 
 /**
  * Muestra el feedback (correcto/incorrecto) después de una respuesta.
+ * Adaptado para esperar texto directo o claves i18n.
  * @param {boolean} isCorrect - Indica si la respuesta fue correcta.
  * @param {boolean} isMasteryMode - Indica si se debe usar el estilo mastery.
  * @param {object} questionData - Objeto con los datos de la pregunta actual.
@@ -476,18 +486,35 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     let feedbackText = ''; let explanationHTML = '';
     const correctButtonClass = isMasteryMode ? 'mastery' : 'correct';
 
-    // Traducir la respuesta correcta para el mensaje
-    let translatedCorrectAnswer = ''; const ca = questionData.correctAnswer;
-    // (Lógica de traducción de 'ca' - igual que antes)
-    if (typeof ca === 'string') { const translated = getTranslation(ca); translatedCorrectAnswer = (translated && translated !== ca) ? translated : ca; }
-    else if (typeof ca === 'object' && ca !== null) { let textParts = []; if (ca.classKey) textParts.push(getTranslation(ca.classKey)); if (ca.typeKey) textParts.push(getTranslation(ca.typeKey)); if (ca.maskValue) textParts.push(getTranslation('option_mask', { mask: ca.maskValue })); if (ca.portionKey) { const portionVal = ca.portionValue || getTranslation('option_none'); textParts.push(getTranslation(ca.portionKey, { portion: portionVal })); } if (textParts.length > 0) { translatedCorrectAnswer = textParts.join(', '); } else { translatedCorrectAnswer = JSON.stringify(ca); } }
-    else { translatedCorrectAnswer = ca?.toString() ?? 'N/A'; }
+    // Traducir/Obtener respuesta correcta (puede ser texto directo o clave)
+    let correctAnswerDisplay = ''; // Texto para mostrar al usuario
+    let correctAnswerValue = '';   // Valor original para comparar botones
+    const ca = questionData.correctAnswer;
+
+    if (typeof ca === 'string') {
+        const translated = getTranslation(ca);
+        correctAnswerDisplay = (translated && translated !== ca) ? translated : ca;
+        correctAnswerValue = ca; // El valor original es la clave o el texto mismo
+    } else if (typeof ca === 'object' && ca !== null) { // Objeto complejo
+        let textParts = []; let originalValueParts = [];
+        if (ca.classKey) { textParts.push(getTranslation(ca.classKey)); originalValueParts.push(ca.classKey); }
+        if (ca.typeKey) { textParts.push(getTranslation(ca.typeKey)); originalValueParts.push(ca.typeKey); }
+        if (ca.maskValue) { textParts.push(getTranslation('option_mask', { mask: ca.maskValue })); originalValueParts.push(ca.maskValue); }
+        if (ca.portionKey) { const portionVal = ca.portionValue || getTranslation('option_none'); textParts.push(getTranslation(ca.portionKey, { portion: portionVal })); originalValueParts.push(ca.portionKey); originalValueParts.push(ca.portionValue || 'None'); }
+        correctAnswerDisplay = textParts.join(', ');
+        correctAnswerValue = originalValueParts.join(',');
+        if (textParts.length === 0) { correctAnswerDisplay = JSON.stringify(ca); correctAnswerValue = correctAnswerDisplay; }
+    } else {
+        correctAnswerDisplay = ca?.toString() ?? 'N/A';
+        correctAnswerValue = correctAnswerDisplay;
+    }
+
 
     // Texto base del feedback
     if (isCorrect) {
         feedbackText = getTranslation('feedback_correct');
     } else {
-        feedbackText = getTranslation('feedback_incorrect', { correctAnswer: `<strong>${translatedCorrectAnswer}</strong>` });
+        feedbackText = getTranslation('feedback_incorrect', { correctAnswer: `<strong>${correctAnswerDisplay}</strong>` });
     }
     feedbackArea.className = isCorrect ? (isMasteryMode ? 'mastery' : 'correct') : 'incorrect';
 
@@ -495,66 +522,54 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     if (!isCorrect && questionData.explanation) {
         try {
             const expInfo = questionData.explanation;
-            let baseExplanationText = '';
-            if (expInfo.baseTextKey) {
-                baseExplanationText = getTranslation(expInfo.baseTextKey, expInfo.replacements || {});
+            // Priorizar texto directo si existe
+            if (expInfo.text) {
+                explanationHTML = `<p>${expInfo.text}</p>`;
             }
-
-            let generatedExplanationHTML = '';
-            // Manejar explicación simple (solo texto base)
-            if (expInfo.baseTextKey && !expInfo.generatorName && !expInfo.generators) {
-                explanationHTML = `<p>${baseExplanationText}</p>`;
+            // Si no, usar lógica anterior
+            else {
+                let baseExplanationText = '';
+                if (expInfo.baseTextKey) {
+                    baseExplanationText = getTranslation(expInfo.baseTextKey, expInfo.replacements || {});
+                }
+                let generatedExplanationHTML = '';
+                if (expInfo.generatorName && explanationGenerators[expInfo.generatorName]) {
+                    const generatorFunc = explanationGenerators[expInfo.generatorName];
+                    if (typeof generatorFunc === 'function') {
+                        generatedExplanationHTML = generatorFunc.apply(null, expInfo.args || []);
+                    } else { throw new Error(`Generator '${expInfo.generatorName}' no es una función.`); }
+                } else if (Array.isArray(expInfo.generators)) {
+                    const separator = expInfo.separator || '<br>';
+                    generatedExplanationHTML = expInfo.generators.map(genInfo => {
+                         if (genInfo.generatorName && explanationGenerators[genInfo.generatorName]) {
+                             const generatorFunc = explanationGenerators[genInfo.generatorName];
+                             if (typeof generatorFunc === 'function') { return generatorFunc.apply(null, genInfo.args || []); }
+                             else { throw new Error(`Generator '${genInfo.generatorName}' no es una función.`); }
+                         } return '';
+                    }).join(separator);
+                }
+                explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedExplanationHTML}` : generatedExplanationHTML;
+                if (!explanationHTML && baseExplanationText) {
+                    explanationHTML = `<p>${baseExplanationText}</p>`;
+                }
             }
-            // Manejar generador único
-            else if (expInfo.generatorName && explanationGenerators[expInfo.generatorName]) {
-                const generatorFunc = explanationGenerators[expInfo.generatorName];
-                if (typeof generatorFunc === 'function') {
-                    generatedExplanationHTML = generatorFunc.apply(null, expInfo.args || []);
-                    explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedExplanationHTML}` : generatedExplanationHTML;
-                } else { throw new Error(`Generator '${expInfo.generatorName}' no es una función.`); }
-            }
-            // Manejar múltiples generadores
-            else if (Array.isArray(expInfo.generators)) {
-                const separator = expInfo.separator || '<br>';
-                generatedExplanationHTML = expInfo.generators.map(genInfo => {
-                    if (genInfo.generatorName && explanationGenerators[genInfo.generatorName]) {
-                        const generatorFunc = explanationGenerators[genInfo.generatorName];
-                        if (typeof generatorFunc === 'function') { return generatorFunc.apply(null, genInfo.args || []); }
-                        else { throw new Error(`Generator '${genInfo.generatorName}' no es una función.`); }
-                    } return '';
-                }).join(separator);
-                 explanationHTML = baseExplanationText ? `<p>${baseExplanationText}</p>${generatedExplanationHTML}` : generatedExplanationHTML;
-            }
-             else {
-                 // Si solo hay baseTextKey, ya se asignó arriba
-                 if (!explanationHTML && baseExplanationText) {
-                     explanationHTML = `<p>${baseExplanationText}</p>`;
-                 }
-             }
-
         } catch (genError) {
             console.error("Error generando explicación HTML:", genError, questionData.explanation);
             explanationHTML = `<p>${getTranslation('explanation_portion_calc_error', { ip: 'N/A', mask: 'N/A' }) || 'Error generating explanation.'}</p>`;
         }
 
-        // Resaltar botón correcto
+        // Resaltar botón correcto usando correctAnswerValue
         try {
             if(optionsContainer) {
-                let correctOriginalValueStr = '';
-                // (Lógica para obtener correctOriginalValueStr - igual que antes)
-                if (typeof ca === 'string') { correctOriginalValueStr = ca; }
-                else if (typeof ca === 'object' && ca !== null) { let parts = []; if (ca.classKey) parts.push(ca.classKey); if (ca.typeKey) parts.push(ca.typeKey); if (ca.maskValue) parts.push(ca.maskValue); if (ca.portionKey) { parts.push(ca.portionKey); parts.push(ca.portionValue || 'None'); } correctOriginalValueStr = parts.join(','); }
-                else { correctOriginalValueStr = ca?.toString() ?? 'N/A'; }
-
                 Array.from(optionsContainer.children).forEach(button => {
-                    // Usar el valor original guardado en el atributo data-original-value
-                    if (button.getAttribute('data-original-value') === correctOriginalValueStr) {
+                    if (button.getAttribute('data-original-value') === correctAnswerValue) {
                         button.classList.add(correctButtonClass);
                     }
                 });
             }
         } catch (highlightError) { console.error("Error resaltando botón correcto:", highlightError); }
     }
+
 
     // Construir HTML final y mostrarlo
     let finalFeedbackHTML = `<div id="feedback-text-content"><span>${feedbackText}</span>`;
@@ -581,7 +596,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
 /**
  * Actualiza la pantalla de Game Over.
  * @param {number} score - Puntuación final de la ronda.
- * @param {object} currentUserData - Datos actualizados del usuario.
+ * @param {object} currentUserData - Datos actualizados del usuario (debe incluir .name).
  * @param {string} playedLevel - El nivel que se acaba de jugar.
  */
 export function displayGameOver(score, currentUserData, playedLevel) {
@@ -605,7 +620,6 @@ export function displayGameOver(score, currentUserData, playedLevel) {
     let extraMessage = '';
 
     // Cargar el estado *previo* al guardado en endGame para comparar desbloqueos
-    // Esto es importante para mostrar el mensaje de "Nivel Desbloqueado" correctamente
     const previousUserData = storage.getUserData(currentUserData.name);
 
     // Lógica de desbloqueo y mensajes
@@ -613,16 +627,13 @@ export function displayGameOver(score, currentUserData, playedLevel) {
          if (isPerfect) extraMessage = getTranslation('game_over_good_round_essential') || "Good start!";
     } else if (playedLevel === 'Entry') {
         if (isPerfect && currentUserData.entryPerfectStreak !== undefined) {
-            // Comprueba si Associate estaba bloqueado ANTES de esta ronda
             const wasAssociateLocked = !previousUserData.unlockedLevels.includes('Associate');
-            // Comprueba si Associate está desbloqueado AHORA
             const isAssociateUnlockedNow = currentUserData.unlockedLevels.includes('Associate');
-
-            if (isAssociateUnlockedNow && wasAssociateLocked) { // Si se acaba de desbloquear
+            if (isAssociateUnlockedNow && wasAssociateLocked) {
                 extraMessage = getTranslation('game_over_level_unlocked', { levelName: getTranslation('level_associate') });
-            } else if (!isAssociateUnlockedNow) { // Si aún no se ha desbloqueado
+            } else if (!isAssociateUnlockedNow) {
                 extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_entry'), streak: currentUserData.entryPerfectStreak });
-            } else { // Si ya estaba desbloqueado
+            } else {
                 extraMessage = getTranslation('game_over_good_round_entry');
             }
         }
@@ -630,17 +641,16 @@ export function displayGameOver(score, currentUserData, playedLevel) {
          if (meetsAssociateThreshold && currentUserData.associatePerfectStreak !== undefined) {
              const wasProLocked = !previousUserData.unlockedLevels.includes('Professional');
              const isProUnlockedNow = currentUserData.unlockedLevels.includes('Professional');
-
-             if (isProUnlockedNow && wasProLocked) { // Si se acaba de desbloquear
+             if (isProUnlockedNow && wasProLocked) {
                  extraMessage = getTranslation('game_over_level_unlocked_pro');
-             } else if (!isProUnlockedNow) { // Si aún no se ha desbloqueado
+             } else if (!isProUnlockedNow) {
                  extraMessage = getTranslation('game_over_streak_progress', { level: getTranslation('level_associate'), streak: currentUserData.associatePerfectStreak });
-             } else { // Si ya estaba desbloqueado
+             } else {
                  extraMessage = getTranslation('game_over_good_round_associate', { threshold: config.MIN_SCORE_PERCENT_FOR_STREAK });
              }
          }
     }
-    // Añadir lógica para Professional -> Expert si es necesario
+    // Añadir lógica para Professional -> Expert
 
     const finalMessage = extraMessage ? `${baseMessage} ${extraMessage}` : baseMessage;
     if(highScoreMessage) highScoreMessage.textContent = finalMessage;
