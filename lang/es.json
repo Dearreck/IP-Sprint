@@ -1,9 +1,16 @@
 {
   "app_title": "IP Sprint 🚀",
-  "welcome_title": "¡Bienvenidos!",
-  "username_label": "Ingresa tu nombre de usuario:",
-  "username_placeholder": "usuario",
-  "continue_button": "Continuar",
+
+  "welcome_title": "¡Bienvenidos!", // Mantener o eliminar si no se usa
+  "username_label": "Ingresa tu nombre de usuario:", // Mantener o eliminar
+  "username_placeholder": "usuario", // Mantener o eliminar
+  "continue_button": "Continuar", // Mantener o eliminar
+
+  "login_title": "¡Prepárate para el Sprint!",
+  "login_username_label": "Tu Alias de Red:",
+  "login_username_placeholder": "maestro_router",
+  "login_continue_button": "¡Entrar!"
+  
   "choose_level_title": "Elige un Nivel",
   "loading_levels": "Cargando niveles...",
   "game_over_title": "¡Juego Terminado!",
