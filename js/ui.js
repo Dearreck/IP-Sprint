@@ -4,7 +4,7 @@
 // Gestiona la manipulación del DOM y la presentación visual.
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // CORREGIDO: displayQuestion guarda clave i18n para opciones V/F.
-// CORREGIDO: displayFeedback ahora redibuja pregunta/opciones en refresco.
+// CORREGIDO: displayFeedback redibuja pregunta/opciones y aplica resaltado en refresco.
 // Versión sin console.log
 // ==================================================
 
@@ -26,15 +26,13 @@ export const userSetupSection = document.getElementById('user-setup');
 export const levelSelectSection = document.getElementById('level-select');
 export const gameAreaSection = document.getElementById('game-area');
 export const gameOverSection = document.getElementById('game-over');
-export const unlockProgressSection = document.getElementById('unlock-progress-section'); // Se mantiene por si acaso, pero oculto
+export const unlockProgressSection = document.getElementById('unlock-progress-section');
 export const highScoresSection = document.getElementById('high-scores-section');
 export const usernameForm = document.getElementById('username-form');
 export const usernameInput = document.getElementById('username');
-// Selectores para Stepper y Tarjeta
 export const levelStepperContainer = document.getElementById('level-stepper-container');
 export const levelCardArea = document.getElementById('level-card-area');
 export const levelCardContent = document.getElementById('level-card-content');
-// Selectores existentes
 export const unlockProgressDiv = document.getElementById('unlock-progress');
 export const progressStarsSpan = document.getElementById('progress-stars');
 export const unlockProgressTitle = unlockProgressDiv ? unlockProgressDiv.querySelector('h4') : null;
@@ -42,40 +40,30 @@ export const usernameDisplay = document.getElementById('username-display');
 export const levelDisplay = document.getElementById('level-display');
 export const scoreDisplay = document.getElementById('score-display');
 export const roundProgressStarsDiv = document.getElementById('round-progress-stars');
-export const questionText = document.getElementById('question-text'); // Elemento para el texto de la pregunta
-export const optionsContainer = document.getElementById('options-container'); // Contenedor de botones de opción
-export const feedbackArea = document.getElementById('feedback-area'); // Área para mostrar feedback
+export const questionText = document.getElementById('question-text');
+export const optionsContainer = document.getElementById('options-container');
+export const feedbackArea = document.getElementById('feedback-area');
 export const timerDisplayDiv = document.getElementById('timer-display');
 export const timeLeftSpan = document.getElementById('time-left');
 export const restartRoundButton = document.getElementById('restart-round-button');
 export const exitToMenuButton = document.getElementById('exit-to-menu-button');
 export const finalScoreDisplay = document.getElementById('final-score');
 export const highScoreMessage = document.getElementById('high-score-message');
-export const playAgainButton = document.getElementById('play-again-button'); // Referencia al botón
+export const playAgainButton = document.getElementById('play-again-button');
 export const scoreList = document.getElementById('score-list');
 
 // Mapa para llamar a los generadores de explicaciones desde utils.js
 const explanationGenerators = {
-    generateClassRangeTableHTML,
-    generatePrivateRangeTableHTML,
-    generatePortionExplanationHTML,
-    generateSpecialAddressExplanationHTML,
-    generateWildcardExplanationHTML,
-    generateSubnettingExplanationHTML,
-    generateIpTypeExplanationHTML,
-    generateBitsForSubnetsExplanationHTML,
-    generateBitsForHostsExplanationHTML,
-    generateMaskForHostsExplanationHTML,
-    generateNumSubnetsExplanationHTML
+    generateClassRangeTableHTML, generatePrivateRangeTableHTML, generatePortionExplanationHTML,
+    generateSpecialAddressExplanationHTML, generateWildcardExplanationHTML, generateSubnettingExplanationHTML,
+    generateIpTypeExplanationHTML, generateBitsForSubnetsExplanationHTML, generateBitsForHostsExplanationHTML,
+    generateMaskForHostsExplanationHTML, generateNumSubnetsExplanationHTML
 };
 
 // Iconos para cada nivel
 const levelIcons = {
-    'Essential': 'fa-book-open',
-    'Entry': 'fa-star',
-    'Associate': 'fa-graduation-cap',
-    'Professional': 'fa-briefcase',
-    'Expert': 'fa-trophy'
+    'Essential': 'fa-book-open', 'Entry': 'fa-star', 'Associate': 'fa-graduation-cap',
+    'Professional': 'fa-briefcase', 'Expert': 'fa-trophy'
 };
 
 // --- Funciones de Manipulación de la UI ---
@@ -392,7 +380,7 @@ export function displayQuestion(questionData, answerClickHandler) {
             } else { buttonText = 'Invalid Option'; originalValue = 'invalid'; }
 
             button.textContent = buttonText;
-            button.setAttribute('data-original-value', originalValue);
+            button.setAttribute('data-original-value', originalValue); // Guardar valor original
             if (typeof answerClickHandler === 'function') {
                 button.addEventListener('click', answerClickHandler);
             } else {
@@ -419,6 +407,7 @@ export function displayQuestion(questionData, answerClickHandler) {
  * @param {boolean} [isRefresh=false] - Indica si esta llamada es para refrescar la UI.
  */
 export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStepHandler, selectedValueOriginal = null, isRefresh = false) {
+    // Chequeos iniciales
     if (!feedbackArea || !questionData || questionData.correctAnswer === undefined || questionData.correctAnswerDisplay === undefined) {
          console.error("Error en displayFeedback: Faltan elementos o datos (incl. correctAnswerDisplay)."); // Mantener error crítico
          return;
@@ -473,7 +462,7 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
                     // Aplicar resaltado
                     if (originalValue === correctAnswerValue) {
                         button.classList.add(correctButtonClass);
-                    } else if (!isCorrect && originalValue === selectedValueOriginal) {
+                    } else if (!isCorrect && originalValue === selectedValueOriginal) { // Usar selectedValueOriginal
                         button.classList.add('incorrect');
                     }
                     optionsContainer.appendChild(button);
@@ -499,8 +488,9 @@ export function displayFeedback(isCorrect, isMasteryMode, questionData, nextStep
     if (!isCorrect && questionData.explanation) {
         try {
             const expInfo = questionData.explanation;
-            if (expInfo.text) { explanationHTML = `<p>${expInfo.text}</p>`; }
-            else {
+            if (expInfo.text) { // Priorizar texto directo
+                explanationHTML = `<p>${expInfo.text}</p>`;
+            } else { // Lógica anterior para claves/generadores
                 let baseExplanationText = '';
                 if (expInfo.baseTextKey) { baseExplanationText = getTranslation(expInfo.baseTextKey, expInfo.replacements || {}); }
                 let generatedExplanationHTML = '';
@@ -584,25 +574,21 @@ export function displayGameOver(score, currentUserData, playedLevel, playAgainHa
     if (playAgainButton) {
         playAgainButton.textContent = getTranslation('play_again_button') || 'Choose Level';
         const newPlayAgainButton = playAgainButton.cloneNode(true); // Clonar para limpiar listeners
-        // Verificar que el padre existe antes de reemplazar
-        if (playAgainButton.parentNode) {
+        if (playAgainButton.parentNode) { // Verificar padre
             playAgainButton.parentNode.replaceChild(newPlayAgainButton, playAgainButton);
         } else {
              console.error("[UI] El botón Play Again no tiene padre al intentar reemplazarlo."); // Mantener error crítico
-             return; // Salir si no se puede reemplazar
+             return;
         }
 
-
-        if (newPlayAgainButton) { // El clon siempre debería existir si la línea anterior no falló
+        if (newPlayAgainButton) {
             if (typeof playAgainHandler === 'function') {
                 newPlayAgainButton.addEventListener('click', playAgainHandler);
             } else {
                 console.error("[UI] playAgainHandler no es una función en displayGameOver."); // Mantener error crítico
                 newPlayAgainButton.disabled = true;
             }
-        }
-        // El else aquí es redundante si el replaceChild funcionó
-        // else { console.error("[UI] No se encontró #play-again-button después de clonarlo."); }
+        } // El else aquí es redundante si el replaceChild funcionó
     } else {
         console.error("[UI] La referencia al elemento #play-again-button es nula."); // Mantener error crítico
     }
