@@ -100,7 +100,31 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
 #username-form label { font-weight: bold; color: var(--secondary-text-color); font-size: 0.95em; }
 #username-form input[type="text"] { padding: 12px 15px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 100%; box-sizing: border-box; font-family: var(--font-body); text-align: center; font-size: 1.1em; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
 #username-form input[type="text"]:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); outline: none; }
-.login-submit-button { padding: 14px 30px; font-size: 1.1em; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2); }
+.login-submit-button {
+    padding: 14px 30px; /* Consistente con start-level-button */
+    font-size: 1.1em; /* Consistente */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    background-color: var(--primary-color); /* Color primario */
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600; /* Semi-bold */
+    box-shadow: var(--box-shadow);
+    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+.login-submit-button:hover {
+    background-color: var(--primary-dark-color);
+    box-shadow: var(--box-shadow-hover);
+}
+.login-submit-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 .login-submit-button i { transition: transform 0.2s ease-in-out; }
 .login-submit-button:hover i { transform: translateX(4px); }
 
@@ -134,7 +158,28 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
 #level-card-content .level-score strong { color: var(--text-color); font-size: 1.1em; }
 #level-card-content .level-requirement { margin-bottom: 20px; color: var(--warning-text-color); background-color: var(--warning-bg-color); border: 1px solid var(--warning-border-color); font-style: italic; font-size: 0.9em; padding: 8px 12px; border-radius: var(--border-radius); display: inline-block; max-width: 90%; }
 #level-card-content .level-requirement i { margin-right: 5px; color: var(--warning-text-color); }
-#level-card-content .start-level-button { padding: 15px 30px; font-size: 1.1em; margin-top: 10px; }
+.start-level-button { /* Estilo base para botones de acción principales */
+    padding: 14px 30px; /* Consistente con login */
+    font-size: 1.1em; /* Consistente */
+    margin-top: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600; /* Semi-bold */
+    box-shadow: var(--box-shadow);
+    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+.start-level-button:hover {
+    background-color: var(--primary-dark-color);
+    box-shadow: var(--box-shadow-hover);
+}
+.start-level-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
 
 /* --- Estilos Área de Juego --- */
@@ -271,11 +316,36 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 
 /* --- Game Over --- */
 #game-over { text-align: center; }
-#game-over h2 { color: var(--error-color); }
+#game-over h2 { color: var(--error-color); } /* Título Game Over en rojo */
 #final-score { font-size: 1.8em; color: var(--primary-dark-color); }
-#high-score-message { font-style: italic; color: var(--accent-teal-color); min-height: 1.2em; }
-#play-again-button { margin-top: 20px; background-color: var(--success-color); }
-#play-again-button:hover { background-color: var(--success-dark-color); }
+#high-score-message { font-style: italic; color: var(--accent-teal-color); min-height: 1.2em; margin-top: 10px; margin-bottom: 20px; } /* Más espacio para mensaje */
+
+/* === ESTILO CORREGIDO PARA #play-again-button === */
+#play-again-button {
+    /* Aplicar estilos base de botones de acción */
+    padding: 14px 30px; /* Consistente con login/start */
+    font-size: 1.1em; /* Consistente */
+    margin-top: 20px; /* Espacio arriba */
+    background-color: var(--success-color); /* Color verde éxito */
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600; /* Semi-bold */
+    box-shadow: var(--box-shadow);
+    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    display: inline-block; /* Asegurar que se comporte como bloque para márgenes */
+}
+#play-again-button:hover {
+    background-color: var(--success-dark-color); /* Verde oscuro al pasar el ratón */
+    box-shadow: var(--box-shadow-hover);
+}
+#play-again-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+/* === FIN ESTILO CORREGIDO === */
 
 /* --- Progreso Desbloqueo (OBSOLETO VISUALMENTE) --- */
 #unlock-progress-section { display: none !important; }
@@ -316,7 +386,11 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     .stepper-item { min-width: 55px; }
     #level-card-area { padding: 15px; min-height: 120px;}
     #level-card-content h3 { font-size: 1.3em; }
-    #level-card-content .start-level-button { padding: 12px 25px; font-size: 1em; }
+    /* Ajustar botones de acción principales para móviles */
+    .login-submit-button, .start-level-button, #play-again-button {
+        padding: 12px 25px;
+        font-size: 1em;
+    }
     .game-controls { text-align: center; margin-bottom: 15px; }
     .game-controls button { margin: 5px 5px; }
     .score-username { font-size: 1.1em; }
@@ -329,6 +403,5 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     header { padding-bottom: 5px; }
     .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
-    /* .stepper-label { display: none; } */
+    /* .stepper-label { display: none; } */ /* Considerar ocultar etiquetas en pantallas muy pequeñas si se solapan */
 }
-
