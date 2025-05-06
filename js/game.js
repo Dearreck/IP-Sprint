@@ -7,6 +7,7 @@
 // CORREGIDO: Añadir listeners de botones de juego en startGame.
 // CORREGIDO: Lógica de refresco durante feedback.
 // CORREGIDO: Lógica de desbloqueo en endGame para evitar TypeError.
+// CORREGIDO: Llamada a ui.displayGameOver en endGame para incluir nombre de usuario.
 // ==================================================
 
 // --- Importaciones de Módulos ---
@@ -20,7 +21,7 @@ import { getCurrentLanguage, getTranslation } from './i18n.js'; // Funciones de 
 
 // --- Variables de Estado del Juego ---
 let currentUsername = '';
-let currentUserData = {};
+let currentUserData = {}; // Contendrá { unlockedLevels: [...], etc } SIN el nombre
 let currentScore = 0;
 let currentLevel = ''; // Nivel actual que se está JUGANDO
 let currentGameMode = 'standard';
@@ -65,8 +66,9 @@ function getTimerDurationForCurrentLevel() {
  * @param {string} username - Nombre de usuario ingresado.
  */
 export function handleUserLogin(username) {
-    currentUsername = username;
+    currentUsername = username; // Guardar nombre de usuario globalmente
     console.log(`[Game] handleUserLogin para: ${username}`); // Log
+    let userDataFromStorage; // Variable local para los datos cargados
     try {
         const allUserData = storage.getAllUserData();
         // Definir datos por defecto con Essential siempre desbloqueado
@@ -74,37 +76,38 @@ export function handleUserLogin(username) {
 
         if (allUserData[username]) {
             // Usar los datos existentes, asegurando que los defaults estén presentes si faltan
-            currentUserData = { ...defaultData, ...allUserData[username] };
+            userDataFromStorage = { ...defaultData, ...allUserData[username] };
 
             // Asegurar que unlockedLevels sea un array y contenga Essential
-            if (!currentUserData.unlockedLevels || !Array.isArray(currentUserData.unlockedLevels)) {
+            if (!userDataFromStorage.unlockedLevels || !Array.isArray(userDataFromStorage.unlockedLevels)) {
                  console.warn("[Game] currentUserData.unlockedLevels inválido en datos guardados, reiniciando a ['Essential']");
-                 currentUserData.unlockedLevels = ['Essential'];
-            } else if (!currentUserData.unlockedLevels.includes('Essential')) {
+                 userDataFromStorage.unlockedLevels = ['Essential'];
+            } else if (!userDataFromStorage.unlockedLevels.includes('Essential')) {
                  console.log(`[Game] Usuario existente sin Essential. Añadiendo Essential a unlockedLevels.`);
                  // Añadir Essential si falta, preferiblemente al principio
-                 if (!currentUserData.unlockedLevels.includes('Essential')) {
-                     currentUserData.unlockedLevels.unshift('Essential');
+                 if (!userDataFromStorage.unlockedLevels.includes('Essential')) {
+                     userDataFromStorage.unlockedLevels.unshift('Essential');
                  }
             }
         } else {
             console.log(`[Game] Usuario nuevo. Usando datos por defecto.`);
-            currentUserData = defaultData; // Usar los defaults definidos arriba
+            userDataFromStorage = defaultData; // Usar los defaults definidos arriba
         }
 
-        console.log(`[Game] Niveles desbloqueados ANTES de guardar:`, JSON.stringify(currentUserData.unlockedLevels));
+        console.log(`[Game] Niveles desbloqueados ANTES de guardar:`, JSON.stringify(userDataFromStorage.unlockedLevels));
 
         // Guardar los datos (posiblemente actualizados o por defecto)
-        storage.saveUserData(username, currentUserData);
+        storage.saveUserData(username, userDataFromStorage);
 
-        // Recargar explícitamente para asegurar que usamos lo guardado
-        currentUserData = storage.getUserData(currentUsername);
-        console.log(`[Game] Niveles desbloqueados cargados y a pasar a UI:`, JSON.stringify(currentUserData.unlockedLevels));
+        // **Importante:** Asignar los datos cargados/actualizados a la variable global currentUserData
+        currentUserData = userDataFromStorage;
+        console.log(`[Game] Niveles desbloqueados cargados y asignados a currentUserData:`, JSON.stringify(currentUserData.unlockedLevels));
 
 
         ui.updatePlayerInfo(currentUsername, '', ''); // Limpiar info de nivel/puntos en UI
 
         // Pasar los niveles desbloqueados, datos, nombre y handler a la UI
+        // La función displayLevelSelection SÍ espera el objeto de datos SIN el nombre.
         ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, currentUsername, selectLevelAndMode);
 
         const highScores = storage.loadHighScores();
@@ -155,6 +158,7 @@ export function startGame() {
     currentQuestionData = null;
     originalQuestionData = null;
 
+    // Actualizar la UI con la info del jugador para esta ronda
     ui.updatePlayerInfo(currentUsername, currentLevel, currentScore);
     ui.showSection(ui.gameAreaSection); // Mostrar área de juego ANTES de buscar botones
     ui.updateRoundProgressUI(roundResults, lastMasteryMode);
@@ -165,7 +169,9 @@ export function startGame() {
         ui.showTimerDisplay(true);
         timeLeft = initialDuration; // Establecer tiempo inicial
         ui.updateTimerDisplay(timeLeft); // Mostrar tiempo inicial
-        if (ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time');
+        // Buscar el div del timer aquí para asegurar que existe antes de manipular clases
+        const timerDiv = document.getElementById('timer-display');
+        if (timerDiv) timerDiv.classList.remove('low-time');
     } else {
         ui.showTimerDisplay(false); // Ocultar si no hay timer para este nivel/modo
     }
@@ -209,9 +215,13 @@ async function loadNextQuestion() {
     currentQuestionData = null; // Limpiar datos de pregunta anterior
 
     // Limpiar UI de pregunta/feedback anterior
-    if (ui.feedbackArea) { ui.feedbackArea.innerHTML = ''; ui.feedbackArea.className = ''; }
-    if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled');
-    if (ui.questionText) ui.questionText.innerHTML = getTranslation('loading_question'); // Mostrar "Cargando..."
+    const feedbackArea = document.getElementById('feedback-area');
+    const optionsContainer = document.getElementById('options-container');
+    const questionText = document.getElementById('question-text');
+
+    if (feedbackArea) { feedbackArea.innerHTML = ''; feedbackArea.className = ''; }
+    if (optionsContainer) optionsContainer.classList.remove('options-disabled');
+    if (questionText) questionText.innerHTML = getTranslation('loading_question'); // Mostrar "Cargando..."
 
     // Detener y resetear timer si existía
     clearInterval(questionTimerInterval);
@@ -220,7 +230,8 @@ async function loadNextQuestion() {
         ui.showTimerDisplay(true);
         timeLeft = duration;
         ui.updateTimerDisplay(timeLeft);
-        if (ui.timerDisplayDiv) ui.timerDisplayDiv.classList.remove('low-time');
+        const timerDiv = document.getElementById('timer-display');
+        if (timerDiv) timerDiv.classList.remove('low-time');
         questionTimerInterval = setInterval(updateTimer, 1000); // Iniciar timer para la nueva pregunta
     } else {
         ui.showTimerDisplay(false); // Asegurarse que esté oculto si no aplica
@@ -252,8 +263,8 @@ async function loadNextQuestion() {
     } catch (error) {
         console.error("[Game] Error en loadNextQuestion:", error);
         clearInterval(questionTimerInterval); // Detener timer si falla la carga
-        if (ui.questionText) ui.questionText.innerHTML = error.message || getTranslation('error_loading_question_msg', { message: 'Unknown error' });
-        if (ui.optionsContainer) ui.optionsContainer.innerHTML = '';
+        if (questionText) questionText.innerHTML = error.message || getTranslation('error_loading_question_msg', { message: 'Unknown error' });
+        if (optionsContainer) optionsContainer.innerHTML = '';
         // Considerar ir a endGame o mostrar un mensaje más persistente
         setTimeout(endGame, 2500); // Ir a game over después de un delay
     }
@@ -264,12 +275,16 @@ async function loadNextQuestion() {
  */
  function updateTimer() {
     timeLeft--;
-    ui.updateTimerDisplay(timeLeft);
+    ui.updateTimerDisplay(timeLeft); // Actualizar la UI del temporizador
+
+    const timerDiv = document.getElementById('timer-display'); // Buscar elemento aquí
 
     if (timeLeft <= 0) {
         console.log("[Game] Tiempo agotado!");
         clearInterval(questionTimerInterval);
-        if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled');
+
+        const optionsContainer = document.getElementById('options-container');
+        if (optionsContainer) optionsContainer.classList.add('options-disabled');
 
         // Marcar como incorrecto si se agota el tiempo
         roundResults.push(false);
@@ -282,20 +297,32 @@ async function loadNextQuestion() {
         lastSelectedOriginalValue = null; // No hubo selección
 
         // Preparar datos para feedback, asegurando que correctAnswerDisplay exista
-        const timeoutFeedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
-        if (timeoutFeedbackData && !timeoutFeedbackData.correctAnswerDisplay && timeoutFeedbackData.correctAnswer) {
-             const ca = timeoutFeedbackData.correctAnswer;
-             const translated = getTranslation(ca); // Intentar traducir si es una clave
-             timeoutFeedbackData.correctAnswerDisplay = (translated && translated !== ca) ? translated : ca; // Usar traducción o el valor mismo
+        // Usar una copia para no modificar currentQuestionData directamente aquí
+        const timeoutFeedbackData = currentQuestionData ? { ...currentQuestionData } : null;
+        if (timeoutFeedbackData) {
+             timeoutFeedbackData.questionsAnswered = questionsAnswered;
+             timeoutFeedbackData.totalQuestions = config.TOTAL_QUESTIONS_PER_GAME;
+             if (!timeoutFeedbackData.correctAnswerDisplay && timeoutFeedbackData.correctAnswer) {
+                  const ca = timeoutFeedbackData.correctAnswer;
+                  // Mejor manejo para objetos de respuesta correcta
+                  if (typeof ca === 'object' && ca !== null) {
+                       timeoutFeedbackData.correctAnswerDisplay = `${getTranslation(ca.classKey || '')} / ${getTranslation(ca.typeKey || ca.portionKey || '')} ${ca.maskValue || ca.portionValue || ''}`.trim();
+                  } else {
+                       const translated = getTranslation(ca); // Intentar traducir si es una clave
+                       timeoutFeedbackData.correctAnswerDisplay = (translated && translated !== ca) ? translated : ca; // Usar traducción o el valor mismo
+                  }
+             }
         }
+
 
         // Mostrar feedback de Timeout
         // Pasar null como último argumento (no hubo selección incorrecta) y isRefresh=false
         ui.displayFeedback(false, isMasteryStyle, timeoutFeedbackData || {}, proceedToNextStep, null, false);
 
         // Modificar texto para indicar Timeout explícitamente
-        if (ui.feedbackArea && timeoutFeedbackData) {
-            const feedbackContent = ui.feedbackArea.querySelector('#feedback-text-content span:first-child');
+        const feedbackArea = document.getElementById('feedback-area');
+        if (feedbackArea && timeoutFeedbackData) {
+            const feedbackContent = feedbackArea.querySelector('#feedback-text-content span:first-child');
             const correctAnswerText = timeoutFeedbackData.correctAnswerDisplay || 'N/A';
             const timeoutMsg = getTranslation('feedback_timeout', { correctAnswer: `<strong>${correctAnswerText}</strong>` });
             if (feedbackContent) {
@@ -304,12 +331,15 @@ async function loadNextQuestion() {
                 // Si no se encontró el span (poco probable), añadirlo al principio
                 const timeoutSpan = document.createElement('span');
                 timeoutSpan.innerHTML = timeoutMsg;
-                ui.feedbackArea.prepend(timeoutSpan);
+                feedbackArea.prepend(timeoutSpan);
             }
-            ui.feedbackArea.className = 'incorrect'; // Asegurar estilo de incorrecto
+            feedbackArea.className = 'incorrect'; // Asegurar estilo de incorrecto
         } else if (!timeoutFeedbackData) {
              console.error("[Game] No hay currentQuestionData al agotarse el tiempo.");
         }
+    } else {
+         // Actualizar clase 'low-time' si el tiempo es bajo pero > 0
+         if(timerDiv) timerDiv.classList.toggle('low-time', timeLeft <= 5);
     }
 }
 
@@ -341,26 +371,34 @@ async function loadNextQuestion() {
     }
 
     const selectedButton = event.target;
-    // Obtener el valor original (clave i18n para V/F, texto para MC, objeto para complejas)
+    // Obtener el valor original (clave i18n para V/F, texto para MC, string JSON u otro identificador para objetos)
     const selectedOriginalValue = selectedButton.getAttribute('data-original-value');
-    if (ui.optionsContainer) ui.optionsContainer.classList.add('options-disabled'); // Deshabilitar opciones
+    const optionsContainer = document.getElementById('options-container');
+    if (optionsContainer) optionsContainer.classList.add('options-disabled'); // Deshabilitar opciones
 
     // --- Comparación ---
     let isCorrect = false;
     // Comparar el valor original del botón clickeado con el valor correcto almacenado
-    // Necesita manejar casos donde correctAnswer es un objeto (como en Associate/Professional)
     if (typeof currentQuestionData.correctAnswer === 'object' && currentQuestionData.correctAnswer !== null) {
-        // Si la respuesta correcta es un objeto, necesitamos una forma de comparar
-        // Asumimos que el botón guarda su valor como string JSON o tenemos que parsear/comparar propiedades
-        // Por ahora, una comparación simple (puede necesitar ajuste):
+        // Si la respuesta correcta es un objeto complejo, necesitamos una forma robusta de comparar.
+        // Idealmente, 'selectedOriginalValue' debería ser un identificador único o un string JSON
+        // que se pueda comparar con el objeto 'correctAnswer'.
+        // EJEMPLO: Si 'selectedOriginalValue' es un string JSON:
         try {
-             // Intenta comparar la representación string (esto es FRÁGIL)
-             // O mejor, si el valor guardado en el botón es una clave o ID único:
-             // isCorrect = (selectedOriginalValue === currentQuestionData.correctAnswer.uniqueKey);
-             // Si no hay clave única, esta comparación es difícil. Se simplifica a string por ahora:
-             console.warn("[Game] Comparando respuesta correcta como objeto. Lógica actual puede ser insuficiente.");
-             isCorrect = (JSON.stringify(selectedOriginalValue) === JSON.stringify(currentQuestionData.correctAnswer)); // Ejemplo frágil
-        } catch (e) { isCorrect = false; }
+            // Parsear el valor del botón y comparar propiedades clave o el objeto entero
+            // const selectedObject = JSON.parse(selectedOriginalValue);
+            // isCorrect = (selectedObject.classKey === currentQuestionData.correctAnswer.classKey &&
+            //              selectedObject.portionValue === currentQuestionData.correctAnswer.portionValue);
+            // Por simplicidad ahora, asumimos que la comparación directa de strings podría funcionar
+            // para casos donde el objeto se representa consistentemente como string.
+            // O si guardamos una clave única: isCorrect = (selectedOriginalValue === currentQuestionData.correctAnswer.id);
+            // Vamos a mantener la comparación simple por ahora, REVISAR SI DA PROBLEMAS con objetos
+             console.warn("[Game] Comparando respuesta correcta como objeto. La comparación directa puede fallar.");
+             isCorrect = (selectedOriginalValue === JSON.stringify(currentQuestionData.correctAnswer)); // Comparación simple, propensa a errores
+        } catch (e) {
+             console.error("Error comparando respuesta objeto:", e);
+             isCorrect = false;
+        }
     } else {
         // Comparación normal para strings (claves V/F, texto MC, valores directos)
         isCorrect = (selectedOriginalValue === currentQuestionData.correctAnswer);
@@ -383,13 +421,17 @@ async function loadNextQuestion() {
     const feedbackData = { ...currentQuestionData, questionsAnswered: questionsAnswered, totalQuestions: config.TOTAL_QUESTIONS_PER_GAME };
     // Asegurar correctAnswerDisplay existe para mostrar en feedback si es incorrecto
     if (!feedbackData.correctAnswerDisplay && feedbackData.correctAnswer) {
-         if (typeof feedbackData.correctAnswer === 'object') {
+         if (typeof feedbackData.correctAnswer === 'object' && feedbackData.correctAnswer !== null) {
               // Crear un display string para respuestas correctas complejas (ej. Clase+Tipo)
-              feedbackData.correctAnswerDisplay = `${getTranslation(feedbackData.correctAnswer.classKey || '')} / ${getTranslation(feedbackData.correctAnswer.typeKey || feedbackData.correctAnswer.portionKey || '')} ${feedbackData.correctAnswer.maskValue || feedbackData.correctAnswer.portionValue || ''}`.trim();
+              // Usar las claves almacenadas en el objeto correcto para buscar traducciones
+              const classText = getTranslation(feedbackData.correctAnswer.classKey || '');
+              const typeText = getTranslation(feedbackData.correctAnswer.typeKey || feedbackData.correctAnswer.portionKey || '');
+              const valueText = feedbackData.correctAnswer.maskValue || feedbackData.correctAnswer.portionValue || '';
+              feedbackData.correctAnswerDisplay = `${classText} / ${typeText} ${valueText}`.replace(' /  ', '').trim(); // Construir y limpiar
          } else {
               const ca = feedbackData.correctAnswer;
-              const translated = getTranslation(ca);
-              feedbackData.correctAnswerDisplay = (translated && translated !== ca) ? translated : ca;
+              const translated = getTranslation(ca); // Intentar traducir clave V/F
+              feedbackData.correctAnswerDisplay = (translated && translated !== ca) ? translated : ca; // Usar traducción o texto original
          }
     }
 
@@ -405,120 +447,126 @@ async function loadNextQuestion() {
     } else {
         // Mostrar feedback negativo, pasando el valor original incorrecto seleccionado
         ui.displayFeedback(isCorrect, isMasteryStyle, feedbackData, proceedToNextStep, lastSelectedOriginalValue, false);
-        if (selectedButton) selectedButton.classList.add('incorrect'); // Resaltar botón incorrecto (ya hecho en displayFeedback)
-        // No proceder automáticamente, esperar clic en "Siguiente"
+        // ui.displayFeedback ya se encarga de resaltar el botón incorrecto y el correcto.
     }
     // Actualizar estrellas de progreso de la ronda
     ui.updateRoundProgressUI(roundResults, isMasteryStyle);
 }
 
+
 /**
  * Finaliza la ronda, actualiza datos y muestra pantalla Game Over.
- * CORREGIDO: Lógica de desbloqueo para evitar error con `unlockedLevels`.
+ * CORREGIDO: Lógica de desbloqueo y llamada a ui.displayGameOver.
  */
  function endGame() {
-    // **Añadido log para verificar nivel al inicio de endGame**
+    // **Log para verificar nivel al inicio de endGame**
     console.log(`[Game] Finalizando juego. Nivel completado: ${currentLevel}, Score: ${currentScore}`);
-    clearInterval(questionTimerInterval);
-    isFeedbackActive = false;
+    clearInterval(questionTimerInterval); // Detener cualquier timer activo
+    isFeedbackActive = false; // Marcar que ya no estamos en feedback
+    // Resetear estados relevantes para el feedback/refresco
     lastAnswerCorrect = null;
     lastMasteryMode = false;
     lastSelectedOriginalValue = null;
-    originalQuestionData = null; // Limpiar datos originales
+    originalQuestionData = null; // Limpiar datos de pregunta original
+    currentQuestionData = null; // Limpiar datos de pregunta formateada
 
     const maxScore = config.PERFECT_SCORE;
     const scorePercentage = maxScore > 0 ? Math.round((currentScore / maxScore) * 100) : 0;
     const isPerfect = currentScore === maxScore;
     const meetsAssociateThreshold = scorePercentage >= config.MIN_SCORE_PERCENT_FOR_STREAK;
 
+    // Variable local para los datos del usuario en esta función
+    let finalUserData;
+
     try {
         // Cargar datos frescos del usuario ANTES de modificarlos
-        currentUserData = storage.getUserData(currentUsername);
+        finalUserData = storage.getUserData(currentUsername); // Carga { unlockedLevels: [...], ... }
 
-        // **CORRECCIÓN: Asegurar que unlockedLevels es un array antes de intentar usar push**
-        // La carga desde storage.getUserData ya debería asegurar esto con los defaults,
-        // pero una comprobación extra añade robustez.
-        if (!Array.isArray(currentUserData.unlockedLevels)) {
-            console.error("[Game] CRITICAL: currentUserData.unlockedLevels NO es un array en endGame! Forzando a ['Essential']. Datos:", currentUserData);
-            currentUserData.unlockedLevels = ['Essential']; // Reset de seguridad
+        // Asegurar que unlockedLevels es un array antes de cualquier operación
+        if (!Array.isArray(finalUserData.unlockedLevels)) {
+            console.error("[Game] CRITICAL: finalUserData.unlockedLevels NO es un array en endGame! Forzando a ['Essential']. Datos:", finalUserData);
+            finalUserData.unlockedLevels = ['Essential']; // Reset de seguridad
         }
 
-        console.log(`[Game] Datos cargados en endGame. Niveles desbloqueados:`, JSON.stringify(currentUserData.unlockedLevels));
+        console.log(`[Game] Datos cargados en endGame. Niveles desbloqueados actuales:`, JSON.stringify(finalUserData.unlockedLevels));
 
         // --- Lógica de Rachas y Desbloqueo (CORREGIDA Y VERIFICADA) ---
-        // Solo intentar desbloquear el *siguiente* nivel basado en el *actual* completado.
+        let levelJustUnlocked = null; // Para posible mensaje futuro
         if (currentLevel === 'Essential') {
-             // Desbloquear Entry automáticamente al completar Essential (si no está ya)
-             if (!currentUserData.unlockedLevels.includes('Entry')) {
+             if (!finalUserData.unlockedLevels.includes('Entry')) {
                  console.log("[Game] Desbloqueando Entry tras completar Essential!");
-                 currentUserData.unlockedLevels.push('Entry');
+                 finalUserData.unlockedLevels.push('Entry');
+                 levelJustUnlocked = 'Entry';
              }
-             // No hay racha para Essential
-             currentUserData.entryPerfectStreak = 0;
-             currentUserData.associatePerfectStreak = 0; // Resetear otras rachas por si acaso
+             finalUserData.entryPerfectStreak = 0;
+             finalUserData.associatePerfectStreak = 0;
 
         } else if (currentLevel === 'Entry') {
              if (isPerfect) {
-                 currentUserData.entryPerfectStreak = (currentUserData.entryPerfectStreak || 0) + 1;
-                 console.log(`[Game] Racha Entry Perfect: ${currentUserData.entryPerfectStreak}/3`);
-                 // Desbloquear Associate si se alcanza la racha y no está desbloqueado
-                 if (currentUserData.entryPerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Associate')) {
+                 finalUserData.entryPerfectStreak = (finalUserData.entryPerfectStreak || 0) + 1;
+                 console.log(`[Game] Racha Entry Perfect: ${finalUserData.entryPerfectStreak}/3`);
+                 if (finalUserData.entryPerfectStreak >= 3 && !finalUserData.unlockedLevels.includes('Associate')) {
                      console.log("[Game] Desbloqueando Associate!");
-                     currentUserData.unlockedLevels.push('Associate');
+                     finalUserData.unlockedLevels.push('Associate');
+                     levelJustUnlocked = 'Associate';
                  }
-             } else {
-                 currentUserData.entryPerfectStreak = 0; // Resetear racha si no fue perfecta
-             }
-             currentUserData.associatePerfectStreak = 0; // Resetear racha Associate
+             } else { finalUserData.entryPerfectStreak = 0; }
+             finalUserData.associatePerfectStreak = 0;
 
         } else if (currentLevel === 'Associate') {
-              if (meetsAssociateThreshold) { // Usa 90% para racha Associate
-                 currentUserData.associatePerfectStreak = (currentUserData.associatePerfectStreak || 0) + 1;
-                 console.log(`[Game] Racha Associate 90%+: ${currentUserData.associatePerfectStreak}/3`);
-                 // Desbloquear Professional si se alcanza la racha y no está desbloqueado
-                 if (currentUserData.associatePerfectStreak >= 3 && !currentUserData.unlockedLevels.includes('Professional')) {
+              if (meetsAssociateThreshold) {
+                 finalUserData.associatePerfectStreak = (finalUserData.associatePerfectStreak || 0) + 1;
+                 console.log(`[Game] Racha Associate 90%+: ${finalUserData.associatePerfectStreak}/3`);
+                 if (finalUserData.associatePerfectStreak >= 3 && !finalUserData.unlockedLevels.includes('Professional')) {
                      console.log("[Game] Desbloqueando Professional!");
-                     // **Verificación ANTES del push problemático**
-                     if (Array.isArray(currentUserData.unlockedLevels)) {
-                         currentUserData.unlockedLevels.push('Professional');
-                     } else {
-                          console.error("[Game] ERROR CRÍTICO INESPERADO: unlockedLevels no es array justo antes de push Professional!");
-                     }
+                     finalUserData.unlockedLevels.push('Professional');
+                     levelJustUnlocked = 'Professional';
                  }
-              } else {
-                  currentUserData.associatePerfectStreak = 0; // Resetear racha si no cumple 90%
-              }
-              currentUserData.entryPerfectStreak = 0; // Resetear racha Entry
+              } else { finalUserData.associatePerfectStreak = 0; }
+              finalUserData.entryPerfectStreak = 0;
 
         } else if (currentLevel === 'Professional') {
-             // Añadir lógica para desbloquear Expert aquí si es necesario
-             currentUserData.entryPerfectStreak = 0;
-             currentUserData.associatePerfectStreak = 0;
+             // Lógica futura para desbloquear Expert
+             finalUserData.entryPerfectStreak = 0;
+             finalUserData.associatePerfectStreak = 0;
         }
         // ... lógica para otros niveles ...
 
-        // Guardar cambios en los datos del usuario (niveles desbloqueados, rachas)
-        console.log(`[Game] Guardando datos post-juego. Nuevos niveles desbloqueados:`, JSON.stringify(currentUserData.unlockedLevels));
-        storage.saveUserData(currentUsername, currentUserData);
+        // Guardar TODOS los datos actualizados (niveles, rachas)
+        console.log(`[Game] Guardando datos post-juego. Nuevos niveles desbloqueados:`, JSON.stringify(finalUserData.unlockedLevels));
+        storage.saveUserData(currentUsername, finalUserData); // Guardar el objeto completo
 
-        // Guardar la puntuación para el nivel y modo jugado
-        // Asegurarse que el modo 'essential' no cause problemas si solo hay 'standard'
+        // Guardar la puntuación
         const modeToSave = currentGameMode === 'essential' ? 'standard' : currentGameMode;
         storage.saveHighScore(currentUsername, currentScore, currentLevel, modeToSave);
 
         // Actualizar y mostrar pantalla de Game Over
         const highScores = storage.loadHighScores();
         ui.displayHighScores(highScores);
-        // Pasar el handler handlePlayAgain a ui.displayGameOver
-        ui.displayGameOver(currentScore, currentUserData, currentLevel, handlePlayAgain);
 
-        currentQuestionData = null; // Limpiar datos pregunta
+        // **LA CORRECCIÓN:** Crear un objeto que SÍ incluya el nombre para pasarlo a displayGameOver
+        const dataForGameOverDisplay = {
+            ...finalUserData, // Copiar propiedades como unlockedLevels, streaks
+            name: currentUsername // Añadir explícitamente el nombre
+        };
+
+        // Pasar el objeto dataForGameOverDisplay que ahora contiene '.name'
+        ui.displayGameOver(currentScore, dataForGameOverDisplay, currentLevel, handlePlayAgain);
+
+        // Limpiar currentUserData global ahora que terminó la ronda, se cargará de nuevo si es necesario
+        currentUserData = {};
+
 
     } catch (error) {
         console.error("Error en endGame:", error);
         // Mostrar Game Over con datos potencialmente incompletos pero evitando crash
-        const fallbackData = currentUserData || { name: currentUsername, unlockedLevels: ['Essential'], error: true }; // Crear fallback si currentUserData es null
-        ui.displayGameOver(currentScore, fallbackData, currentLevel, handlePlayAgain);
+        // Crear fallback que incluya el nombre para que displayGameOver no falle
+        const fallbackDataForDisplay = {
+             name: currentUsername, // Incluir nombre en fallback
+             unlockedLevels: finalUserData?.unlockedLevels || ['Essential'], // Usar niveles si existen, sino default
+             error: true
+        };
+        ui.displayGameOver(currentScore, fallbackDataForDisplay, currentLevel, handlePlayAgain);
     }
 }
 
@@ -555,29 +603,36 @@ export function handleExitToMenu() {
  */
 export function handlePlayAgain() {
     console.log("[Game] handlePlayAgain ejecutado (Volver a Selección de Nivel).");
+    let userDataForDisplay; // Variable local para datos
     if (currentUsername) {
-         currentUserData = storage.getUserData(currentUsername); // Recargar datos frescos
+         userDataForDisplay = storage.getUserData(currentUsername); // Recargar datos frescos
     } else {
-         currentUserData = { unlockedLevels: ['Essential'], entryPerfectStreak: 0, associatePerfectStreak: 0 };
+         // Si no hay usuario, volver a login
          console.warn("handlePlayAgain llamado sin currentUsername. Volviendo a Login.");
-         initializeGame(); // Volver al login si no hay usuario
+         initializeGame();
          return;
     }
-    // Asegurar que los datos cargados son válidos
-    if (!currentUserData || !Array.isArray(currentUserData.unlockedLevels)) {
-         console.error("Datos de usuario inválidos cargados en handlePlayAgain. Reiniciando.");
-         currentUserData = { unlockedLevels: ['Essential'], entryPerfectStreak: 0, associatePerfectStreak: 0 };
-         storage.saveUserData(currentUsername, currentUserData); // Guardar datos corregidos
+    // Asegurar que los datos cargados son válidos (contienen unlockedLevels como array)
+    if (!userDataForDisplay || !Array.isArray(userDataForDisplay.unlockedLevels)) {
+         console.error("Datos de usuario inválidos cargados en handlePlayAgain. Reiniciando a defaults.");
+         userDataForDisplay = { unlockedLevels: ['Essential'], entryPerfectStreak: 0, associatePerfectStreak: 0 };
+         storage.saveUserData(currentUsername, userDataForDisplay); // Guardar datos corregidos
     }
+
+    // **Asignar a la variable global también por si se necesita en otros lados**
+    currentUserData = userDataForDisplay;
 
     // Pasar handler 'selectLevelAndMode' a la UI para que los botones funcionen
     console.log(`[Game] Pasando a displayLevelSelection desde PlayAgain. Handler: ${typeof selectLevelAndMode}`);
-    ui.displayLevelSelection(currentUserData.unlockedLevels, currentUserData, currentUsername, selectLevelAndMode);
+    // displayLevelSelection espera el objeto de datos SIN el nombre, y el nombre aparte
+    ui.displayLevelSelection(userDataForDisplay.unlockedLevels, userDataForDisplay, currentUsername, selectLevelAndMode);
 
     // Asegurarse que la lista de high scores está visible y actualizada
     const highScores = storage.loadHighScores();
     ui.displayHighScores(highScores);
-    if(ui.highScoresSection) ui.highScoresSection.style.display = 'block'; // Forzar visibilidad
+    // Buscar la sección de high scores y asegurarse que esté visible
+    const highScoresSect = document.getElementById('high-scores-section');
+    if(highScoresSect) highScoresSect.style.display = 'block';
 }
 
 /**
@@ -586,13 +641,15 @@ export function handlePlayAgain() {
 export function initializeGame() {
     console.log("[Game] Inicializando juego...");
     // Mostrar High Scores iniciales (si la sección existe)
-    if (ui.highScoresSection) {
+    const highScoresSection = document.getElementById('high-scores-section');
+    const scoreList = document.getElementById('score-list');
+    if (highScoresSection && scoreList) {
          try {
              const initialHighScores = storage.loadHighScores();
              ui.displayHighScores(initialHighScores);
          } catch (e) {
              console.error("Error inicializando High Scores:", e);
-             if(ui.scoreList) ui.scoreList.innerHTML = `<li>Error loading scores</li>`;
+             scoreList.innerHTML = `<li>Error loading scores</li>`;
          }
     }
     // Empezar mostrando la pantalla de login
@@ -601,7 +658,8 @@ export function initializeGame() {
 
 /**
  * Refresca la UI activa si el idioma cambia.
- * AHORA reformatea datos y llama a UI para redibujar pregunta/opciones/feedback.
+ * (Se mantiene la lógica anterior, asume que los datos actuales son suficientes
+ * para reformatear/redibujar la pregunta o feedback).
  */
 export function refreshActiveGameUI() {
     if (!currentUsername) {
@@ -617,7 +675,8 @@ export function refreshActiveGameUI() {
     if (questionTimerInterval && timeLeft > 0) { // Solo si el timer estaba activo
         ui.showTimerDisplay(true);
         ui.updateTimerDisplay(timeLeft);
-        if (ui.timerDisplayDiv) ui.timerDisplayDiv.classList.toggle('low-time', timeLeft <= 5);
+        const timerDiv = document.getElementById('timer-display');
+        if (timerDiv) timerDiv.classList.toggle('low-time', timeLeft <= 5);
     } else {
         ui.showTimerDisplay(false); // Ocultar si no estaba activo o es 0
     }
@@ -636,21 +695,29 @@ export function refreshActiveGameUI() {
         // Esto puede no traducir texto hardcodeado en generadores no-Essential
         dataForRefresh = currentQuestionData;
         // console.warn(`[Game] Refrescando UI no-Essential (${currentLevel}). Puede que el texto no se traduzca si no usa claves i18n.`);
+    } else {
+        // Si no hay currentQuestionData (p.ej., justo al inicio de la ronda antes de cargar), no hacer nada más
+        console.log("[Game] refreshActiveGameUI: No hay datos de pregunta actual para refrescar.");
+        return;
     }
 
-    // Actualizar la UI correcta (Feedback o Pregunta)
-    if (isFeedbackActive && lastAnswerCorrect !== null) {
-        // Si estábamos en feedback y tenemos datos...
-        if (dataForRefresh) {
+
+    // Actualizar la UI correcta (Feedback o Pregunta) si tenemos datos
+    if (dataForRefresh) {
+        if (isFeedbackActive && lastAnswerCorrect !== null) {
+            // Si estábamos en feedback...
              console.log("[Game] Llamando a ui.displayFeedback con isRefresh=true");
              // Añadir info necesaria para feedback
              dataForRefresh.questionsAnswered = questionsAnswered;
              dataForRefresh.totalQuestions = config.TOTAL_QUESTIONS_PER_GAME;
              // Asegurar correctAnswerDisplay para el feedback incorrecto
              if (!dataForRefresh.correctAnswerDisplay && dataForRefresh.correctAnswer) {
-                 if (typeof dataForRefresh.correctAnswer === 'object') {
+                 if (typeof dataForRefresh.correctAnswer === 'object' && dataForRefresh.correctAnswer !== null) {
                       // Crear display para objetos
-                      dataForRefresh.correctAnswerDisplay = `${getTranslation(dataForRefresh.correctAnswer.classKey || '')} / ${getTranslation(dataForRefresh.correctAnswer.typeKey || dataForRefresh.correctAnswer.portionKey || '')} ${dataForRefresh.correctAnswer.maskValue || dataForRefresh.correctAnswer.portionValue || ''}`.trim();
+                      const classText = getTranslation(dataForRefresh.correctAnswer.classKey || '');
+                      const typeText = getTranslation(dataForRefresh.correctAnswer.typeKey || dataForRefresh.correctAnswer.portionKey || '');
+                      const valueText = dataForRefresh.correctAnswer.maskValue || dataForRefresh.correctAnswer.portionValue || '';
+                      dataForRefresh.correctAnswerDisplay = `${classText} / ${typeText} ${valueText}`.replace(' /  ', '').trim();
                  } else {
                       const ca = dataForRefresh.correctAnswer;
                       const translated = getTranslation(ca);
@@ -659,17 +726,18 @@ export function refreshActiveGameUI() {
              }
              // Llamar a ui.displayFeedback con isRefresh=true
              ui.displayFeedback(lastAnswerCorrect, lastMasteryMode, dataForRefresh, proceedToNextStep, lastSelectedOriginalValue, true);
-        } else { console.error("[Game] No se pudieron obtener/formatear datos para refrescar feedback."); }
 
-    } else if (currentQuestionData && dataForRefresh) { // Si se estaba mostrando una pregunta y tenemos datos...
-        console.log("[Game] Llamando a ui.displayQuestion para refresco");
-        // Llamar a ui.displayQuestion con los datos reformateados/actuales
-        ui.displayQuestion(dataForRefresh, handleAnswerClick); // Pasar handler correcto
-        if (ui.optionsContainer) ui.optionsContainer.classList.remove('options-disabled'); // Asegurar que opciones estén habilitadas
+        } else { // Si no estábamos en feedback, redibujar la pregunta
+             console.log("[Game] Llamando a ui.displayQuestion para refresco");
+             // Llamar a ui.displayQuestion con los datos reformateados/actuales
+             ui.displayQuestion(dataForRefresh, handleAnswerClick); // Pasar handler correcto
+             const optionsContainer = document.getElementById('options-container');
+             if (optionsContainer) optionsContainer.classList.remove('options-disabled'); // Asegurar que opciones estén habilitadas
+        }
+    } else {
+         console.error("[Game] No se pudieron obtener/formatear datos para refrescar contenido.");
     }
-    // NOTA: No es necesario refrescar LevelSelect o GameOver aquí,
-    // eso se maneja en el listener del botón de idioma en main.js
-    // si esas secciones están activas.
+    // NOTA: Refresco de LevelSelect/GameOver se maneja en main.js
 }
 
 // --- Funciones para obtener estado actual (usadas externamente) ---
