@@ -5,6 +5,7 @@
 // Incluye lógica para generar el Stepper y la Tarjeta de Nivel.
 // CORREGIDO: displayFeedback aplica resaltado correcto/incorrecto consistentemente.
 // CORREGIDO: Declaración de extraMessage en displayGameOver para evitar ReferenceError.
+// CORREGIDO: Sintaxis de exportación para finalScoreDisplay y highScoreMessageElement.
 // Versión sin console.log de depuración
 // ==================================================
 
@@ -36,8 +37,9 @@ export const feedbackArea = document.getElementById('feedback-area');
 export const optionsContainer = document.getElementById('options-container');
 export const questionText = document.getElementById('question-text');
 export const timerDisplayDiv = document.getElementById('timer-display');
-export finalScoreDisplay = document.getElementById('final-score');
-export highScoreMessageElement = document.getElementById('high-score-message');
+// **CORRECCIÓN: Usar 'export const' para declarar y exportar directamente**
+export const finalScoreDisplay = document.getElementById('final-score');
+export const highScoreMessageElement = document.getElementById('high-score-message');
 
 
 // Mapa para llamar a los generadores de explicaciones desde utils.js
