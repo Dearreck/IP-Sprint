@@ -59,5 +59,45 @@
                 </div>
             </foreignObject>
         </g>
+
+        <path class="circuit-line" d="M200,200 C300,100,400,300,500,200" />
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="200" cy="200" r="10" />
+        </g>
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="500" cy="200" r="10" />
+        </g>
+
+        <path class="circuit-line" d="M300,300 C400,200,500,400,600,300" />
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="300" cy="300" r="10" />
+        </g>
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="600" cy="300" r="10" />
+        </g>
+
+        <path class="circuit-line" d="M150,350 L350,250" />
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="150" cy="350" r="10" />
+        </g>
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="350" cy="250" r="10" />
+        </g>
+
+        <path class="circuit-line" d="M450,350 L650,250" />
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="450" cy="350" r="10" />
+        </g>
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="650" cy="250" r="10" />
+        </g>
+
+        <path class="circuit-line" d="M250,450 C350,400,450,500,550,450" />
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="250" cy="450" r="10" />
+        </g>
+        <g class="circuit-node-group">
+            <circle class="circuit-node" cx="550" cy="450" r="10" />
+        </g>
     </g>
 </svg>
