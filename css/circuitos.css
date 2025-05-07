@@ -19,7 +19,7 @@
 }
 
 .circuit-line {
-    stroke: url(#glow); /* Aplicar el gradiente a las líneas */
+    stroke: #00bfff; /* Establece el color de las líneas a un azul brillante */
     stroke-width: 2;
     stroke-dasharray: 500;
     stroke-dashoffset: 500;
@@ -29,7 +29,7 @@
 
 .circuit-node {
     fill: #b3b8b4;
-    stroke: url(#glow);
+    stroke: #00bfff;  /* Establece el color del borde de los nodos a azul brillante */
     stroke-width: 1;
     filter: url(#blurFilter);
     animation: glow-pulse 2s ease-in-out infinite alternate;
