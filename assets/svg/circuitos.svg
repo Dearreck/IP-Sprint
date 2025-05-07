@@ -11,9 +11,9 @@
             <stop offset="100%" stop-color="rgba(0, 255, 255, 0)" />
         </linearGradient>
         <filter id="glow-light">
-            <feGaussianBlur stdDeviation="3" />
+            <feGaussianBlur stdDeviation="2" />
             <feComponentTransfer>
-                <feFuncA type="linear" slope="1.5"/>
+                <feFuncA type="linear" slope="1.2"/>
             </feComponentTransfer>
             <feMerge>
                 <feMergeNode/>
@@ -21,9 +21,9 @@
             </feMerge>
         </filter>
         <filter id="glow-dark">
-            <feGaussianBlur stdDeviation="5" />
-            <feComponentTransfer>
-                <feFuncA type="linear" slope="2"/>
+            <feGaussianBlur stdDeviation="4" />
+             <feComponentTransfer>
+                <feFuncA type="linear" slope="1.8"/>
             </feComponentTransfer>
             <feMerge>
                 <feMergeNode/>
@@ -32,72 +32,31 @@
         </filter>
     </defs>
     <g id="circuit-group">
-        <path class="circuit-line" d="M100,100 C200,50,300,150,400,100" />
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="100" cy="100" r="10" />
-            <foreignObject x="85" y="85" width="30" height="30">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; height: 100%; width: 100%; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-server"></i>
-                </div>
-            </foreignObject>
-        </g>
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="400" cy="100" r="10" />
-             <foreignObject x="385" y="85" width="30" height="30">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; height: 100%; width: 100%; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-router"></i>
-                </div>
-            </foreignObject>
-        </g>
+        <circle class="circuit-node" cx="100" cy="100" r="6" />
+        <circle class="circuit-node" cx="200" cy="200" r="6" />
+        <circle class="circuit-node" cx="300" cy="100" r="6" />
+        <circle class="circuit-node" cx="400" cy="200" r="6" />
+        <circle class="circuit-node" cx="500" cy="100" r="6" />
+        <circle class="circuit-node" cx="600" cy="200" r="6" />
+        <circle class="circuit-node" cx="700" cy="100" r="6" />
 
-        <path class="circuit-line" d="M400,100 C500,50,600,250,700,200" />
-         <g class="circuit-node-group">
-            <circle class="circuit-node" cx="700" cy="200" r="10" />
-            <foreignObject x="685" y="185" width="30" height="30">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; height: 100%; width: 100%; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-desktop"></i>
-                </div>
-            </foreignObject>
-        </g>
+        <path class="circuit-line" d="M100,100 L200,200 L300,100 L400,200 L500,100 L600,200 L700,100" />
 
-        <path class="circuit-line" d="M200,200 C300,100,400,300,500,200" />
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="200" cy="200" r="10" />
-        </g>
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="500" cy="200" r="10" />
-        </g>
+        <circle class="circuit-node" cx="150" cy="300" r="6" />
+        <circle class="circuit-node" cx="250" cy="400" r="6" />
+        <circle class="circuit-node" cx="350" cy="300" r="6" />
+        <circle class="circuit-node" cx="450" cy="400" r="6" />
+        <circle class="circuit-node" cx="550" cy="300" r="6" />
+        <circle class="circuit-node" cx="650" cy="400" r="6" />
 
-        <path class="circuit-line" d="M300,300 C400,200,500,400,600,300" />
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="300" cy="300" r="10" />
-        </g>
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="600" cy="300" r="10" />
-        </g>
+        <path class="circuit-line" d="M150,300 L250,400 L350,300 L450,400 L550,300 L650,400" />
 
-        <path class="circuit-line" d="M150,350 L350,250" />
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="150" cy="350" r="10" />
-        </g>
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="350" cy="250" r="10" />
-        </g>
+        <circle class="circuit-node" cx="200" cy="500" r="6" />
+        <circle class="circuit-node" cx="300" cy="400" r="6" />
+        <circle class="circuit-node" cx="400" cy="500" r="6" />
+        <circle class="circuit-node" cx="500" cy="400" r="6" />
+        <circle class="circuit-node" cx="600" cy="500" r="6" />
 
-        <path class="circuit-line" d="M450,350 L650,250" />
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="450" cy="350" r="10" />
-        </g>
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="650" cy="250" r="10" />
-        </g>
-
-        <path class="circuit-line" d="M250,450 C350,400,450,500,550,450" />
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="250" cy="450" r="10" />
-        </g>
-        <g class="circuit-node-group">
-            <circle class="circuit-node" cx="550" cy="450" r="10" />
-        </g>
+        <path class="circuit-line" d="M200,500 L300,400 L400,500 L500,400 L600,500" />
     </g>
 </svg>
