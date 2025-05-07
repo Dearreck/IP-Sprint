@@ -20,8 +20,8 @@
 
 .circuit-line {
     fill: none;
-    stroke: #007bff; /* Color de las líneas: azul brillante */
-    stroke-width: 2; /* Grosor de las líneas */
+    stroke: rgba(0, 123, 255, 0.3);
+    stroke-width: 1;
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
     animation: draw-line 10s linear infinite, glow-pulse 2s ease-in-out infinite alternate;
@@ -29,8 +29,8 @@
 
 .circuit-node {
     r: 6;
-    fill: #00bfff;
-    stroke: #00bfff;
+    fill: rgba(0, 184, 255, 0.5);
+    stroke: rgba(0, 184, 255, 0.7);
     stroke-width: 1;
     filter: url(#glow-light);
     animation:  glow-pulse 2s ease-in-out infinite alternate;
@@ -44,13 +44,13 @@
 }
 
 .light-mode .circuit-line {
-    stroke:  #007bff; /* Color de las líneas: azul brillante */
-    stroke-width: 2;
+    stroke: rgba(0, 123, 255, 0.3);
+    stroke-width: 1;
 }
 
 .light-mode .circuit-node {
-    fill: #00bfff;
-    stroke: #00bfff;
+    fill: rgba(0, 184, 255, 0.5);
+    stroke: rgba(0, 184, 255, 0.7);
     stroke-width: 1;
     filter: url(#glow-light);
 }
@@ -63,14 +63,14 @@
 }
 
 .dark-mode .circuit-line {
-    stroke: url(#energy-flow-dark); /* Color de las líneas: gradiente de energía */
-    stroke-width: 3;
+    stroke: url(#energy-flow-dark);
+    stroke-width: 2;
 }
 
 .dark-mode .circuit-node {
-    fill: #00ffff; /* Color de los nodos: celeste brillante */
+    fill: #00ffff;
     stroke: #00ffff;
-    stroke-width: 2;
+    stroke-width: 1;
     filter: url(#glow-dark);
 }
 
