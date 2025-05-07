@@ -1,3 +1,7 @@
+/* ================================================== */
+/* Hoja de Estilos para el Fondo SVG de Circuitos     */
+/* ================================================== */
+
 /* Contenedor principal del fondo */
 #circuit-background {
     position: fixed;
@@ -5,41 +9,29 @@
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0; /* Debe estar detrás del 'main' que tiene z-index: 1 */
-    overflow: hidden; /* Para asegurar que el SVG no se desborde */
+    z-index: 0; /* Detrás del contenido principal (main tiene z-index: 1) */
+    overflow: hidden; /* Evita que el SVG se desborde */
+    /* Aplica la opacidad definida en las variables de tema */
+    opacity: var(--svg-opacity, 0.8); /* Fallback de opacidad */
+    transition: opacity 0.3s ease; /* Transición suave para cambios de tema */
 }
 
-/* Estilos base para el SVG y sus elementos */
+/* Estilos para el elemento SVG cargado dentro del contenedor */
 #circuit-background svg {
     display: block; /* Evita espacio extra debajo */
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ajusta cómo se escala el SVG */
-    /* preserveAspectRatio="xMidYMid slice"; /* Otra opción de escalado */
+    object-fit: cover; /* Cubre todo el área del div */
+    /* preserveAspectRatio="xMidYMid slice"; /* Podría ser una alternativa a object-fit */
 }
 
 /* Estilo base para los trazados (paths) dentro del SVG */
 #circuit-background svg path {
-    fill: none; /* La mayoría de las líneas no tendrán relleno */
-    stroke-width: 1; /* Grosor de línea base */
-    vector-effect: non-scaling-stroke; /* Mantiene grosor de línea al escalar */
-    transition: stroke 0.3s ease; /* Transición suave para cambio de color */
+    fill: none; /* Asumimos que la mayoría son líneas sin relleno */
+    /* Aplica el color de trazo definido en las variables de tema */
+    stroke: var(--svg-stroke, rgba(0, 184, 255, 0.4)); /* Fallback de color */
+    stroke-width: 1; /* Grosor de línea base (ajusta si es necesario) */
+    vector-effect: non-scaling-stroke; /* Mantiene grosor al escalar */
+    transition: stroke 0.3s ease; /* Transición suave para cambios de color */
 }
 
-/* --- Estilos para Modo Claro --- */
-/* El fondo del body se controla en style.css, aquí controlamos el SVG */
-body.light-mode #circuit-background {
-    opacity: 0.6; /* Reducir opacidad en modo claro */
-}
-body.light-mode #circuit-background svg path {
-    stroke: rgba(0, 123, 255, 0.4); /* Color azul claro semitransparente */
-}
-
-/* --- Estilos para Modo Oscuro --- */
-/* El fondo del body se controla en style.css */
-body.dark-mode #circuit-background {
-    opacity: 0.9; /* Ligeramente más opaco en modo oscuro */
-}
-body.dark-mode #circuit-background svg path {
-    stroke: rgba(0, 184, 255, 0.5); /* Color cian semitransparente */
-}
