@@ -1,1 +1,54 @@
-/* */
+#circuit-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    /* Fondo oscuro para mejor contraste */
+    background-color: #0a192f;
+    opacity: 0.9;
+}
+
+#circuit-svg {
+    /* Aseguramos que el SVG ocupe todo el contenedor */
+    width: 100%;
+    height: 100%;
+    /* Lo enviamos detrás del contenido principal */
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+.circuit-line {
+    stroke: url(#glow); /* Aplicamos el gradiente a las líneas */
+    stroke-width: 2; /* Grosor de las líneas */
+    stroke-dasharray: 500; /* Para la animación de "dibujado" */
+    stroke-dashoffset: 500;
+    animation: draw-line 5s linear infinite,
+               glow-pulse 2s ease-in-out infinite alternate; /* Agregamos animación de pulso */
+}
+
+.circuit-node {
+    fill: #0a192f; /* Color de los nodos */
+    stroke: url(#glow);
+    stroke-width: 1;
+    filter: url(#blurFilter); /* Aplicamos el filtro de desenfoque */
+    animation: glow-pulse 2s ease-in-out infinite alternate; /* Animamos los nodos también */
+}
+
+@keyframes draw-line {
+    to {
+        stroke-dashoffset: 0; /* La línea se "dibuja" */
+    }
+}
+
+@keyframes glow-pulse {
+    from {
+        opacity: 0.1; /* Opacidad inicial */
+    }
+    to {
+        opacity: 0.8; /* Opacidad al máximo "brillo" */
+    }
+}
