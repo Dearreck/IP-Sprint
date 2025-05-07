@@ -2,92 +2,247 @@
 /* Hoja de Estilos Principal para IP Sprint          */
 /* ================================================== */
 
-/* --- Variables CSS (Tema Claro por Defecto) --- */
+/* --- Variables CSS --- */
 :root {
-    /* Paleta Neutra */
-    --bg-color: #f4f7f6;
-    --card-bg-color: #ffffff;
-    --text-color: #333333;
-    --secondary-text-color: #6c757d;
-    --border-color: #dee2e6;
-    --disabled-color: #ced4da;
-    --locked-color: #adb5bd;
+    /* --- Configuración Tema Oscuro (Default) --- */
 
-    /* Paleta Primaria (Azul) */
-    --primary-color: #007bff;
-    --primary-dark-color: #0056b3;
-    --primary-light-bg: #e7f3ff;
+    /* Fondos */
+    --body-bg-fallback: #0a0c10; /* Fallback sólido */
+    --body-background: radial-gradient(ellipse at center, #1c2a3a 0%, #0a0c10 100%); /* Degradado oscuro */
+    --card-bg-color: #ffffff; /* Tarjeta clara para contraste */
+    --primary-light-bg: rgba(66, 153, 225, 0.1); /* Azul muy transparente para hover/estados */
+    --feedback-correct-bg: #1a472a; /* Fondo oscuro para feedback correcto */
+    --feedback-incorrect-bg: #5a2129; /* Fondo oscuro para feedback incorrecto */
+    --feedback-mastery-bg: #3d2a6b; /* Fondo oscuro para feedback mastery */
+    --warning-bg-color: #4d380c;
+    --th-bg-color: #2d3748; /* Fondo para encabezados de tabla */
 
-    /* Paleta de Acentos y Estados */
-    --accent-teal-color: #17a2b8;
-    --success-color: #28a745;
-    --success-dark-color: #218838; /* Verde oscuro para hover */
-    --error-color: #dc3545;
-    --error-dark-color: #c82333; /* Rojo oscuro para hover */
-    --warning-color: #ffc107;
-    --warning-text-color: #856404;
-    --warning-bg-color: #fff3cd;
-    --warning-border-color: #ffeeba;
-    --mastery-color: #6f42c1;
-    --mastery-dark-color: #5a32a3; /* Púrpura oscuro para hover */
+    /* Textos */
+    --text-color: #e2e8f0; /* Texto claro principal (fuera de 'main') */
+    --main-text-color: #333333; /* Texto oscuro principal (dentro de 'main') */
+    --secondary-text-color: #a0aec0; /* Texto secundario claro (fuera de 'main') */
+    --main-secondary-text-color: #6c757d; /* Texto secundario (dentro de 'main') */
+    --primary-color-text: #ffffff; /* Texto sobre botones primarios */
+    --success-color-text: #ffffff;
+    --error-color-text: #ffffff;
+    --mastery-color-text: #ffffff;
+    --feedback-correct-text: #c6f6d5;
+    --feedback-incorrect-text: #fed7d7;
+    --feedback-mastery-text: #e9d8fd;
+    --warning-text-color: #fbd38d;
+    --footer-link-color: #a0aec0; /* Color enlaces footer */
+    --footer-link-hover-color: #ffffff;
 
+    /* Colores Primarios y Acentos */
+    --primary-color: #4299e1; /* Azul más brillante */
+    --primary-dark-color: #2b6cb0; /* Azul medio */
+    --accent-teal-color: #38b2ac; /* Teal */
+    --success-color: #48bb78; /* Verde */
+    --success-dark-color: #38a169;
+    --error-color: #f56565; /* Rojo */
+    --error-dark-color: #e53e3e;
+    --warning-color: #ecc94b; /* Amarillo */
+    --mastery-color: #9f7aea; /* Púrpura */
+    --mastery-dark-color: #805ad5;
+
+    /* Bordes */
+    --border-color: #4a5568; /* Gris oscuro */
+    --border-color-light: #cbd5e0; /* Borde claro (para inputs, etc.) */
+    --feedback-correct-border: #2f6f49;
+    --feedback-incorrect-border: #9b2c2c;
+    --feedback-mastery-border: #6b46c1;
+    --warning-border-color: #d69e2e;
+
+    /* SVG Background */
+    --svg-stroke: rgba(0, 184, 255, 0.4); /* Cian semitransparente */
+    --svg-opacity: 0.8;
+
+    /* Otros */
+    --disabled-color: #718096; /* Color deshabilitado */
+    --locked-color: #a0aec0; /* Color bloqueado */
+    --border-radius: 5px;
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Sombra más oscura */
+    --box-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.4);
+    --progress-width: 10%; /* Para stepper */
 
     /* Fuentes */
     --font-body: 'Montserrat', sans-serif;
     --font-title: 'Comfortaa', sans-serif;
+}
+
+body.light-mode {
+    /* --- Configuración Tema Claro --- */
+
+    /* Fondos */
+    --body-bg-fallback: #f8f9fa; /* Fallback sólido */
+    --body-background: radial-gradient(ellipse at center, #ffffff 0%, #e9ecef 100%); /* Degradado claro */
+    --card-bg-color: #ffffff; /* Tarjeta blanca */
+    --primary-light-bg: #e7f3ff; /* Azul muy claro para hover */
+    --feedback-correct-bg: #d4edda;
+    --feedback-incorrect-bg: #f8d7da;
+    --feedback-mastery-bg: #e9d8f3;
+    --warning-bg-color: #fff3cd;
+    --th-bg-color: #e9ecef;
+
+    /* Textos */
+    --text-color: #2d3748; /* Texto oscuro principal */
+    --main-text-color: #333333; /* Igual dentro de 'main' */
+    --secondary-text-color: #718096; /* Texto secundario oscuro */
+    --main-secondary-text-color: #6c757d; /* Igual dentro de 'main' */
+    --primary-color-text: #ffffff;
+    --success-color-text: #ffffff;
+    --error-color-text: #ffffff;
+    --mastery-color-text: #ffffff;
+    --feedback-correct-text: #155724;
+    --feedback-incorrect-text: #721c24;
+    --feedback-mastery-text: #4d1a7f;
+    --warning-text-color: #856404;
+    --footer-link-color: #6c757d;
+    --footer-link-hover-color: #2d3748;
+
+    /* Colores Primarios y Acentos */
+    --primary-color: #007bff; /* Azul estándar */
+    --primary-dark-color: #0056b3; /* Azul oscuro */
+    --accent-teal-color: #17a2b8;
+    --success-color: #28a745;
+    --success-dark-color: #218838;
+    --error-color: #dc3545;
+    --error-dark-color: #c82333;
+    --warning-color: #ffc107;
+    --mastery-color: #6f42c1;
+    --mastery-dark-color: #5a32a3;
+
+    /* Bordes */
+    --border-color: #dee2e6; /* Gris claro */
+    --border-color-light: #ced4da;
+    --feedback-correct-border: #c3e6cb;
+    --feedback-incorrect-border: #f5c6cb;
+    --feedback-mastery-border: #d3b6e3;
+    --warning-border-color: #ffeeba;
+
+    /* SVG Background */
+    --svg-stroke: rgba(49, 130, 206, 0.35); /* Azul oscuro semitransparente */
+    --svg-opacity: 0.6;
 
     /* Otros */
-    --border-radius: 5px;
+    --disabled-color: #ced4da;
+    --locked-color: #adb5bd;
     --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    --box-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada para hover */
-    --progress-width: 10%;
+    --box-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
+
 
 /* --- Estilos Generales --- */
 body {
     font-family: var(--font-body);
-    line-height: 1.6; margin: 0; padding: 0;
-    background-color: var(--bg-color); color: var(--text-color);
-    display: flex; flex-direction: column; min-height: 100vh;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background: var(--body-background); /* Usa la variable de fondo */
+    color: var(--text-color); /* Color de texto base (fuera de main) */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     font-weight: 400;
     position: relative;
     overflow-x: hidden;
+    transition: background 0.3s ease, color 0.3s ease; /* Transición suave */
 }
 
 main {
-    flex-grow: 1; max-width: 800px; margin: 40px auto 20px auto;
+    flex-grow: 1;
+    max-width: 800px;
+    margin: 40px auto 20px auto;
     padding: 20px;
-    background-color: var(--card-bg-color);
-    color: var(--text-color);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background-color: var(--card-bg-color); /* Fondo de la tarjeta */
+    color: var(--main-text-color); /* Color de texto dentro de la tarjeta */
+    box-shadow: var(--box-shadow);
     border-radius: 8px;
-    display: flex; flex-direction: column; justify-content: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     position: relative;
-    z-index: 1;
+    z-index: 1; /* Asegura que esté sobre el fondo SVG */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Transición */
 }
 
 h1, h2 {
-    font-family: var(--font-title); color: var(--primary-dark-color);
-    text-align: center; font-weight: 700;
+    font-family: var(--font-title);
+    color: var(--primary-dark-color);
+    text-align: center;
+    font-weight: 700;
+}
+
+/* Estilos para h1 dentro del header (color diferente al h1 general) */
+header h1 {
+    margin: 0;
+    color: var(--primary-color-text); /* Blanco usualmente */
+    font-size: 2em;
+    font-family: var(--font-title);
+    font-weight: 700;
 }
 
 h2 { margin-bottom: 25px; }
 a { color: var(--primary-color); text-decoration: none; }
 a:hover { color: var(--primary-dark-color); text-decoration: underline; }
-hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; /* Más margen en HR */ }
+hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; }
 
 /* --- Estilos Header y Footer --- */
-header { background-color: var(--primary-color); color: var(--card-bg-color); padding: 15px 0; text-align: center; position: relative; }
-header h1 { margin: 0; color: var(--card-bg-color); font-size: 2em; font-family: var(--font-title); font-weight: 700; }
+header {
+    background-color: var(--primary-color);
+    color: var(--primary-color-text); /* Texto dentro del header */
+    padding: 15px 0;
+    text-align: center;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
 
-footer { background-color: #343a40; color: #f8f9fa; text-align: center; padding: 15px 0; margin-top: auto; font-size: 0.9em; }
-footer p { margin: 5px 0; } footer a { color: var(--locked-color); } footer a:hover { color: var(--card-bg-color); }
-footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color); }
+footer {
+    background-color: #343a40; /* Mantener un gris oscuro fijo? o usar variable? */
+    color: #adb5bd; /* Color de texto fijo para footer */
+    text-align: center;
+    padding: 15px 0;
+    margin-top: auto;
+    font-size: 0.9em;
+}
+footer p { margin: 5px 0; }
+footer a { color: var(--footer-link-color); } /* Variable específica */
+footer a:hover { color: var(--footer-link-hover-color); }
+footer i { vertical-align: middle; margin-right: 5px; color: var(--footer-link-color); }
 
 /* --- Controles Globales (Idioma/Tema) --- */
 .global-controls { position: absolute; top: 10px; right: 15px; display: flex; gap: 10px; z-index: 100; }
-#language-toggle-button { background-color: var(--card-bg-color); color: var(--primary-color); border: 1px solid var(--primary-color); padding: 5px 10px; cursor: pointer; border-radius: var(--border-radius); font-size: 0.85em; opacity: 0.9; transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
-#language-toggle-button:hover { opacity: 1; background-color: var(--primary-light-bg); }
+#language-toggle-button {
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo semitransparente */
+    color: var(--primary-color-text); /* Icono/texto claro */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    font-size: 0.85em;
+    opacity: 0.9;
+    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+#language-toggle-button:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+/* Ajuste específico para el botón en modo claro si es necesario */
+body.light-mode #language-toggle-button {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--primary-dark-color); /* Texto/Icono oscuro en modo claro */
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+body.light-mode #language-toggle-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
 
 /* --- Estilos Generales para Secciones DENTRO de main --- */
 .game-section { margin-bottom: 30px; padding: 25px 30px; border: none; border-radius: var(--border-radius); background-color: transparent; }
@@ -97,73 +252,64 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
 .login-icon-area { font-size: 3.5em; color: var(--primary-color); margin-bottom: 20px; }
 #user-setup h2 { margin-top: 0; margin-bottom: 30px; color: var(--primary-dark-color); }
 #username-form { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; max-width: 350px; margin: 0 auto; }
-#username-form label { font-weight: bold; color: var(--secondary-text-color); font-size: 0.95em; }
-#username-form input[type="text"] { padding: 12px 15px; border: 1px solid var(--border-color); border-radius: var(--border-radius); width: 100%; box-sizing: border-box; font-family: var(--font-body); text-align: center; font-size: 1.1em; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
-#username-form input[type="text"]:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); outline: none; }
-.login-submit-button {
-    padding: 14px 30px; /* Consistente con start-level-button */
-    font-size: 1.1em; /* Consistente */
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 10px;
-    background-color: var(--primary-color); /* Color primario */
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-family: var(--font-body);
-    font-weight: 600; /* Semi-bold */
-    box-shadow: var(--box-shadow);
-    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+#username-form label { font-weight: bold; color: var(--main-secondary-text-color); font-size: 0.95em; } /* Texto secundario de main */
+#username-form input[type="text"] {
+    padding: 12px 15px;
+    border: 1px solid var(--border-color-light); /* Borde más claro */
+    color: var(--main-text-color); /* Color de texto de main */
+    background-color: var(--card-bg-color); /* Fondo igual a tarjeta */
+    border-radius: var(--border-radius); width: 100%; box-sizing: border-box; font-family: var(--font-body); text-align: center; font-size: 1.1em; transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-.login-submit-button:hover {
-    background-color: var(--primary-dark-color);
-    box-shadow: var(--box-shadow-hover);
-}
-.login-submit-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-.login-submit-button i { transition: transform 0.2s ease-in-out; }
-.login-submit-button:hover i { transform: translateX(4px); }
+#username-form input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Ajustar color del shadow si es necesario */
+    outline: none; }
+/* Botón Login usa estilos de .action-button-base */
 
 /* --- Estilos Selección de Nivel (Stepper + Tarjeta) --- */
-#level-select h2 { margin-bottom: 30px; }
+#level-select h2 { margin-bottom: 30px; color: var(--primary-dark-color); }
 #level-stepper-container { display: flex; justify-content: space-around; align-items: center; margin-bottom: 35px; padding: 10px 0; position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 #level-stepper-container::-webkit-scrollbar { display: none; }
 #level-stepper-container::before { content: ''; position: absolute; top: 50%; left: 5%; right: 5%; height: 4px; background-color: var(--border-color); transform: translateY(-50%); z-index: 1; border-radius: 2px; }
 #level-stepper-container::after { content: ''; position: absolute; top: 50%; left: 5%; width: var(--progress-width, 5%); height: 4px; background-color: var(--primary-color); transform: translateY(-50%); z-index: 2; border-radius: 2px; transition: width 0.5s ease-in-out; }
-.stepper-item { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 5px 10px; position: relative; z-index: 3; background-color: var(--card-bg-color); transition: transform 0.2s ease; min-width: 80px; }
+.stepper-item { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 5px 10px; position: relative; z-index: 3; background-color: var(--card-bg-color); /* Para tapar línea */ transition: transform 0.2s ease; min-width: 80px; }
 .stepper-item:hover:not(.locked) { transform: scale(1.05); }
 .stepper-item.locked { cursor: default; }
 .stepper-icon-wrapper { width: 40px; height: 40px; border-radius: 50%; background-color: var(--card-bg-color); border: 3px solid var(--locked-color); display: flex; justify-content: center; align-items: center; margin-bottom: 5px; transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.2s ease; }
 .stepper-icon-wrapper i { font-size: 1.2em; color: var(--locked-color); transition: color 0.3s ease; }
-.stepper-label { font-size: 0.8em; font-weight: bold; color: var(--secondary-text-color); transition: color 0.3s ease; margin-top: 2px; }
+.stepper-label { font-size: 0.8em; font-weight: bold; color: var(--main-secondary-text-color); transition: color 0.3s ease; margin-top: 2px; } /* Usa main-secondary */
 .stepper-item.unlocked .stepper-icon-wrapper { border-color: var(--primary-color); }
 .stepper-item.unlocked .stepper-icon-wrapper i { color: var(--primary-color); }
-.stepper-item.unlocked .stepper-label { color: var(--text-color); }
+.stepper-item.unlocked .stepper-label { color: var(--main-text-color); } /* Usa main-text */
 .stepper-item.completed .stepper-icon-wrapper { border-color: var(--success-color); }
 .stepper-item.completed .stepper-icon-wrapper i { color: var(--success-color); }
 .stepper-item.completed .stepper-label { color: var(--success-color); }
 .stepper-item.selected .stepper-icon-wrapper { border-color: var(--primary-dark-color); background-color: var(--primary-color); transform: scale(1.1); }
-.stepper-item.selected .stepper-icon-wrapper i { color: var(--card-bg-color); }
+.stepper-item.selected .stepper-icon-wrapper i { color: var(--primary-color-text); } /* Texto primario (blanco) */
 .stepper-item.selected .stepper-label { color: var(--primary-dark-color); font-weight: 900; }
-#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: #fdfdfd; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--primary-light-bg); /* Fondo azul muy claro */ min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
 #level-card-content { width: 100%; }
 #level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
-#level-card-content .level-status { font-weight: bold; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
+#level-card-content .level-status { font-weight: bold; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--main-secondary-text-color); } /* Usa main-secondary */
 #level-card-content .level-status.locked { color: var(--locked-color); }
-#level-card-content .level-score { margin-bottom: 15px; color: var(--secondary-text-color); }
-#level-card-content .level-score strong { color: var(--text-color); font-size: 1.1em; }
+#level-card-content .level-score { margin-bottom: 15px; color: var(--main-secondary-text-color); } /* Usa main-secondary */
+#level-card-content .level-score strong { color: var(--main-text-color); font-size: 1.1em; } /* Usa main-text */
 #level-card-content .level-requirement { margin-bottom: 20px; color: var(--warning-text-color); background-color: var(--warning-bg-color); border: 1px solid var(--warning-border-color); font-style: italic; font-size: 0.9em; padding: 8px 12px; border-radius: var(--border-radius); display: inline-block; max-width: 90%; }
 #level-card-content .level-requirement i { margin-right: 5px; color: var(--warning-text-color); }
-.start-level-button { /* Estilo base para botones de acción principales */
-    padding: 14px 30px; /* Consistente con login */
-    font-size: 1.1em; /* Consistente */
+/* Botón Start usa .action-button-base */
+
+
+/* === Base para Botones de Acción Principales === */
+.login-submit-button,
+.start-level-button,
+#play-again-button {
+    padding: 14px 30px;
+    font-size: 1.1em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center; /* Centrar contenido */
+    gap: 8px;
     margin-top: 10px;
-    background-color: var(--primary-color);
-    color: white;
     border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
@@ -171,36 +317,55 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
     font-weight: 600; /* Semi-bold */
     box-shadow: var(--box-shadow);
     transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    color: var(--primary-color-text); /* Texto del botón */
 }
+/* Colores específicos */
+.login-submit-button,
+.start-level-button {
+    background-color: var(--primary-color);
+}
+.login-submit-button:hover,
 .start-level-button:hover {
     background-color: var(--primary-dark-color);
     box-shadow: var(--box-shadow-hover);
 }
-.start-level-button:active {
+#play-again-button {
+    background-color: var(--success-color);
+}
+#play-again-button:hover {
+    background-color: var(--success-dark-color);
+    box-shadow: var(--box-shadow-hover);
+}
+/* Estado activo */
+.login-submit-button:active,
+.start-level-button:active,
+#play-again-button:active {
     transform: translateY(1px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+/* Icono dentro del botón de login */
+.login-submit-button i { transition: transform 0.2s ease-in-out; }
+.login-submit-button:hover i { transform: translateX(4px); }
 
 
 /* --- Estilos Área de Juego --- */
 .game-controls { text-align: right; margin-bottom: 15px; }
-/* Estilos botones de control (Restart/Menu) */
 .game-controls button {
-    background-color: var(--card-bg-color);
-    color: var(--secondary-text-color);
+    background-color: var(--card-bg-color); /* Fondo de tarjeta */
+    color: var(--main-secondary-text-color); /* Texto secundario de main */
     border: 1px solid var(--border-color);
     padding: 6px 12px;
     font-size: 0.85em;
     margin-left: 8px;
     box-shadow: none;
-    font-weight: 600; /* Semi-bold */
+    font-weight: 600;
     border-radius: var(--border-radius);
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    font-family: var(--font-body); /* Asegurar fuente */
+    font-family: var(--font-body);
 }
 .game-controls button:hover {
-    background-color: var(--primary-light-bg);
+    background-color: var(--primary-light-bg); /* Fondo azul claro */
     color: var(--primary-dark-color);
     border-color: var(--primary-light-bg);
 }
@@ -209,7 +374,7 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
     opacity: 0.8;
 }
 
-#game-info { text-align: center; margin-bottom: 15px; color: var(--secondary-text-color); font-size: 0.9em; }
+#game-info { text-align: center; margin-bottom: 15px; color: var(--main-secondary-text-color); font-size: 0.9em; } /* Usa main-secondary */
 #game-info #main-game-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 15px; margin-bottom: 8px; }
 #game-info #main-game-info span { white-space: nowrap; }
 #game-info i { margin-right: 5px; color: var(--primary-color); font-size: 0.95em; vertical-align: baseline; transition: color 0.3s ease, transform 0.3s ease; display: inline-block; }
@@ -220,151 +385,130 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--locked-color)
 #round-progress-stars .star-pending { color: var(--locked-color); margin: 0 1px; }
 #round-progress-stars .star-mastery { color: var(--mastery-color); margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-#question-container { width: 90%; margin: 30px auto; /* Más margen vertical */ text-align: center; font-size: 1.3em; font-weight: bold; color: var(--text-color); min-height: 50px; }
-.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; /* Más separación */ padding: 15px; background-color: #f8f9fa; border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--text-color); }
+#question-container { width: 90%; margin: 30px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; } /* Usa main-text */
+.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); } /* Usa main-text */
 hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; }
-#options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; /* Más separación */ }
+#options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; }
 
 /* === Estilos MEJORADOS para botones de opción === */
 .option-button {
     width: 80%;
     max-width: 450px;
-    background-color: var(--card-bg-color);
+    background-color: var(--card-bg-color); /* Fondo tarjeta */
     color: var(--primary-dark-color);
     border: 1px solid var(--border-color);
     padding: 14px 20px;
     border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 1em;
-    font-family: var(--font-body); /* Asegurar fuente */
-    font-weight: 600; /* Semi-bold */
+    font-family: var(--font-body);
+    font-weight: 600;
     text-align: center;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
     box-shadow: var(--box-shadow);
 }
 .option-button:hover {
-    background-color: var(--primary-light-bg);
+    background-color: var(--primary-light-bg); /* Fondo azul claro */
     border-color: var(--primary-color);
     color: var(--primary-dark-color);
-    box-shadow: var(--box-shadow-hover); /* Sombra más pronunciada */
+    box-shadow: var(--box-shadow-hover);
 }
 .option-button:active {
     transform: translateY(1px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-/* Estados correcto/incorrecto/mastery */
-.option-button.correct { background-color: var(--success-color); color: white; border-color: var(--success-color); }
-.option-button.correct:hover { background-color: var(--success-dark-color); border-color: var(--success-dark-color); box-shadow: var(--box-shadow-hover); }
-.option-button.incorrect { background-color: var(--error-color); color: white; border-color: var(--error-color); }
-.option-button.incorrect:hover { background-color: var(--error-dark-color); border-color: var(--error-dark-color); box-shadow: var(--box-shadow-hover); }
-.option-button.mastery { background-color: var(--mastery-color); color: white; border-color: var(--mastery-color); }
-.option-button.mastery:hover { background-color: var(--mastery-dark-color); border-color: var(--mastery-dark-color); box-shadow: var(--box-shadow-hover); }
-.option-button.correct.mastery { background-color: var(--mastery-color); }
-.option-button.correct.mastery:hover { background-color: var(--mastery-dark-color); }
-/* Estado deshabilitado */
+/* Estados */
+.option-button.correct { background-color: var(--success-color); color: var(--success-color-text); border-color: var(--success-color); }
+.option-button.correct:hover { background-color: var(--success-dark-color); border-color: var(--success-dark-color); }
+.option-button.incorrect { background-color: var(--error-color); color: var(--error-color-text); border-color: var(--error-color); }
+.option-button.incorrect:hover { background-color: var(--error-dark-color); border-color: var(--error-dark-color); }
+.option-button.mastery { background-color: var(--mastery-color); color: var(--mastery-color-text); border-color: var(--mastery-color); }
+.option-button.mastery:hover { background-color: var(--mastery-dark-color); border-color: var(--mastery-dark-color); }
+/* Correcto + Mastery */
+.option-button.correct.mastery { background-color: var(--mastery-color); border-color: var(--mastery-color); }
+.option-button.correct.mastery:hover { background-color: var(--mastery-dark-color); border-color: var(--mastery-dark-color); }
+/* Deshabilitado */
 .options-disabled .option-button {
     pointer-events: none;
     opacity: 0.65;
     box-shadow: none;
 }
-/* Mantener estilos de resaltado incluso si está deshabilitado */
-.options-disabled .option-button.correct { opacity: 1; background-color: var(--success-color); border-color: var(--success-color); color: white; }
-.options-disabled .option-button.incorrect { opacity: 1; background-color: var(--error-color); border-color: var(--error-color); color: white; }
-.options-disabled .option-button.mastery { opacity: 1; background-color: var(--mastery-color); border-color: var(--mastery-color); color: white; }
+/* Mantener resaltado visual incluso deshabilitado */
+.options-disabled .option-button.correct,
+.options-disabled .option-button.incorrect,
+.options-disabled .option-button.mastery,
+.options-disabled .option-button.correct.mastery {
+    opacity: 1;
+    box-shadow: var(--box-shadow); /* Restaurar sombra para que se vea claro */
+}
 /* === FIN Estilos MEJORADOS === */
 
 /* --- Timer y Feedback --- */
 #timer-display { color: var(--primary-color); font-size: 0.9em; margin-top: 10px; }
 #timer-display.low-time { color: var(--error-color); font-weight: bold; }
-#feedback-area { margin-top: 30px; /* Más separación */ text-align: center; font-weight: bold; min-height: 5em; padding: 20px; /* Más padding */ border-radius: var(--border-radius); position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; }
-#feedback-area.correct { color: #155724; background-color: #d4edda; border: 1px solid #c3e6cb; }
-#feedback-area.incorrect { color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; }
-#feedback-area.mastery { color: #4d1a7f; background-color: #e9d8f3; border: 1px solid #d3b6e3; }
-#feedback-text-content { margin-bottom: 15px; /* Más espacio antes del botón Siguiente */ flex-grow: 1; text-align: left; width: 100%; }
-#feedback-text-content .explanation { font-weight: normal; font-size: 1em; margin-top: 10px; /* Más espacio */ color: var(--text-color); display: block; }
-.explanation-table { width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 0.85em; background-color: var(--card-bg-color); }
+#feedback-area { margin-top: 30px; text-align: center; font-weight: bold; min-height: 5em; padding: 20px; border-radius: var(--border-radius); position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
+#feedback-area.correct { color: var(--feedback-correct-text); background-color: var(--feedback-correct-bg); border: 1px solid var(--feedback-correct-border); }
+#feedback-area.incorrect { color: var(--feedback-incorrect-text); background-color: var(--feedback-incorrect-bg); border: 1px solid var(--feedback-incorrect-border); }
+#feedback-area.mastery { color: var(--feedback-mastery-text); background-color: var(--feedback-mastery-bg); border: 1px solid var(--feedback-mastery-border); }
+#feedback-text-content { margin-bottom: 15px; flex-grow: 1; text-align: left; width: 100%; }
+#feedback-text-content .explanation { font-weight: normal; font-size: 1em; margin-top: 10px; color: inherit; /* Hereda color del contenedor de feedback */ display: block; }
+.explanation-table { width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 0.85em; background-color: var(--card-bg-color); /* Fondo de tarjeta para tabla */ color: var(--main-text-color); /* Texto principal de main */ }
 .explanation-table th, .explanation-table td { border: 1px solid var(--border-color); padding: 4px 8px; text-align: center; font-weight: normal; }
-.explanation-table th { background-color: #e9ecef; font-weight: bold; }
-.explanation-table .highlight-row td { background-color: #d4edda; font-weight: bold; }
+.explanation-table th { background-color: var(--th-bg-color); /* Fondo de encabezado de tabla */ font-weight: bold; color: inherit; }
+.explanation-table .highlight-row td { background-color: var(--primary-light-bg); /* Resaltado azul claro */ font-weight: bold; }
 
-/* === MODIFICADO: Estilo y Alineación Botón Siguiente === */
+/* Botón Siguiente */
 #next-question-button {
-    padding: 10px 25px; /* Padding similar a otros botones */
-    font-size: 1em; /* Tamaño estándar */
-    background-color: var(--primary-color); /* Azul primario */
-    /* align-self: center; */ /* Descomentar para centrar */
-    align-self: flex-end; /* Mantener a la derecha (o cambiar a center) */
-    margin-top: 15px; /* Asegurar espacio arriba */
-    color: white;
+    padding: 10px 25px;
+    font-size: 1em;
+    background-color: var(--primary-color);
+    color: var(--primary-color-text);
+    align-self: flex-end; /* Alinear a la derecha */
+    margin-top: 15px;
     border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    font-family: var(--font-body); /* Asegurar fuente */
-    font-weight: 600; /* Semi-bold */
+    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    font-family: var(--font-body);
+    font-weight: 600;
     box-shadow: var(--box-shadow);
 }
 #next-question-button:hover {
-    background-color: var(--primary-dark-color); /* Azul oscuro */
+    background-color: var(--primary-dark-color);
     box-shadow: var(--box-shadow-hover);
 }
 #next-question-button:active {
     transform: translateY(1px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-/* === FIN MODIFICADO === */
 
 /* --- Game Over --- */
 #game-over { text-align: center; }
-#game-over h2 { color: var(--error-color); } /* Título Game Over en rojo */
+#game-over h2 { color: var(--primary-dark-color); } /* Título en azul oscuro */
 #final-score { font-size: 1.8em; color: var(--primary-dark-color); }
-#high-score-message { font-style: italic; color: var(--accent-teal-color); min-height: 1.2em; margin-top: 10px; margin-bottom: 20px; } /* Más espacio para mensaje */
+#high-score-message { font-style: italic; color: var(--accent-teal-color); min-height: 1.2em; margin-top: 10px; margin-bottom: 20px; }
+/* Botón Play Again usa .action-button-base */
 
-/* === ESTILO CORREGIDO PARA #play-again-button === */
-#play-again-button {
-    /* Aplicar estilos base de botones de acción */
-    padding: 14px 30px; /* Consistente con login/start */
-    font-size: 1.1em; /* Consistente */
-    margin-top: 20px; /* Espacio arriba */
-    background-color: var(--success-color); /* Color verde éxito */
-    color: white;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-family: var(--font-body);
-    font-weight: 600; /* Semi-bold */
-    box-shadow: var(--box-shadow);
-    transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    display: inline-block; /* Asegurar que se comporte como bloque para márgenes */
-}
-#play-again-button:hover {
-    background-color: var(--success-dark-color); /* Verde oscuro al pasar el ratón */
-    box-shadow: var(--box-shadow-hover);
-}
-#play-again-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-/* === FIN ESTILO CORREGIDO === */
 
 /* --- Progreso Desbloqueo (OBSOLETO VISUALMENTE) --- */
 #unlock-progress-section { display: none !important; }
 
 /* --- High Scores --- */
-#high-scores-section h2 { margin-bottom: 15px; }
+#high-scores-section h2 { margin-bottom: 15px; color: var(--primary-dark-color); }
 #score-list { list-style: none; padding: 0; margin: 0; text-align: left; }
 .score-entry { padding: 12px 0; border-bottom: 1px dashed var(--border-color); }
 .score-entry:last-child { border-bottom: none; }
-.score-username { font-weight: bold; font-size: 1.2em; color: var(--text-color); margin-bottom: 5px; }
-.level-scores { display: flex; flex-wrap: wrap; gap: 5px 15px; font-size: 0.9em; color: var(--secondary-text-color); padding-left: 10px; }
+.score-username { font-weight: bold; font-size: 1.2em; color: var(--main-text-color); margin-bottom: 5px; } /* Usa main-text */
+.level-scores { display: flex; flex-wrap: wrap; gap: 5px 15px; font-size: 0.9em; color: var(--main-secondary-text-color); padding-left: 10px; } /* Usa main-secondary */
 .level-score-item { white-space: nowrap; }
 .level-score-item strong { color: var(--primary-dark-color); font-weight: bold; }
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
+    /* Ajustes para tabletas */
     #level-stepper-container { justify-content: flex-start; padding-left: 10px; padding-right: 10px; }
-     #level-stepper-container::before { left: 2%; right: 2%; }
-     #level-stepper-container::after { left: 2%; }
+    #level-stepper-container::before { left: 2%; right: 2%; }
+    #level-stepper-container::after { left: 2%; }
     .stepper-item { min-width: 65px; padding: 5px; }
     .stepper-icon-wrapper { width: 35px; height: 35px; }
     .stepper-icon-wrapper i { font-size: 1em; }
@@ -374,34 +518,39 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 }
 
 @media (max-width: 600px) {
+    /* Ajustes para móviles */
     main { margin: 10px; padding: 10px 15px; }
     header h1 { font-size: 1.6em; }
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 12px 15px; }
     #question-container { font-size: 1.2em; width: 95%; }
     #game-info #main-game-info { gap: 5px 10px; }
-    #game-info i { font-size: 1em; }
-     #level-stepper-container::before { left: 1%; right: 1%; }
-     #level-stepper-container::after { left: 1%; }
+    #game-info i { font-size: 1em; } /* Reducir íconos info */
+    #level-stepper-container::before { left: 1%; right: 1%; }
+    #level-stepper-container::after { left: 1%; }
     .stepper-item { min-width: 55px; }
     #level-card-area { padding: 15px; min-height: 120px;}
     #level-card-content h3 { font-size: 1.3em; }
-    /* Ajustar botones de acción principales para móviles */
-    .login-submit-button, .start-level-button, #play-again-button {
+    /* Ajustar botones de acción principales */
+    .login-submit-button,
+    .start-level-button,
+    #play-again-button {
         padding: 12px 25px;
         font-size: 1em;
     }
     .game-controls { text-align: center; margin-bottom: 15px; }
-    .game-controls button { margin: 5px 5px; }
+    .game-controls button { margin: 5px; } /* Espacio entre botones */
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
     .global-controls { top: 5px; right: 10px; }
 }
 
 @media (max-width: 400px) {
+    /* Ajustes para pantallas muy pequeñas */
     .global-controls { position: static; display: flex; justify-content: center; margin-bottom: 10px; margin-top: 5px; gap: 15px; }
     header { padding-bottom: 5px; }
     .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
-    /* .stepper-label { display: none; } */ /* Considerar ocultar etiquetas en pantallas muy pequeñas si se solapan */
+    /* Considerar ocultar etiquetas del stepper si se solapan */
+    /* .stepper-label { display: none; } */
 }
