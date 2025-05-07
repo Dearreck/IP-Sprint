@@ -213,7 +213,7 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--footer-link-c
 /* --- Controles Globales (Idioma/Tema) --- */
 .global-controls { position: absolute; top: 10px; right: 15px; display: flex; gap: 10px; z-index: 100; }
 #language-toggle-button {
-    /* Estilos base (se ajustarán por tema) */
+    /* Estilos base */
     padding: 5px 10px;
     cursor: pointer;
     border-radius: var(--border-radius);
@@ -224,20 +224,22 @@ footer i { vertical-align: middle; margin-right: 5px; color: var(--footer-link-c
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    /* Estilos específicos para el tema claro (default) */
-    background-color: rgba(0, 0, 0, 0.05);
-    color: var(--primary-dark-color); /* Texto/Icono oscuro en modo claro */
-    border: 1px solid rgba(0, 0, 0, 0.1);
+
+    /* --- CAMBIO: Estilos para el tema claro (default) --- */
+    background-color: rgba(255, 255, 255, 0.2); /* Fondo blanco semitransparente */
+    color: var(--primary-color-text); /* Texto/Icono blanco (igual que el título del header) */
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Borde blanco semitransparente */
 }
 #language-toggle-button:hover {
     opacity: 1;
-    background-color: rgba(0, 0, 0, 0.1);
-    border-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(255, 255, 255, 0.3); /* Más opaco al pasar el ratón */
+    border-color: rgba(255, 255, 255, 0.6);
 }
-/* Ajuste específico para el botón en modo oscuro */
+
+/* --- CAMBIO: Estilos específicos para el botón en modo oscuro --- */
 body.dark-mode #language-toggle-button {
-    background-color: rgba(255, 255, 255, 0.1); /* Fondo semitransparente */
-    color: var(--primary-color-text); /* Icono/texto claro */
+    background-color: rgba(255, 255, 255, 0.1); /* Mantenemos fondo claro semitransparente */
+    color: var(--primary-color-text); /* Texto/Icono claro */
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 body.dark-mode #language-toggle-button:hover {
