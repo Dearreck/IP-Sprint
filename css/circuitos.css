@@ -1,92 +1,45 @@
+/* Contenedor principal del fondo */
 #circuit-background {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
-    background-color: #f8f8f8;
-    opacity: 0.8;
+    z-index: 0; /* Debe estar detrás del 'main' que tiene z-index: 1 */
+    overflow: hidden; /* Para asegurar que el SVG no se desborde */
 }
 
-#circuit-svg {
+/* Estilos base para el SVG y sus elementos */
+#circuit-background svg {
+    display: block; /* Evita espacio extra debajo */
     width: 100%;
     height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: -1;
+    object-fit: cover; /* Ajusta cómo se escala el SVG */
+    /* preserveAspectRatio="xMidYMid slice"; /* Otra opción de escalado */
 }
 
-.circuit-line {
-    fill: none;
-    stroke: rgba(0, 123, 255, 0.3);
-    stroke-width: 1;
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-    animation: draw-line 10s linear infinite, glow-pulse 2s ease-in-out infinite alternate;
+/* Estilo base para los trazados (paths) dentro del SVG */
+#circuit-background svg path {
+    fill: none; /* La mayoría de las líneas no tendrán relleno */
+    stroke-width: 1; /* Grosor de línea base */
+    vector-effect: non-scaling-stroke; /* Mantiene grosor de línea al escalar */
+    transition: stroke 0.3s ease; /* Transición suave para cambio de color */
 }
 
-.circuit-node {
-    r: 6;
-    fill: rgba(0, 184, 255, 0.5);
-    stroke: rgba(0, 184, 255, 0.7);
-    stroke-width: 1;
-    filter: url(#glow-light);
-    animation:  glow-pulse 2s ease-in-out infinite alternate;
+/* --- Estilos para Modo Claro --- */
+/* El fondo del body se controla en style.css, aquí controlamos el SVG */
+body.light-mode #circuit-background {
+    opacity: 0.6; /* Reducir opacidad en modo claro */
+}
+body.light-mode #circuit-background svg path {
+    stroke: rgba(0, 123, 255, 0.4); /* Color azul claro semitransparente */
 }
 
-
-/* Estilos para el modo claro */
-.light-mode #circuit-background {
-    background-color: #f8f8f8;
-    opacity: 0.8;
+/* --- Estilos para Modo Oscuro --- */
+/* El fondo del body se controla en style.css */
+body.dark-mode #circuit-background {
+    opacity: 0.9; /* Ligeramente más opaco en modo oscuro */
 }
-
-.light-mode .circuit-line {
-    stroke: rgba(0, 123, 255, 0.3);
-    stroke-width: 1;
-}
-
-.light-mode .circuit-node {
-    fill: rgba(0, 184, 255, 0.5);
-    stroke: rgba(0, 184, 255, 0.7);
-    stroke-width: 1;
-    filter: url(#glow-light);
-}
-
-
-/* Estilos para el modo noche */
-.dark-mode #circuit-background {
-    background-color: #080808;
-    opacity: 0.9;
-}
-
-.dark-mode .circuit-line {
-    stroke: url(#energy-flow-dark);
-    stroke-width: 2;
-}
-
-.dark-mode .circuit-node {
-    fill: #00ffff;
-    stroke: #00ffff;
-    stroke-width: 1;
-    filter: url(#glow-dark);
-}
-
-
-
-@keyframes draw-line {
-    to {
-        stroke-dashoffset: 0;
-    }
-}
-
-@keyframes glow-pulse {
-    from {
-        opacity: 0.1;
-    }
-    to {
-        opacity: 0.7;
-    }
+body.dark-mode #circuit-background svg path {
+    stroke: rgba(0, 184, 255, 0.5); /* Color cian semitransparente */
 }
