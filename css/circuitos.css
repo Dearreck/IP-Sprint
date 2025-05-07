@@ -5,8 +5,8 @@
     width: 100%;
     height: 100%;
     z-index: 0;
-    background-color: #0a192f;
-    opacity: 0.9;
+    background-color: #f0f0f0;
+    opacity: 0.8;
 }
 
 #circuit-svg {
@@ -19,7 +19,7 @@
 }
 
 .circuit-line {
-    stroke: #00bfff; /* Establece el color de las líneas a un azul brillante */
+    stroke: #00bfff;
     stroke-width: 2;
     stroke-dasharray: 500;
     stroke-dashoffset: 500;
@@ -28,9 +28,9 @@
 }
 
 .circuit-node {
-    fill: #b3b8b4;
-    stroke: #00bfff;  /* Establece el color del borde de los nodos a azul brillante */
-    stroke-width: 1;
+    fill: #00bfff;
+    stroke: #00bfff;
+    stroke-width: 2;
     filter: url(#blurFilter);
     animation: glow-pulse 2s ease-in-out infinite alternate;
 }
@@ -43,9 +43,9 @@
 
 @keyframes glow-pulse {
     from {
-        opacity: 0.1;
+        opacity: 0.2;
     }
     to {
-        opacity: 0.8;
+        opacity: 0.9;
     }
 }
