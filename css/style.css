@@ -210,7 +210,7 @@ footer a { color: var(--footer-link-color); } /* Variable específica */
 footer a:hover { color: var(--footer-link-hover-color); }
 footer i { vertical-align: middle; margin-right: 5px; color: var(--footer-link-color); }
 
-/* --- Controles Globales (Idioma/Tema) --- */
+/* --- Controles Globales (Idioma) --- */
 .global-controls { position: absolute; top: 10px; right: 15px; display: flex; gap: 10px; z-index: 100; }
 #language-toggle-button {
     /* Estilos base */
@@ -246,6 +246,49 @@ body.dark-mode #language-toggle-button:hover {
     background-color: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.5);
 }
+
+/* --- Controles Globales (Tema) --- */
+#theme-toggle-button {
+    /* Estilos base (copiar y adaptar de #language-toggle-button si es necesario) */
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: var(--border-radius);
+    font-size: 0.85em;
+    opacity: 0.9;
+    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    /* Estilos para el tema claro (default) */
+    background-color: rgba(255, 255, 255, 0.2);
+    color: var(--primary-color-text);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+#theme-toggle-button:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Estilos específicos para el botón en modo oscuro */
+body.dark-mode #theme-toggle-button {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--primary-color-text); /* O el color que prefieras para el icono en tema oscuro */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+body.dark-mode #theme-toggle-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Para cambiar el icono del botón según el tema */
+#theme-toggle-button .fa-sun { display: none; } /* Ocultar sol por defecto */
+body.dark-mode #theme-toggle-button .fa-moon { display: none; } /* Ocultar luna en modo oscuro */
+body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; } /* Mostrar sol en modo oscuro */
 
 
 /* --- Estilos Generales para Secciones DENTRO de main --- */
