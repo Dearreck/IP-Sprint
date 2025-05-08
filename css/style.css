@@ -123,8 +123,29 @@ body.dark-mode {
     /* Otros */
     --disabled-color: #718096;
     --locked-color: #a0aec0;
-    --box-shadow: 2px 2px 2px 2px rgb(66 153 225 / 50%);
-    --box-shadow-hover: 0 0 20px rgba(255, 255, 255, 0.12);
+    --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    --box-shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode main {
+
+    animation: pulse-glow 3s infinite ease-in-out;
+    
+    /* Sobrescribir la sombra estándar solo para main con un brillo azul */
+    box-shadow: 0 0 18px rgba(66, 153, 225, 0.15);
+    border: 1px solid rgba(66, 153, 225, 0.2);
+}
+
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 15px rgba(66, 153, 225, 0.1); /* Brillo inicial suave */
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(66, 153, 225, 0.25); /* Brillo máximo */
+    }
+    100% {
+        box-shadow: 0 0 15px rgba(66, 153, 225, 0.1); /* Volver al brillo inicial */
+    }
 }
 
 
