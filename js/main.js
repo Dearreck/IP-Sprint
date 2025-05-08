@@ -22,10 +22,22 @@ import {
 } from './game.js';
 // Importar funciones de internacionalización (i18n)
 import { setLanguage, getCurrentLanguage, getTranslation } from './i18n.js';
+// Importar funciones de Tema
+import { initTheme, toggleTheme, applySavedTheme } from './theme.js';
 
 // --- Ejecución Principal al Cargar el DOM ---
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("[Main] DOMContentLoaded"); // Log
+
+    // Obtener el botón del tema aquí una vez que el DOM está listo
+    const themeToggleButton = document.getElementById('theme-toggle-button');
+
+    // Aplicar tema guardado ANTES de inicializar otras cosas que puedan depender de estilos
+    if (themeToggleButton) { // Solo si el botón existe
+        applySavedTheme(); // Aplica la clase al body y actualiza el icono
+    } else {
+        console.error("[Main] #theme-toggle-button no encontrado al aplicar tema guardado.");
+    }
 
     // --- Inicialización del Idioma ---
     const initialLang = getCurrentLanguage();
@@ -36,6 +48,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         console.error("[Main] Error inicializando idioma:", error); // Mantener error crítico
     }
+
+    
 
 
     // --- Inicialización del Juego (Muestra Login) ---
@@ -66,6 +80,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     } else {
         console.error("[Main] #username-form no encontrado"); // Mantener error crítico
+    }
+
+    // NUEVO: Listener para el botón de cambio de tema
+    if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', () => {
+            toggleTheme();
+        });
     }
 
     // --- Listeners para botones de juego (Movidos a game.js y ui.js) ---
