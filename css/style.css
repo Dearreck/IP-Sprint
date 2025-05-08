@@ -114,7 +114,7 @@ body.dark-mode {
 
     /* Bordes */
     --border-color: #4a5568; /* Gris oscuro */
-    --border-color-light: #718096; /* Borde medio para inputs oscuros */
+    --border-color-light: #a0aec0; /* Borde medio para inputs oscuros */
     --feedback-correct-border: #2f6f49;
     --feedback-incorrect-border: #9b2c2c;
     --feedback-mastery-border: #6b46c1;
