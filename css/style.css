@@ -120,15 +120,11 @@ body.dark-mode {
     --feedback-mastery-border: #6b46c1;
     --warning-border-color: #d69e2e;
 
-    /* SVG Background */
-    --svg-stroke: rgba(0, 184, 255, 0.4); /* Cian semitransparente */
-    --svg-opacity: 0.8;
-
     /* Otros */
     --disabled-color: #718096;
     --locked-color: #a0aec0;
-    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    --box-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.4);
+    --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    --box-shadow-hover: 0 8px 18px rgba(0, 0, 0, 0.6);
 }
 
 
