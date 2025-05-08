@@ -76,7 +76,7 @@ body.dark-mode {
     /* Fondos */
     --body-bg-fallback: #0a0c10;
     --body-background: radial-gradient(ellipse at center, #1c2a3a 0%, #0a0c10 100%);
-    --card-bg-color: #1a202c; /* Tarjeta oscura */
+    --card-bg-color: #2d3748; /* Tarjeta oscura */
     --primary-light-bg: rgba(66, 153, 225, 0.1);
     --feedback-correct-bg: #1a472a;
     --feedback-incorrect-bg: #5a2129;
