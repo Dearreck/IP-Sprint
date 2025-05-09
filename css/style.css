@@ -1,5 +1,6 @@
 /* ================================================== */
 /* Hoja de Estilos Principal para IP Sprint          */
+/* v2.0 - Con Barra de Control Minimalista          */
 /* ================================================== */
 
 /* --- Variables CSS --- */
@@ -30,8 +31,6 @@
     --feedback-incorrect-text: #721c24;
     --feedback-mastery-text: #4d1a7f;
     --warning-text-color: #856404;
-    --footer-link-color: #6c757d;
-    --footer-link-hover-color: #2d3748;
 
     /* Colores Primarios y Acentos */
     --primary-color: #007bff; /* Azul estándar */
@@ -53,14 +52,11 @@
     --feedback-mastery-border: #d3b6e3;
     --warning-border-color: #ffeeba;
 
-    /* SVG Background */
-    --svg-stroke: rgba(49, 130, 206, 0.35); /* Azul oscuro semitransparente */
-    --svg-opacity: 0.6;
-
     /* Otros */
     --disabled-color: #ced4da;
     --locked-color: #adb5bd;
     --border-radius: 5px;
+    /* Sombra estándar para elementos como botones */
     --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     --box-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.15);
     --progress-width: 10%; /* Para stepper */
@@ -76,7 +72,7 @@ body.dark-mode {
     /* Fondos */
     --body-bg-fallback: #0a0c10;
     --body-background: radial-gradient(ellipse at center, #1c2a3a 0%, #0a0c10 100%);
-    --card-bg-color: #2d3748; /* Tarjeta oscura */
+    --card-bg-color: #2d3748; /* Tarjeta oscura (Tu ajuste) */
     --primary-light-bg: rgba(66, 153, 225, 0.1);
     --feedback-correct-bg: #1a472a;
     --feedback-incorrect-bg: #5a2129;
@@ -85,10 +81,10 @@ body.dark-mode {
     --th-bg-color: #2d3748;
 
     /* Textos */
-    --text-color: #e2e8f0; /* Texto claro (fuera de 'main') */
-    --main-text-color: #e2e8f0; /* Texto claro DENTRO de 'main' en dark mode */
-    --secondary-text-color: #a0aec0; /* Fuera de 'main' */
-    --main-secondary-text-color: #a0aec0; /* Dentro de 'main' */
+    --text-color: #e2e8f0;
+    --main-text-color: #e2e8f0;
+    --secondary-text-color: #a0aec0;
+    --main-secondary-text-color: #a0aec0;
     --primary-color-text: #ffffff;
     --success-color-text: #ffffff;
     --error-color-text: #ffffff;
@@ -97,12 +93,10 @@ body.dark-mode {
     --feedback-incorrect-text: #fed7d7;
     --feedback-mastery-text: #e9d8fd;
     --warning-text-color: #fbd38d;
-    --footer-link-color: #a0aec0;
-    --footer-link-hover-color: #ffffff;
 
     /* Colores Primarios y Acentos */
-    --primary-color: #4299e1; /* Azul más brillante */
-    --primary-dark-color: #63b3ed; /* Azul más claro para títulos oscuros */
+    --primary-color: #4299e1;
+    --primary-dark-color: #63b3ed;
     --accent-teal-color: #4fd1c5;
     --success-color: #48bb78;
     --success-dark-color: #38a169;
@@ -114,7 +108,7 @@ body.dark-mode {
 
     /* Bordes */
     --border-color: #4a5568; /* Gris oscuro */
-    --border-color-light: #a0aec0; /* Borde medio para inputs oscuros */
+    --border-color-light: #a0aec0; /* Borde input ajustado */
     --feedback-correct-border: #2f6f49;
     --feedback-incorrect-border: #9b2c2c;
     --feedback-mastery-border: #6b46c1;
@@ -123,31 +117,33 @@ body.dark-mode {
     /* Otros */
     --disabled-color: #718096;
     --locked-color: #a0aec0;
+    /* Sombra estándar oscura para elementos como botones */
     --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
     --box-shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.5);
 }
 
+/* --- Animación Glow para Main en Modo Oscuro --- */
 body.dark-mode main {
-
+    /* Aplica la animación de pulso cyan */
     animation: pulse-glow 2.25s infinite ease-in-out;
-    
-    /* Sobrescribir la sombra estándar solo para main con un brillo azul */
-    box-shadow: 0 0 18px rgba(66, 153, 225, 0.15);
+
     border: 1px solid rgba(66, 153, 225, 0.2);
 }
 
 @keyframes pulse-glow {
     0% {
-        box-shadow: 0 0 10px rgba(0, 184, 255, 0.45);
+        /* Estado inicial/final del glow cyan (más intenso) */
+        box-shadow: 0 0 20px rgba(0, 184, 255, 0.75);
     }
     50% {
-        box-shadow: 0 0 15px rgba(0, 184, 255, 0.6);
+        /* Pico del pulso (más intenso) */
+        box-shadow: 0 0 35px rgba(0, 184, 255, 0.95);
     }
     100% {
-        box-shadow: 0 0 10px rgba(0, 184, 255, 0.45);
+        /* Estado inicial/final (igual al 0%) */
+        box-shadow: 0 0 20px rgba(0, 184, 255, 0.75);
     }
 }
-
 
 /* --- Estilos Generales --- */
 body {
@@ -155,216 +151,214 @@ body {
     line-height: 1.6;
     margin: 0;
     padding: 0;
-    background: var(--body-background); /* Usa la variable de fondo */
-    color: var(--text-color); /* Color de texto base (fuera de main) */
+    background: var(--body-background);
+    color: var(--text-color);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     font-weight: 400;
     position: relative;
     overflow-x: hidden;
-    transition: background 0.3s ease, color 0.3s ease; /* Transición suave */
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 main {
     flex-grow: 1;
     max-width: 800px;
-    margin: 40px auto 20px auto;
-    padding: 20px;
-    background-color: var(--card-bg-color); /* Fondo de la tarjeta */
-    color: var(--main-text-color); /* Color de texto dentro de la tarjeta */
-    box-shadow: var(--box-shadow);
+    margin: 20px auto 20px auto; /* Reducido margen superior al quitar header */
+    padding: 20px; /* El padding interno sigue igual */
+    background-color: var(--card-bg-color);
+    color: var(--main-text-color);
+    box-shadow: var(--box-shadow); /* Sombra base para modo claro */
     border-radius: 8px;
+    /* border: 1px solid var(--border-color); /* Añadido borde base */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    /* justify-content: center; /* Quitado para que el contenido empiece arriba */
     position: relative;
-    z-index: 1; /* Asegura que esté sobre el fondo SVG */
-    transition: background-color 0.3s ease, color 0.3s ease; /* Transición */
+    z-index: 1;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-h1, h2 {
+/* Estilos generales para títulos y enlaces (sin cambios) */
+h1, h2 { /* h1 ya no se usa en header */
     font-family: var(--font-title);
     color: var(--primary-dark-color);
     text-align: center;
     font-weight: 700;
 }
-
-/* Estilos para h1 dentro del header (color diferente al h1 general) */
-header h1 {
-    margin: 0;
-    color: var(--primary-color-text); /* Blanco usualmente */
-    font-size: 2em;
-    font-family: var(--font-title);
-    font-weight: 700;
-}
-
 h2 { margin-bottom: 25px; }
 a { color: var(--primary-color); text-decoration: none; }
 a:hover { color: var(--primary-dark-color); text-decoration: underline; }
 hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; }
 
-/* --- Estilos Header y Footer --- */
-header {
-    background-color: var(--primary-color);
-    color: var(--primary-color-text); /* Texto dentro del header */
-    padding: 15px 0;
-    text-align: center;
-    position: relative;
-    transition: background-color 0.3s ease;
+/* === Nueva Barra de Control Minimalista === */
+.minimal-control-bar {
+    display: flex;
+    justify-content: space-between; /* Separa izq, centro, der */
+    align-items: center;
+    padding: 10px 0px; /* Padding vertical, sin padding horizontal (se añade en los hijos si es necesario) */
+    margin-bottom: 20px; /* Espacio antes del contenido principal */
+    border-bottom: 1px solid var(--border-color); /* Borde inferior sutil */
+    transition: border-color 0.3s ease;
 }
 
-footer {
-    background-color: #343a40; /* Mantener un gris oscuro fijo? o usar variable? */
-    color: #adb5bd; /* Color de texto fijo para footer */
+.control-bar-section {
+    display: flex;
+    align-items: center;
+}
+
+/* Sección Izquierda (Telegram) */
+.control-bar-left {
+    padding-left: 10px; /* Pequeño espacio izquierdo */
+}
+.control-bar-left a {
+    color: var(--main-secondary-text-color); /* Color icono */
+    font-size: 1.5em; /* Tamaño icono */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.control-bar-left a:hover {
+    color: var(--primary-color); /* Color hover */
+}
+
+/* Sección Central (Título) */
+.control-bar-center {
+    flex-grow: 1; /* Ocupa espacio disponible */
     text-align: center;
-    padding: 15px 0;
-    margin-top: auto;
+}
+.game-title-in-bar {
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-size: 1.4em;
+    color: var(--primary-dark-color);
+    transition: color 0.3s ease;
+}
+body.dark-mode .game-title-in-bar {
+     color: var(--primary-color); /* Color más brillante en modo oscuro */
+}
+.game-title-in-bar .rocket {
+    display: inline-block;
+    margin-left: 5px;
+}
+
+/* Sección Derecha (Idioma/Tema) */
+.control-bar-right {
+    display: flex;
+    gap: 10px; /* Espacio entre botones */
+    padding-right: 10px; /* Pequeño espacio derecho */
+}
+
+/* Estilo botones DENTRO de la barra */
+.control-bar-right #language-toggle-button,
+.control-bar-right #theme-toggle-button {
+    padding: 4px 8px; /* Más pequeños */
     font-size: 0.9em;
-}
-footer p { margin: 5px 0; }
-footer a { color: var(--footer-link-color); } /* Variable específica */
-footer a:hover { color: var(--footer-link-hover-color); }
-footer i { vertical-align: middle; margin-right: 5px; color: var(--footer-link-color); }
-
-/* --- Controles Globales (Idioma) --- */
-.global-controls { position: absolute; top: 10px; right: 15px; display: flex; gap: 10px; z-index: 100; }
-#language-toggle-button {
-    /* Estilos base */
-    padding: 5px 10px;
-    cursor: pointer;
+    background-color: transparent; /* Sin fondo por defecto */
+    border: 1px solid transparent; /* Sin borde por defecto */
+    color: var(--main-secondary-text-color); /* Color icono/texto */
     border-radius: var(--border-radius);
-    font-size: 0.85em;
-    opacity: 0.9;
-    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    font-weight: bold;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-
-    /* --- CAMBIO: Estilos para el tema claro (default) --- */
-    background-color: rgba(255, 255, 255, 0.2); /* Fondo blanco semitransparente */
-    color: var(--primary-color-text); /* Texto/Icono blanco (igual que el título del header) */
-    border: 1px solid rgba(255, 255, 255, 0.4); /* Borde blanco semitransparente */
+    gap: 4px;
+    opacity: 0.8; /* Ligeramente tenues */
 }
-#language-toggle-button:hover {
+
+.control-bar-right #language-toggle-button:hover,
+.control-bar-right #theme-toggle-button:hover {
+    opacity: 1; /* Opacidad completa al pasar ratón */
+    background-color: var(--primary-light-bg); /* Fondo sutil */
+    color: var(--primary-dark-color); /* Color primario */
+}
+
+body.dark-mode .control-bar-right #language-toggle-button,
+body.dark-mode .control-bar-right #theme-toggle-button {
+    color: var(--secondary-text-color); /* Icono/texto claro */
+    background-color: transparent;
+    border: 1px solid transparent;
+    opacity: 0.8;
+}
+
+body.dark-mode .control-bar-right #language-toggle-button:hover,
+body.dark-mode .control-bar-right #theme-toggle-button:hover {
     opacity: 1;
-    background-color: rgba(255, 255, 255, 0.3); /* Más opaco al pasar el ratón */
-    border-color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo claro sutil */
+    color: var(--text-color); /* Color claro primario */
 }
 
-/* --- CAMBIO: Estilos específicos para el botón en modo oscuro --- */
-body.dark-mode #language-toggle-button {
-    background-color: rgba(255, 255, 255, 0.1); /* Mantenemos fondo claro semitransparente */
-    color: var(--primary-color-text); /* Texto/Icono claro */
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-body.dark-mode #language-toggle-button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-}
-
-/* --- Controles Globales (Tema) --- */
-#theme-toggle-button {
-    /* Estilos base (copiar y adaptar de #language-toggle-button si es necesario) */
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: var(--border-radius);
-    font-size: 0.85em;
-    opacity: 0.9;
-    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-
-    /* Estilos para el tema claro (default) */
-    background-color: rgba(255, 255, 255, 0.2);
-    color: var(--primary-color-text);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-}
-
-#theme-toggle-button:hover {
-    opacity: 1;
-    background-color: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.6);
-}
-
-/* Estilos específicos para el botón en modo oscuro */
-body.dark-mode #theme-toggle-button {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--primary-color-text); /* O el color que prefieras para el icono en tema oscuro */
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-body.dark-mode #theme-toggle-button:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-}
-
-/* Para cambiar el icono del botón según el tema */
-#theme-toggle-button .fa-sun { display: none; } /* Ocultar sol por defecto */
-body.dark-mode #theme-toggle-button .fa-moon { display: none; } /* Ocultar luna en modo oscuro */
-body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; } /* Mostrar sol en modo oscuro */
+/* Estilos para mostrar/ocultar icono sol/luna (sin cambios) */
+#theme-toggle-button .fa-sun { display: none; }
+body.dark-mode #theme-toggle-button .fa-moon { display: none; }
+body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
+/* === Fin Nueva Barra de Control === */
 
 
 /* --- Estilos Generales para Secciones DENTRO de main --- */
-.game-section { margin-bottom: 30px; padding: 25px 30px; border: none; border-radius: var(--border-radius); background-color: transparent; }
+.game-section {
+    margin-bottom: 0; /* Quitar margen inferior si la barra ya da espacio */
+    padding: 25px 30px;
+    border: none;
+    background-color: transparent;
+}
+.minimal-control-bar + .game-section {
+   /* padding-top: 0; /* Opcional: si quieres que esté más pegada a la barra */
+}
 
-/* === Formulario User Setup MEJORADO === */
+
+/* === Formulario User Setup (Sin cambios estructurales) === */
 #user-setup { text-align: center; min-height: 300px; display: flex; flex-direction: column; justify-content: center; padding-top: 0; padding-bottom: 0; border: none; background-color: transparent; }
 .login-icon-area { font-size: 3.5em; color: var(--primary-color); margin-bottom: 20px; }
 #user-setup h2 { margin-top: 0; margin-bottom: 30px; color: var(--primary-dark-color); }
 #username-form { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; max-width: 350px; margin: 0 auto; }
-#username-form label { font-weight: bold; color: var(--main-secondary-text-color); font-size: 0.95em; } /* Texto secundario de main */
+#username-form label { font-weight: bold; color: var(--main-secondary-text-color); font-size: 0.95em; }
 #username-form input[type="text"] {
     padding: 12px 15px;
-    border: 1px solid var(--border-color-light); /* Borde específico */
-    color: var(--main-text-color); /* Color de texto de main */
-    background-color: var(--card-bg-color); /* Fondo igual a tarjeta */
+    border: 1px solid var(--border-color-light); /* Borde input */
+    color: var(--main-text-color);
+    background-color: var(--card-bg-color);
     border-radius: var(--border-radius); width: 100%; box-sizing: border-box; font-family: var(--font-body); text-align: center; font-size: 1.1em; transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 #username-form input[type="text"]:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Ajustar color del shadow si es necesario */
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.25); /* Usar color primario dark mode */
     outline: none;
 }
-/* Botón Login usa estilos de .action-button-base */
 
-/* --- Estilos Selección de Nivel (Stepper + Tarjeta) --- */
+/* --- Estilos Selección de Nivel (Stepper + Tarjeta) (Sin cambios) --- */
 #level-select h2 { margin-bottom: 30px; color: var(--primary-dark-color); }
 #level-stepper-container { display: flex; justify-content: space-around; align-items: center; margin-bottom: 35px; padding: 10px 0; position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 #level-stepper-container::-webkit-scrollbar { display: none; }
 #level-stepper-container::before { content: ''; position: absolute; top: 50%; left: 5%; right: 5%; height: 4px; background-color: var(--border-color); transform: translateY(-50%); z-index: 1; border-radius: 2px; transition: background-color 0.3s ease; }
 #level-stepper-container::after { content: ''; position: absolute; top: 50%; left: 5%; width: var(--progress-width, 5%); height: 4px; background-color: var(--primary-color); transform: translateY(-50%); z-index: 2; border-radius: 2px; transition: width 0.5s ease-in-out, background-color 0.3s ease; }
-.stepper-item { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 5px 10px; position: relative; z-index: 3; background-color: var(--card-bg-color); /* Para tapar línea */ transition: transform 0.2s ease, background-color 0.3s ease; min-width: 80px; }
+.stepper-item { display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 5px 10px; position: relative; z-index: 3; background-color: var(--card-bg-color); transition: transform 0.2s ease, background-color 0.3s ease; min-width: 80px; }
 .stepper-item:hover:not(.locked) { transform: scale(1.05); }
 .stepper-item.locked { cursor: default; }
 .stepper-icon-wrapper { width: 40px; height: 40px; border-radius: 50%; background-color: var(--card-bg-color); border: 3px solid var(--locked-color); display: flex; justify-content: center; align-items: center; margin-bottom: 5px; transition: border-color 0.3s ease, background-color 0.3s ease, transform 0.2s ease; }
 .stepper-icon-wrapper i { font-size: 1.2em; color: var(--locked-color); transition: color 0.3s ease; }
-.stepper-label { font-size: 0.8em; font-weight: bold; color: var(--main-secondary-text-color); transition: color 0.3s ease; margin-top: 2px; } /* Usa main-secondary */
+.stepper-label { font-size: 0.8em; font-weight: bold; color: var(--main-secondary-text-color); transition: color 0.3s ease; margin-top: 2px; }
 .stepper-item.unlocked .stepper-icon-wrapper { border-color: var(--primary-color); }
 .stepper-item.unlocked .stepper-icon-wrapper i { color: var(--primary-color); }
-.stepper-item.unlocked .stepper-label { color: var(--main-text-color); } /* Usa main-text */
+.stepper-item.unlocked .stepper-label { color: var(--main-text-color); }
 .stepper-item.completed .stepper-icon-wrapper { border-color: var(--success-color); }
 .stepper-item.completed .stepper-icon-wrapper i { color: var(--success-color); }
 .stepper-item.completed .stepper-label { color: var(--success-color); }
 .stepper-item.selected .stepper-icon-wrapper { border-color: var(--primary-dark-color); background-color: var(--primary-color); transform: scale(1.1); }
-.stepper-item.selected .stepper-icon-wrapper i { color: var(--primary-color-text); } /* Texto primario (blanco) */
+.stepper-item.selected .stepper-icon-wrapper i { color: var(--primary-color-text); }
 .stepper-item.selected .stepper-label { color: var(--primary-dark-color); font-weight: 900; }
-#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--primary-light-bg); /* Fondo azul muy claro */ min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--primary-light-bg); min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
 #level-card-content { width: 100%; }
 #level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
-#level-card-content .level-status { font-weight: bold; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--main-secondary-text-color); } /* Usa main-secondary */
+#level-card-content .level-status { font-weight: bold; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--main-secondary-text-color); }
 #level-card-content .level-status.locked { color: var(--locked-color); }
-#level-card-content .level-score { margin-bottom: 15px; color: var(--main-secondary-text-color); } /* Usa main-secondary */
-#level-card-content .level-score strong { color: var(--main-text-color); font-size: 1.1em; } /* Usa main-text */
+#level-card-content .level-score { margin-bottom: 15px; color: var(--main-secondary-text-color); }
+#level-card-content .level-score strong { color: var(--main-text-color); font-size: 1.1em; }
 #level-card-content .level-requirement { margin-bottom: 20px; color: var(--warning-text-color); background-color: var(--warning-bg-color); border: 1px solid var(--warning-border-color); font-style: italic; font-size: 0.9em; padding: 8px 12px; border-radius: var(--border-radius); display: inline-block; max-width: 90%; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
 #level-card-content .level-requirement i { margin-right: 5px; color: var(--warning-text-color); transition: color 0.3s ease; }
-/* Botón Start usa .action-button-base */
 
-
-/* === Base para Botones de Acción Principales === */
+/* === Base para Botones de Acción Principales (Sin cambios) === */
+/* (login-submit-button, start-level-button, play-again-button) */
 .login-submit-button,
 .start-level-button,
 #play-again-button {
@@ -372,19 +366,18 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; } /* Mostra
     font-size: 1.1em;
     display: inline-flex;
     align-items: center;
-    justify-content: center; /* Centrar contenido */
+    justify-content: center;
     gap: 8px;
     margin-top: 10px;
     border: none;
     border-radius: var(--border-radius);
     cursor: pointer;
     font-family: var(--font-body);
-    font-weight: 600; /* Semi-bold */
-    box-shadow: var(--box-shadow);
+    font-weight: 600;
+    box-shadow: var(--box-shadow); /* Usa la sombra estándar */
     transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    color: var(--primary-color-text); /* Texto del botón */
+    color: var(--primary-color-text);
 }
-/* Colores específicos */
 .login-submit-button,
 .start-level-button {
     background-color: var(--primary-color);
@@ -392,7 +385,7 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; } /* Mostra
 .login-submit-button:hover,
 .start-level-button:hover {
     background-color: var(--primary-dark-color);
-    box-shadow: var(--box-shadow-hover);
+    box-shadow: var(--box-shadow-hover); /* Usa la sombra hover estándar */
 }
 #play-again-button {
     background-color: var(--success-color);
@@ -401,45 +394,29 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; } /* Mostra
     background-color: var(--success-dark-color);
     box-shadow: var(--box-shadow-hover);
 }
-/* Estado activo */
 .login-submit-button:active,
 .start-level-button:active,
 #play-again-button:active {
     transform: translateY(1px);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-/* Icono dentro del botón de login */
 .login-submit-button i { transition: transform 0.2s ease-in-out; }
 .login-submit-button:hover i { transform: translateX(4px); }
 
-
-/* --- Estilos Área de Juego --- */
+/* --- Estilos Área de Juego (Sin cambios estructurales) --- */
 .game-controls { text-align: right; margin-bottom: 15px; }
 .game-controls button {
-    background-color: var(--card-bg-color); /* Fondo de tarjeta */
-    color: var(--main-secondary-text-color); /* Texto secundario de main */
+    background-color: var(--card-bg-color);
+    color: var(--main-secondary-text-color);
     border: 1px solid var(--border-color);
-    padding: 6px 12px;
-    font-size: 0.85em;
-    margin-left: 8px;
-    box-shadow: none;
-    font-weight: 600;
-    border-radius: var(--border-radius);
-    cursor: pointer;
+    padding: 6px 12px; font-size: 0.85em; margin-left: 8px; box-shadow: none;
+    font-weight: 600; border-radius: var(--border-radius); cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     font-family: var(--font-body);
 }
-.game-controls button:hover {
-    background-color: var(--primary-light-bg); /* Fondo azul claro */
-    color: var(--primary-dark-color);
-    border-color: var(--primary-light-bg);
-}
-.game-controls button i {
-    margin-right: 5px;
-    opacity: 0.8;
-}
-
-#game-info { text-align: center; margin-bottom: 15px; color: var(--main-secondary-text-color); font-size: 0.9em; } /* Usa main-secondary */
+.game-controls button:hover { background-color: var(--primary-light-bg); color: var(--primary-dark-color); border-color: var(--primary-light-bg); }
+.game-controls button i { margin-right: 5px; opacity: 0.8; }
+#game-info { text-align: center; margin-bottom: 15px; color: var(--main-secondary-text-color); font-size: 0.9em; }
 #game-info #main-game-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 15px; margin-bottom: 8px; }
 #game-info #main-game-info span { white-space: nowrap; }
 #game-info i { margin-right: 5px; color: var(--primary-color); font-size: 0.95em; vertical-align: baseline; transition: color 0.3s ease, transform 0.3s ease; display: inline-block; }
@@ -450,65 +427,34 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; } /* Mostra
 #round-progress-stars .star-pending { color: var(--locked-color); margin: 0 1px; }
 #round-progress-stars .star-mastery { color: var(--mastery-color); margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-#question-container { width: 90%; margin: 30px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; } /* Usa main-text */
-.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; } /* Usa main-text */
+#question-container { width: 90%; margin: 30px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
+.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; }
 hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; transition: background-color 0.3s ease; }
 #options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; }
-
-/* === Estilos MEJORADOS para botones de opción === */
 .option-button {
-    width: 80%;
-    max-width: 450px;
-    background-color: var(--card-bg-color); /* Fondo tarjeta */
-    color: var(--primary-dark-color);
-    border: 1px solid var(--border-color);
-    padding: 14px 20px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1em;
-    font-family: var(--font-body);
-    font-weight: 600;
-    text-align: center;
+    width: 80%; max-width: 450px; background-color: var(--card-bg-color); color: var(--primary-dark-color);
+    border: 1px solid var(--border-color); padding: 14px 20px; border-radius: var(--border-radius);
+    cursor: pointer; font-size: 1em; font-family: var(--font-body); font-weight: 600; text-align: center;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    box-shadow: var(--box-shadow);
+    box-shadow: var(--box-shadow); /* Usa sombra estándar */
 }
-.option-button:hover {
-    background-color: var(--primary-light-bg); /* Fondo azul claro */
-    border-color: var(--primary-color);
-    color: var(--primary-dark-color);
-    box-shadow: var(--box-shadow-hover);
-}
-.option-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-/* Estados */
+.option-button:hover { background-color: var(--primary-light-bg); border-color: var(--primary-color); color: var(--primary-dark-color); box-shadow: var(--box-shadow-hover); }
+.option-button:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 .option-button.correct { background-color: var(--success-color); color: var(--success-color-text); border-color: var(--success-color); }
 .option-button.correct:hover { background-color: var(--success-dark-color); border-color: var(--success-dark-color); }
 .option-button.incorrect { background-color: var(--error-color); color: var(--error-color-text); border-color: var(--error-color); }
 .option-button.incorrect:hover { background-color: var(--error-dark-color); border-color: var(--error-dark-color); }
 .option-button.mastery { background-color: var(--mastery-color); color: var(--mastery-color-text); border-color: var(--mastery-color); }
 .option-button.mastery:hover { background-color: var(--mastery-dark-color); border-color: var(--mastery-dark-color); }
-/* Correcto + Mastery */
 .option-button.correct.mastery { background-color: var(--mastery-color); border-color: var(--mastery-color); }
 .option-button.correct.mastery:hover { background-color: var(--mastery-dark-color); border-color: var(--mastery-dark-color); }
-/* Deshabilitado */
-.options-disabled .option-button {
-    pointer-events: none;
-    opacity: 0.65;
-    box-shadow: none;
-}
-/* Mantener resaltado visual incluso deshabilitado */
+.options-disabled .option-button { pointer-events: none; opacity: 0.65; box-shadow: none; }
 .options-disabled .option-button.correct,
 .options-disabled .option-button.incorrect,
 .options-disabled .option-button.mastery,
-.options-disabled .option-button.correct.mastery {
-    opacity: 1;
-    box-shadow: var(--box-shadow); /* Restaurar sombra para que se vea claro */
-}
-/* === FIN Estilos MEJORADOS === */
+.options-disabled .option-button.correct.mastery { opacity: 1; box-shadow: var(--box-shadow); }
 
-/* --- Timer y Feedback --- */
+/* --- Timer y Feedback (Sin cambios) --- */
 #timer-display { color: var(--primary-color); font-size: 0.9em; margin-top: 10px; }
 #timer-display.low-time { color: var(--error-color); font-weight: bold; }
 #feedback-area { margin-top: 30px; text-align: center; font-weight: bold; min-height: 5em; padding: 20px; border-radius: var(--border-radius); position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
@@ -516,62 +462,43 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 #feedback-area.incorrect { color: var(--feedback-incorrect-text); background-color: var(--feedback-incorrect-bg); border: 1px solid var(--feedback-incorrect-border); }
 #feedback-area.mastery { color: var(--feedback-mastery-text); background-color: var(--feedback-mastery-bg); border: 1px solid var(--feedback-mastery-border); }
 #feedback-text-content { margin-bottom: 15px; flex-grow: 1; text-align: left; width: 100%; }
-#feedback-text-content .explanation { font-weight: normal; font-size: 1em; margin-top: 10px; color: inherit; /* Hereda color del contenedor de feedback */ display: block; }
-.explanation-table { width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 0.85em; background-color: var(--card-bg-color); /* Fondo de tarjeta para tabla */ color: var(--main-text-color); /* Texto principal de main */ transition: background-color 0.3s ease, color 0.3s ease; }
+#feedback-text-content .explanation { font-weight: normal; font-size: 1em; margin-top: 10px; color: inherit; display: block; }
+.explanation-table { width: 95%; margin: 10px auto; border-collapse: collapse; font-size: 0.85em; background-color: var(--card-bg-color); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease; }
 .explanation-table th, .explanation-table td { border: 1px solid var(--border-color); padding: 4px 8px; text-align: center; font-weight: normal; transition: border-color 0.3s ease; }
-.explanation-table th { background-color: var(--th-bg-color); /* Fondo de encabezado de tabla */ font-weight: bold; color: inherit; transition: background-color 0.3s ease; }
-.explanation-table .highlight-row td { background-color: var(--primary-light-bg); /* Resaltado azul claro */ font-weight: bold; transition: background-color 0.3s ease; }
-
-/* Botón Siguiente */
+.explanation-table th { background-color: var(--th-bg-color); font-weight: bold; color: inherit; transition: background-color 0.3s ease; }
+.explanation-table .highlight-row td { background-color: var(--primary-light-bg); font-weight: bold; transition: background-color 0.3s ease; }
 #next-question-button {
-    padding: 10px 25px;
-    font-size: 1em;
-    background-color: var(--primary-color);
-    color: var(--primary-color-text);
-    align-self: flex-end; /* Alinear a la derecha */
-    margin-top: 15px;
-    border: none;
-    border-radius: var(--border-radius);
-    cursor: pointer;
+    padding: 10px 25px; font-size: 1em; background-color: var(--primary-color); color: var(--primary-color-text);
+    align-self: flex-end; margin-top: 15px; border: none; border-radius: var(--border-radius); cursor: pointer;
     transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    font-family: var(--font-body);
-    font-weight: 600;
-    box-shadow: var(--box-shadow);
+    font-family: var(--font-body); font-weight: 600; box-shadow: var(--box-shadow); /* Usa sombra estándar */
 }
-#next-question-button:hover {
-    background-color: var(--primary-dark-color);
-    box-shadow: var(--box-shadow-hover);
-}
-#next-question-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
+#next-question-button:hover { background-color: var(--primary-dark-color); box-shadow: var(--box-shadow-hover); }
+#next-question-button:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 
-/* --- Game Over --- */
+/* --- Game Over (Sin cambios) --- */
 #game-over { text-align: center; }
-#game-over h2 { color: var(--primary-dark-color); } /* Título en azul oscuro */
+#game-over h2 { color: var(--primary-dark-color); }
 #final-score { font-size: 1.8em; color: var(--primary-dark-color); }
 #high-score-message { font-style: italic; color: var(--accent-teal-color); min-height: 1.2em; margin-top: 10px; margin-bottom: 20px; transition: color 0.3s ease; }
-/* Botón Play Again usa .action-button-base */
 
-
-/* --- Progreso Desbloqueo (OBSOLETO VISUALMENTE) --- */
+/* --- Progreso Desbloqueo (Sin cambios) --- */
 #unlock-progress-section { display: none !important; }
 
-/* --- High Scores --- */
+/* --- High Scores (Sin cambios) --- */
 #high-scores-section h2 { margin-bottom: 15px; color: var(--primary-dark-color); }
 #score-list { list-style: none; padding: 0; margin: 0; text-align: left; }
 .score-entry { padding: 12px 0; border-bottom: 1px dashed var(--border-color); transition: border-color 0.3s ease; }
 .score-entry:last-child { border-bottom: none; }
-.score-username { font-weight: bold; font-size: 1.2em; color: var(--main-text-color); margin-bottom: 5px; } /* Usa main-text */
-.level-scores { display: flex; flex-wrap: wrap; gap: 5px 15px; font-size: 0.9em; color: var(--main-secondary-text-color); padding-left: 10px; } /* Usa main-secondary */
+.score-username { font-weight: bold; font-size: 1.2em; color: var(--main-text-color); margin-bottom: 5px; }
+.level-scores { display: flex; flex-wrap: wrap; gap: 5px 15px; font-size: 0.9em; color: var(--main-secondary-text-color); padding-left: 10px; }
 .level-score-item { white-space: nowrap; }
 .level-score-item strong { color: var(--primary-dark-color); font-weight: bold; }
 
 
-/* --- Responsiveness (sin cambios, ya debería funcionar con variables) --- */
+/* --- Responsiveness --- */
 @media (max-width: 768px) {
-    /* Ajustes para tabletas */
+    /* Ajustes para tabletas (sin cambios relevantes a la barra aquí) */
     #level-stepper-container { justify-content: flex-start; padding-left: 10px; padding-right: 10px; }
     #level-stepper-container::before { left: 2%; right: 2%; }
     #level-stepper-container::after { left: 2%; }
@@ -586,37 +513,71 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 @media (max-width: 600px) {
     /* Ajustes para móviles */
     main { margin: 10px; padding: 10px 15px; }
-    header h1 { font-size: 1.6em; }
+    /* header h1 { font-size: 1.6em; } /* Eliminado */
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 12px 15px; }
     #question-container { font-size: 1.2em; width: 95%; }
     #game-info #main-game-info { gap: 5px 10px; }
-    #game-info i { font-size: 1em; } /* Reducir íconos info */
+    #game-info i { font-size: 1em; }
     #level-stepper-container::before { left: 1%; right: 1%; }
     #level-stepper-container::after { left: 1%; }
     .stepper-item { min-width: 55px; }
     #level-card-area { padding: 15px; min-height: 120px;}
     #level-card-content h3 { font-size: 1.3em; }
-    /* Ajustar botones de acción principales */
     .login-submit-button,
     .start-level-button,
-    #play-again-button {
-        padding: 12px 25px;
-        font-size: 1em;
-    }
+    #play-again-button { padding: 12px 25px; font-size: 1em; }
     .game-controls { text-align: center; margin-bottom: 15px; }
-    .game-controls button { margin: 5px; } /* Espacio entre botones */
+    .game-controls button { margin: 5px; }
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
-    .global-controls { top: 5px; right: 10px; }
+    /* .global-controls { top: 5px; right: 10px; } /* Eliminado - Se maneja en la nueva barra */
+
+    /* --- NUEVO: Ajustes responsive para la barra minimalista --- */
+    .minimal-control-bar {
+        padding: 8px 15px; /* Reducir padding */
+    }
+    .game-title-in-bar {
+        font-size: 1.2em; /* Reducir título */
+    }
+    .control-bar-left a {
+        font-size: 1.3em; /* Ajustar icono Telegram */
+    }
+    .control-bar-right {
+        gap: 5px; /* Menos espacio botones */
+    }
+     .control-bar-right #language-toggle-button,
+     .control-bar-right #theme-toggle-button {
+        padding: 3px 6px; /* Botones más pequeños */
+        font-size: 0.8em;
+     }
+    /* --- FIN NUEVO --- */
 }
 
 @media (max-width: 400px) {
-    /* Ajustes para pantallas muy pequeñas */
-    .global-controls { position: static; display: flex; justify-content: center; margin-bottom: 10px; margin-top: 5px; gap: 15px; }
-    header { padding-bottom: 5px; }
     .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
-    /* Considerar ocultar etiquetas del stepper si se solapan */
-    /* .stepper-label { display: none; } */
+
+    /* --- NUEVO: Ajustes responsive barra minimalista < 400px --- */
+     .game-title-in-bar {
+         font-size: 1.1em; /* Título aún más pequeño */
+         /* Considera ocultarlo si es necesario */
+         /* display: none; */
+     }
+     .minimal-control-bar {
+        padding: 6px 10px; /* Menos padding aún */
+        /* Si ocultas el título, podrías centrar los iconos: */
+        /* justify-content: space-around; */
+     }
+     .control-bar-right {
+         gap: 3px;
+     }
+     .control-bar-right #language-toggle-button,
+     .control-bar-right #theme-toggle-button {
+        padding: 2px 5px;
+        font-size: 0.75em;
+     }
+     /* Ocultar el texto 'EN'/'ES' si no cabe */
+     /* #language-toggle-text { display: none; } */
+    /* --- FIN NUEVO --- */
 }
