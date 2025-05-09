@@ -1,13 +1,11 @@
 /* ================================================== */
 /* Hoja de Estilos Principal para IP Sprint          */
-/* v2.1 - Barra de Control Minimalista Integrada     */
+/* v2.2 - Barra de Control Minimalista Centrada      */
 /* ================================================== */
 
 /* --- Variables CSS --- */
 :root {
     /* --- Configuración Tema Claro (Default) --- */
-
-    /* Fondos */
     --body-bg-fallback: #f8f9fa;
     --body-background: radial-gradient(ellipse at center, #ffffff 0%, #e9ecef 100%);
     --card-bg-color: #ffffff;
@@ -23,7 +21,7 @@
     --main-text-color: #333333;
     --secondary-text-color: #718096;
     --main-secondary-text-color: #6c757d;
-    --primary-color-text: #ffffff;
+    --primary-color-text: #ffffff; /* Blanco para texto sobre primario */
     --success-color-text: #ffffff;
     --error-color-text: #ffffff;
     --mastery-color-text: #ffffff;
@@ -55,9 +53,9 @@
     /* Otros */
     --disabled-color: #ced4da;
     --locked-color: #adb5bd;
-    --border-radius: 8px; /* Radio de borde general (ej. para main) */
-    --button-border-radius: 5px; /* Radio de borde específico para botones */
-    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra estándar clara */
+    --border-radius: 8px;
+    --button-border-radius: 5px;
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     --box-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.15);
     --progress-width: 10%;
 
@@ -68,11 +66,9 @@
 
 body.dark-mode {
     /* --- Configuración Tema Oscuro --- */
-
-    /* Fondos */
     --body-bg-fallback: #0a0c10;
     --body-background: radial-gradient(ellipse at center, #1c2a3a 0%, #0a0c10 100%);
-    --card-bg-color: #2d3748; /* Fondo de main ajustado */
+    --card-bg-color: #2d3748;
     --primary-light-bg: rgba(66, 153, 225, 0.1);
     --feedback-correct-bg: #1a472a;
     --feedback-incorrect-bg: #5a2129;
@@ -83,8 +79,8 @@ body.dark-mode {
     /* Textos */
     --text-color: #e2e8f0;
     --main-text-color: #e2e8f0;
-    --secondary-text-color: #a0aec0; /* Gris claro secundario */
-    --main-secondary-text-color: #a0aec0; /* Mismo que secundario general */
+    --secondary-text-color: #a0aec0;
+    --main-secondary-text-color: #a0aec0;
     --primary-color-text: #ffffff; /* Blanco */
     --success-color-text: #ffffff;
     --error-color-text: #ffffff;
@@ -107,8 +103,8 @@ body.dark-mode {
     --mastery-dark-color: #805ad5;
 
     /* Bordes */
-    --border-color: #4a5568; /* Borde oscuro estándar */
-    --border-color-light: #a0aec0; /* Borde input ajustado */
+    --border-color: #4a5568;
+    --border-color-light: #a0aec0;
     --feedback-correct-border: #2f6f49;
     --feedback-incorrect-border: #9b2c2c;
     --feedback-mastery-border: #6b46c1;
@@ -117,33 +113,20 @@ body.dark-mode {
     /* Otros */
     --disabled-color: #718096;
     --locked-color: #a0aec0;
-    /* Sombra estándar oscura para elementos como botones */
     --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
     --box-shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.5);
 }
 
 /* --- Animación Glow para Main en Modo Oscuro --- */
 body.dark-mode main {
-    /* Aplica la animación de pulso cyan */
     animation: pulse-glow 2.25s infinite ease-in-out;
-    /* Borde sutil cyan para complementar el glow (opcional) */
-    /* border: 1px solid rgba(0, 184, 255, 0.2); */
-    /* La sombra base es sobrescrita por la animación */
+    /* border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
 }
 
 @keyframes pulse-glow {
-    0% {
-        /* Estado inicial/final del glow cyan (intensidad ajustada) */
-        box-shadow: 0 0 20px rgba(0, 184, 255, 0.75);
-    }
-    50% {
-        /* Pico del pulso (intensidad ajustada) */
-        box-shadow: 0 0 35px rgba(0, 184, 255, 0.95);
-    }
-    100% {
-        /* Estado inicial/final (igual al 0%) */
-        box-shadow: 0 0 20px rgba(0, 184, 255, 0.75);
-    }
+    0% { box-shadow: 0 0 20px rgba(0, 184, 255, 0.75); }
+    50% { box-shadow: 0 0 35px rgba(0, 184, 255, 0.95); }
+    100% { box-shadow: 0 0 20px rgba(0, 184, 255, 0.75); }
 }
 
 /* --- Estilos Generales --- */
@@ -163,22 +146,22 @@ body {
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* --- Estilos Main (Ajustados) --- */
+/* --- Estilos Main (Ajustados para centrado y barra) --- */
 main {
-    flex-grow: 1; /* Ocupa espacio verticalmente */
+    flex-grow: 1;
     max-width: 800px;
-    min-width: 375px; /* Ancho mínimo */
-    margin: 35px auto; /* Margen superior/inferior, centrado horizontal */
-    padding: 0 20px 20px 20px; /* Padding: 0 arriba, 20px lados/abajo (la barra tiene su propio padding) */
+    min-width: 375px; /* Punto 2 */
+    margin: 35px auto; /* Punto 1 */
+    padding: 0; /* El padding se manejará por la barra y las secciones */
     background-color: var(--card-bg-color);
     color: var(--main-text-color);
-    box-shadow: var(--box-shadow); /* Sombra base para modo claro */
-    border-radius: var(--border-radius); /* Usa variable general */
-    border: 1px solid transparent; /* Borde transparente por defecto (para que no cambie tamaño al añadir borde en dark mode) */
+    box-shadow: var(--box-shadow);
+    border-radius: var(--border-radius);
+    border: 1px solid transparent; /* Para evitar saltos de layout */
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Centra verticalmente el contenido principal */
-    position: relative; /* Necesario para posicionar la barra interna */
+    justify-content: center; /* Punto 6: Centra verticalmente el contenido principal (secciones) */
+    position: relative;
     z-index: 1;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -191,126 +174,108 @@ h2 {
     color: var(--primary-dark-color);
     font-family: var(--font-title);
 }
-a {
-    color: var(--primary-color);
-    text-decoration: none;
-}
-a:hover {
-    color: var(--primary-dark-color);
-    text-decoration: underline;
-}
-hr {
-    border: 0;
-    height: 1px;
-    background-color: var(--border-color);
-    margin: 25px 0;
-}
+a { color: var(--primary-color); text-decoration: none; }
+a:hover { color: var(--primary-dark-color); text-decoration: underline; }
+hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; }
 
-/* === Nueva Barra de Control Minimalista === */
+/* === Nueva Barra de Control Minimalista (Con Posicionamiento Absoluto Interno) === */
 .minimal-control-bar {
-    /* Posicionamiento absoluto en la parte superior de 'main' */
-    position: absolute;
+    position: absolute; /* Anclada a 'main' */
     top: 0;
     left: 0;
-    right: 0;
+    width: 100%; /* Ocupa todo el ancho de 'main' */
     height: 50px; /* Altura fija para la barra */
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* Centrado vertical para todos los hijos */
-    padding: 0 20px; /* Padding horizontal */
+    display: flex; /* Para alinear verticalmente los elementos posicionados absolutamente */
+    align-items: center;
+    padding: 0 20px; /* Padding horizontal general de la barra */
+    box-sizing: border-box; /* Para que el padding no aumente el width:100% */
     border-bottom: 1px solid var(--border-color);
-    background-color: var(--card-bg-color); /* Fondo igual al main */
-    border-top-left-radius: var(--border-radius); /* Redondear esquinas superiores */
+    background-color: var(--card-bg-color);
+    border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
     transition: border-color 0.3s ease, background-color 0.3s ease;
-    z-index: 10; /* Encima de las secciones */
+    z-index: 10;
 }
 
-.control-bar-section {
+.control-bar-section { /* Esta clase ya no es necesaria para layout principal de la barra */
     display: flex;
     align-items: center;
 }
 
-/* Sección Izquierda (Telegram) */
+/* Sección Izquierda (Telegram) - Posicionada Absolutamente */
+.control-bar-left {
+    position: absolute;
+    left: 20px; /* Igual al padding de la barra */
+    top: 50%;
+    transform: translateY(-50%); /* Centrado vertical perfecto */
+}
 .control-bar-left a {
-    color: var(--primary-color); /* Azul en modo claro */
+    color: var(--primary-color); /* Punto 3: Azul en modo claro */
     font-size: 1.4em;
     text-decoration: none;
     transition: color 0.3s ease;
     display: flex;
     align-items: center;
 }
-.control-bar-left a:hover {
-    color: var(--primary-dark-color);
-}
+.control-bar-left a:hover { color: var(--primary-dark-color); }
 body.dark-mode .control-bar-left a {
-    color: var(--primary-color-text); /* Blanco en modo oscuro */
+    color: var(--primary-color-text); /* Punto 3: Blanco en modo oscuro */
 }
-body.dark-mode .control-bar-left a:hover {
-    color: var(--secondary-text-color);
-}
+body.dark-mode .control-bar-left a:hover { color: var(--secondary-text-color); }
 
-/* Sección Central (Título) */
+/* Sección Central (Título) - Posicionada Absolutamente */
 .control-bar-center {
-    flex-grow: 1;
-    text-align: center;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%); /* Centrado horizontal y vertical perfecto */
+    /* text-align: center; /* No es necesario si el span es inline-block */
 }
 .game-title-in-bar {
     font-family: var(--font-title);
     font-weight: 700;
-    font-size: 1.2em; /* Tamaño reducido */
+    font-size: 1.2em; /* Punto 4: Tamaño reducido */
     color: var(--primary-dark-color);
     transition: color 0.3s ease;
+    white-space: nowrap; /* Evitar que el título se rompa en dos líneas */
 }
-body.dark-mode .game-title-in-bar {
-     color: var(--primary-color);
-}
-.game-title-in-bar .rocket {
-    display: inline-block;
-    margin-left: 5px;
-}
+body.dark-mode .game-title-in-bar { color: var(--primary-color); }
+.game-title-in-bar .rocket { display: inline-block; margin-left: 5px; }
 
-/* Sección Derecha (Idioma/Tema) */
+/* Sección Derecha (Idioma/Tema) - Posicionada Absolutamente */
 .control-bar-right {
-    display: flex;
-    gap: 12px; /* Espacio entre botones */
+    position: absolute;
+    right: 20px; /* Igual al padding de la barra */
+    top: 50%;
+    transform: translateY(-50%); /* Centrado vertical perfecto */
+    display: flex; /* Para alinear los botones internos */
+    align-items: center;
+    gap: 12px;
 }
 
-/* Estilo botones DENTRO de la barra */
+/* Estilo botones DENTRO de la barra (Idioma/Tema) */
 .control-bar-right button {
     padding: 4px 6px;
-    font-size: 0.85em; /* Tamaño base para el texto */
+    font-size: 0.85em;
     background-color: transparent;
     border: none;
-    color: var(--primary-color); /* Color para texto e icono por defecto (azul en modo claro) */
+    color: var(--primary-color); /* Punto 5: Azul en modo claro */
     border-radius: var(--button-border-radius);
     transition: color 0.2s ease, opacity 0.2s ease;
     cursor: pointer;
-    display: inline-flex; /* Mantenemos flex para alinear icono y texto */
-    align-items: center; /* Centrar verticalmente icono y texto */
-    gap: 5px; /* Espacio entre icono y texto (ajustado) */
-    opacity: 0.8; /* Opacidad ajustada */
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    opacity: 0.8;
 }
-
-/* Añadir regla específica para el icono <i> */
-.control-bar-right button i {
-    font-size: 1em; /* Asegurar que el icono tenga un tamaño relativo al botón */
-    line-height: 1; /* Evitar problemas de altura de línea */
-    /* El color se hereda del botón */
-}
-
-.control-bar-right button:hover {
-    opacity: 1;
-    color: var(--primary-dark-color);
-}
+.control-bar-right button i { font-size: 1em; line-height: 1; }
+.control-bar-right button:hover { opacity: 1; color: var(--primary-dark-color); }
 body.dark-mode .control-bar-right button {
-    color: var(--primary-color-text); /* Blanco en modo oscuro */
+    color: var(--primary-color-text); /* Punto 5: Blanco en modo oscuro */
 }
- body.dark-mode .control-bar-right button:hover {
-    color: var(--secondary-text-color);
- }
+body.dark-mode .control-bar-right button:hover { color: var(--secondary-text-color); }
 
-/* Estilos para mostrar/ocultar icono sol/luna */
+/* Iconos de tema (sin cambios) */
 #theme-toggle-button .fa-sun { display: none; }
 body.dark-mode #theme-toggle-button .fa-moon { display: none; }
 body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
@@ -320,74 +285,46 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 /* --- Estilos Generales para Secciones DENTRO de main --- */
 .game-section {
     margin-bottom: 0;
-    /* Ajustar padding superior para dejar espacio a la barra absoluta */
-    padding: 65px 20px 20px 20px; /* 50px (altura barra) + 15px (margen deseado), padding lateral igual a main */
+    /* Padding superior para dejar espacio a la barra (50px altura + 20px deseado) */
+    padding: 70px 20px 20px 20px;
     border: none;
     background-color: transparent;
-    width: 100%; /* Ocupar ancho para centrar contenido interno */
-    box-sizing: border-box; /* Incluir padding en el ancho */
-    display: flex; /* Usar flex para centrar contenido de la sección si es necesario */
+    width: 100%;
+    box-sizing: border-box;
+    display: none; /* Ocultar por defecto, JS muestra la activa */
     flex-direction: column;
-    align-items: center; /* Centrar horizontalmente el contenido de la sección */
-    flex-grow: 1; /* Permitir que la sección activa crezca para el centrado vertical de main */
+    align-items: center;
+    flex-grow: 1; /* Para que la sección activa pueda crecer y centrarse en 'main' */
 }
-/* Ocultar secciones no activas (manejado por JS) */
-/* .game-section { display: none; } */
-/* .game-section.active { display: flex; } */
+.game-section.active {
+    display: flex; /* Mostrar la sección activa */
+    /* El justify-content: center; en main se encargará del centrado vertical de esta sección */
+}
 
 
 /* === Formulario User Setup === */
 #user-setup {
     text-align: center;
-    /* No necesita min-height ni justify-content si main se encarga */
+    /* No necesita min-height ni justify-content si main y .game-section.active se encargan */
     padding-top: 0; /* El padding ya está en .game-section */
     padding-bottom: 0;
 }
-.login-icon-area {
-    font-size: 3.5em;
-    color: var(--primary-color);
-    margin-bottom: 20px;
-}
-#user-setup h2 {
-    margin-top: 0;
-    margin-bottom: 30px;
-    color: var(--primary-dark-color);
-}
-#username-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 18px;
-    width: 100%;
-    max-width: 350px; /* Limitar ancho del formulario */
-    margin: 0 auto;
-}
-#username-form label {
-    font-weight: bold;
-    color: var(--main-secondary-text-color);
-    font-size: 0.95em;
-}
+.login-icon-area { font-size: 3.5em; color: var(--primary-color); margin-bottom: 20px; }
+#user-setup h2 { margin-top: 0; margin-bottom: 30px; color: var(--primary-dark-color); }
+#username-form { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; max-width: 350px; margin: 0 auto; }
+#username-form label { font-weight: bold; color: var(--main-secondary-text-color); font-size: 0.95em; }
 #username-form input[type="text"] {
-    padding: 12px 15px;
-    border: 1px solid var(--border-color-light);
-    color: var(--main-text-color);
-    background-color: var(--card-bg-color);
-    border-radius: var(--button-border-radius); /* Usar radio de botón */
-    width: 100%;
-    box-sizing: border-box;
-    font-family: var(--font-body);
-    text-align: center;
-    font-size: 1.1em;
+    padding: 12px 15px; border: 1px solid var(--border-color-light); color: var(--main-text-color);
+    background-color: var(--card-bg-color); border-radius: var(--button-border-radius); width: 100%;
+    box-sizing: border-box; font-family: var(--font-body); text-align: center; font-size: 1.1em;
     transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 #username-form input[type="text"]:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.25); /* Ajustar color shadow focus */
-    outline: none;
+    border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.25); outline: none;
 }
 
 /* --- Estilos Selección de Nivel (Stepper + Tarjeta) --- */
-#level-select { padding-top: 0; } /* Ajustar padding si es necesario */
+#level-select { padding-top: 0; }
 #level-select h2 { margin-bottom: 30px; color: var(--primary-dark-color); }
 #level-stepper-container { display: flex; justify-content: space-around; align-items: center; margin-bottom: 35px; padding: 10px 0; position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; width: 100%; }
 #level-stepper-container::-webkit-scrollbar { display: none; }
@@ -408,7 +345,7 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 .stepper-item.selected .stepper-icon-wrapper { border-color: var(--primary-dark-color); background-color: var(--primary-color); transform: scale(1.1); }
 .stepper-item.selected .stepper-icon-wrapper i { color: var(--primary-color-text); }
 .stepper-item.selected .stepper-label { color: var(--primary-dark-color); font-weight: 900; }
-#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--primary-light-bg); min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); width: 100%; max-width: 500px; /* Limitar ancho tarjeta */ }
+#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--primary-light-bg); min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); width: 100%; max-width: 500px; }
 #level-card-content { width: 100%; }
 #level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
 #level-card-content .level-status { font-weight: bold; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--main-secondary-text-color); }
@@ -422,36 +359,22 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 .login-submit-button,
 .start-level-button,
 #play-again-button {
-    padding: 14px 30px;
-    font-size: 1.1em;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 10px;
-    border: none;
-    border-radius: var(--button-border-radius);
-    cursor: pointer;
-    font-family: var(--font-body);
-    font-weight: 600;
-    box-shadow: var(--box-shadow); /* Usa sombra estándar */
+    padding: 14px 30px; font-size: 1.1em; display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; margin-top: 10px; border: none; border-radius: var(--button-border-radius); cursor: pointer;
+    font-family: var(--font-body); font-weight: 600; box-shadow: var(--box-shadow);
     transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
     color: var(--primary-color-text);
 }
-.login-submit-button,
-.start-level-button { background-color: var(--primary-color); }
-.login-submit-button:hover,
-.start-level-button:hover { background-color: var(--primary-dark-color); box-shadow: var(--box-shadow-hover); }
+.login-submit-button, .start-level-button { background-color: var(--primary-color); }
+.login-submit-button:hover, .start-level-button:hover { background-color: var(--primary-dark-color); box-shadow: var(--box-shadow-hover); }
 #play-again-button { background-color: var(--success-color); }
 #play-again-button:hover { background-color: var(--success-dark-color); box-shadow: var(--box-shadow-hover); }
-.login-submit-button:active,
-.start-level-button:active,
-#play-again-button:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.login-submit-button:active, .start-level-button:active, #play-again-button:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 .login-submit-button i { transition: transform 0.2s ease-in-out; }
 .login-submit-button:hover i { transform: translateX(4px); }
 
 /* --- Estilos Área de Juego --- */
-#game-area { padding-top: 0; } /* Ajustar padding si es necesario */
+#game-area { padding-top: 0; }
 .game-controls { text-align: right; margin-bottom: 15px; width: 100%; }
 .game-controls button {
     background-color: var(--card-bg-color); color: var(--main-secondary-text-color); border: 1px solid var(--border-color);
@@ -473,7 +396,7 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 #round-progress-stars .star-mastery { color: var(--mastery-color); margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
 #question-container { width: 90%; margin: 20px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
-.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; width: 90%; /* Ajustar ancho si es necesario */ box-sizing: border-box; }
+.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; width: 90%; box-sizing: border-box; }
 hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; transition: background-color 0.3s ease; width: 90%; }
 #options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; width: 100%; }
 .option-button {
@@ -502,7 +425,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 /* --- Timer y Feedback --- */
 #timer-display { color: var(--primary-color); font-size: 0.9em; margin-top: 10px; }
 #timer-display.low-time { color: var(--error-color); font-weight: bold; }
-#feedback-area { margin-top: 30px; text-align: center; font-weight: bold; min-height: 5em; padding: 20px; border-radius: var(--border-radius); position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; width: 90%; /* Ajustar ancho */ box-sizing: border-box; }
+#feedback-area { margin-top: 30px; text-align: center; font-weight: bold; min-height: 5em; padding: 20px; border-radius: var(--border-radius); position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; width: 90%; box-sizing: border-box; }
 #feedback-area.correct { color: var(--feedback-correct-text); background-color: var(--feedback-correct-bg); border: 1px solid var(--feedback-correct-border); }
 #feedback-area.incorrect { color: var(--feedback-incorrect-text); background-color: var(--feedback-incorrect-bg); border: 1px solid var(--feedback-incorrect-border); }
 #feedback-area.mastery { color: var(--feedback-mastery-text); background-color: var(--feedback-mastery-bg); border: 1px solid var(--feedback-mastery-border); }
@@ -533,7 +456,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 /* --- High Scores --- */
 #high-scores-section { padding-top: 0; }
 #high-scores-section h2 { margin-bottom: 15px; color: var(--primary-dark-color); }
-#score-list { list-style: none; padding: 0; margin: 0; text-align: left; width: 100%; max-width: 500px; /* Limitar ancho lista */ }
+#score-list { list-style: none; padding: 0; margin: 0; text-align: left; width: 100%; max-width: 500px; }
 .score-entry { padding: 12px 0; border-bottom: 1px dashed var(--border-color); transition: border-color 0.3s ease; }
 .score-entry:last-child { border-bottom: none; }
 .score-username { font-weight: bold; font-size: 1.2em; color: var(--main-text-color); margin-bottom: 5px; }
@@ -544,8 +467,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
-    /* Ajustes generales para tabletas */
-    main { min-width: 90%; } /* Permitir que main sea más flexible */
+    main { min-width: 90%; }
     #level-stepper-container { justify-content: flex-start; padding-left: 10px; padding-right: 10px; }
     #level-stepper-container::before { left: 2%; right: 2%; }
     #level-stepper-container::after { left: 2%; }
@@ -558,8 +480,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 }
 
 @media (max-width: 600px) {
-    /* Ajustes generales para móviles */
-    main { margin: 10px; padding: 0 15px 15px 15px; min-width: calc(100% - 20px); } /* Margen pequeño, padding ajustado */
+    main { margin: 10px; padding: 0 15px 15px 15px; min-width: calc(100% - 20px); }
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 12px 15px; }
     #question-container { font-size: 1.2em; width: 95%; }
@@ -578,27 +499,24 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
 
-    /* Ajustes responsive para la barra minimalista */
     .minimal-control-bar { padding: 8px 15px; height: 45px; }
     .game-title-in-bar { font-size: 1.1em; }
     .control-bar-left a { font-size: 1.2em; }
     .control-bar-right { gap: 8px; }
      .control-bar-right button { padding: 3px 5px; font-size: 0.8em; }
-     .game-section { padding: 55px 15px 15px 15px; } /* Ajustar padding con barra y padding de main */
+     .game-section { padding: 60px 15px 15px 15px; } /* 45px altura barra + 15px margen */
 }
 
 @media (max-width: 400px) {
-    /* Ajustes generales para móviles muy pequeños */
     main { margin: 5px; padding: 0 10px 10px 10px; min-width: calc(100% - 10px); }
     .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
 
-    /* Ajustes responsive barra minimalista < 400px */
-     .game-title-in-bar { display: none; } /* Ocultar título */
+     .game-title-in-bar { display: none; }
      .minimal-control-bar { padding: 6px 10px; height: 40px; justify-content: space-between; }
-     .control-bar-center { flex-grow: 0; }
+     .control-bar-center { flex-grow: 0; } /* No necesita crecer si el título está oculto */
      .control-bar-right { gap: 5px; }
      .control-bar-right button { padding: 2px 4px; font-size: 0.75em; }
-     #language-toggle-text { display: none; } /* Ocultar texto idioma */
-     .game-section { padding: 50px 10px 10px 10px; } /* Ajustar padding con barra y padding de main */
+     #language-toggle-text { display: none; }
+     .game-section { padding: 50px 10px 10px 10px; } /* 40px altura barra + 10px margen */
 }
