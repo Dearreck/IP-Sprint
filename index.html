@@ -29,11 +29,10 @@
             currentTheme = defaultTheme; // Fallback si no se puede detectar
           }
           // Guardar la preferencia determinada (del sistema o default) en localStorage
-          // para futuras visitas.
           localStorage.setItem(themeKey, currentTheme);
         }
 
-        // Aplicar la clase al elemento <html>
+        // Aplicar la clase del tema al elemento <html>
         if (currentTheme === 'dark') {
           document.documentElement.classList.add('dark-mode');
         } else {
@@ -43,8 +42,8 @@
         // Aplicar Idioma
         const currentLang = localStorage.getItem(langKey) || defaultLang;
         document.documentElement.setAttribute('lang', currentLang);
-        // No es necesario guardar el idioma aquí si ya se está obteniendo el default
-        // si no existe, ya que el módulo i18n.js lo guardará cuando se cambie explícitamente.
+
+        document.documentElement.classList.add('initial-prefs-applied');
       })();
     </script>
 
