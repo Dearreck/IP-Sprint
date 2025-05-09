@@ -62,6 +62,10 @@
     /* Fuentes */
     --font-body: 'Montserrat', sans-serif;
     --font-title: 'Comfortaa', sans-serif;
+
+    /* Variables */
+    --control-bar-height-mobile: 45px;
+    --control-bar-height-small-mobile: 40px;
 }
 
 body.dark-mode {
@@ -141,7 +145,7 @@ body {
     min-height: 100vh; /* Asegura que body ocupe al menos toda la altura de la pantalla */
     font-weight: 400;
     position: relative;
-    overflow-x: hidden;
+    overflow: hidden;
     transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -163,6 +167,7 @@ main {
     z-index: 1;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     overflow-y: auto; /* Permite scroll vertical DENTRO de main si el contenido es muy largo */
+    min-height: 0;
     padding-top: 65px; /* ALTURA DE LA BARRA (50px) + MARGEN DESEADO (15px) */
     box-sizing: border-box; /* Para que el padding-top no aumente la altura total de main */
 
@@ -487,7 +492,13 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 }
 
 @media (max-width: 600px) {
-    main { margin: 10px; width: calc(100% - 20px); min-width: 0; padding-top: 60px; } /* 45px altura barra + 15px margen */
+    main {
+        margin: 10px auto; 
+        width: calc(100% - 20px);
+        min-width: 0; 
+        padding-top: calc(var(--control-bar-height-mobile) + 10px); /* Altura barra móvil + margen interno deseado */
+    }
+    
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 12px 15px; }
     #question-container { font-size: 1.2em; width: 95%; }
@@ -516,7 +527,13 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 }
 
 @media (max-width: 400px) {
-    main { margin: 5px; width: calc(100% - 10px); min-width: 0; padding-top: 50px; } /* 40px altura barra + 10px margen */
+    main {
+        margin: 5px auto; /* Márgenes aún más pequeños */
+        width: calc(100% - 10px);
+        padding-top: calc(var(--control-bar-height-small-mobile) + 10px); /* Altura barra muy pequeña + margen interno */
+        min-width: 0;
+    }
+    
     .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
 
