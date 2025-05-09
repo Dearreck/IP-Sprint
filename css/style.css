@@ -128,8 +128,10 @@ body.dark-mode {
 }
 
 html {
-    height: 100%;
-    overflow: hidden; /* Previene scroll en el html */
+    height: 100%; /* Ocupa la altura del viewport */
+    overflow: hidden; /* No permitir scroll en html */
+    margin: 0;
+    padding: 0;
 }
 
 /* --- Estilos Generales --- */
@@ -151,7 +153,7 @@ body {
 
 /* --- Estilos Main (Ajustados para centrado y scroll) --- */
 main {
-    flex-grow: 1; /* Permite que main crezca para ocupar el espacio disponible en body */
+    flex: 1 1 0;
     max-width: 800px;
     min-width: 375px;
     width: 65%; /* Que sea un poco más flexible que un max-width fijo en pantallas más grandes */
