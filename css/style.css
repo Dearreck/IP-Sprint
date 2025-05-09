@@ -398,9 +398,9 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 #round-progress-stars .star-pending { color: var(--locked-color); margin: 0 1px; }
 #round-progress-stars .star-mastery { color: var(--mastery-color); margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-#question-container { width: 90%; margin: 20px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
-.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; width: 90%; box-sizing: border-box; }
-hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; transition: background-color 0.3s ease; width: 90%; }
+#question-container { width: 100%; margin: 20px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
+.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; width: 100%; box-sizing: border-box; }
+hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; transition: background-color 0.3s ease; width: 95%; }
 #options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; width: 100%; }
 .option-button {
     width: 80%; max-width: 450px; background-color: var(--card-bg-color); color: var(--primary-dark-color);
