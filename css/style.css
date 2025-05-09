@@ -165,7 +165,7 @@ body {
 
 /* --- Estilos Main (Ajustados para centrado y scroll) --- */
 main {
-    flex: 1 1 0; /* flex-grow: 1, flex-shrink: 1, flex-basis: 0 */
+    flex-grow: 1; /* flex-grow: 1, flex-shrink: 1, flex-basis: 0 */
     min-height: 0; /* Permite que main se encoja y overflow funcione */
     max-width: 800px;
     min-width: 320px; /* Ancho mínimo absoluto más pequeño */
@@ -178,6 +178,7 @@ main {
     border: 1px solid transparent;
     display: flex;
     flex-direction: column;
+    align-items: center;
     position: relative;
     z-index: 1;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
@@ -307,6 +308,7 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
     display: flex;
     flex-grow: 1; /* Ocupa el espacio vertical restante en main */
     justify-content: center; /* Centra verticalmente el contenido DENTRO de la sección */
+    align-content: center;
 }
 
 
