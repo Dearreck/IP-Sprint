@@ -139,10 +139,9 @@ body {
     color: var(--text-color);
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Asegura que body ocupe al menos toda la altura de la pantalla */
     font-weight: 400;
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
     transition: background 0.3s ease, color 0.3s ease;
 }
 
@@ -164,7 +163,6 @@ main {
     z-index: 1;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     overflow-y: auto; /* Permite scroll vertical DENTRO de main si el contenido es muy largo */
-    min-height: 0;
     padding-top: 65px; /* ALTURA DE LA BARRA (50px) + MARGEN DESEADO (15px) */
     box-sizing: border-box; /* Para que el padding-top no aumente la altura total de main */
 
