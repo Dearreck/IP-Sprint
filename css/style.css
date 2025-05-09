@@ -145,16 +145,15 @@ main {
     flex-grow: 1; /* Permite que main crezca para ocupar el espacio disponible en body */
     max-width: 800px;
     min-width: 375px;
-    width: 90%; /* Que sea un poco más flexible que un max-width fijo en pantallas más grandes */
+    width: 65%; /* Que sea un poco más flexible que un max-width fijo en pantallas más grandes */
     margin: 35px auto;
     background-color: var(--card-bg-color);
     color: var(--main-text-color);
-    box-shadow: var(--box-shadow);
     border-radius: var(--border-radius);
     border: 1px solid transparent;
     display: flex; /* Mantenemos flex para el centrado vertical de la sección activa */
     flex-direction: column;
-    /* justify-content: center; Lo quitamos para que el contenido scrolleable empiece arriba */
+    justify-content: center;
     position: relative;
     z-index: 1;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
@@ -164,7 +163,7 @@ main {
 
     /* --- Animación Glow --- */
     animation: pulse-glow 2.25s infinite ease-in-out;
-    /* border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
+    border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
 }
 
 /* --- Títulos, enlaces, hr --- */
