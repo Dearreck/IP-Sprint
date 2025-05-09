@@ -1,6 +1,6 @@
 /* ================================================== */
 /* Hoja de Estilos Principal para IP Sprint          */
-/* v2.0 - Con Barra de Control Minimalista          */
+/* v2.1 - Barra de Control Minimalista Integrada     */
 /* ================================================== */
 
 /* --- Variables CSS --- */
@@ -8,10 +8,10 @@
     /* --- Configuración Tema Claro (Default) --- */
 
     /* Fondos */
-    --body-bg-fallback: #f8f9fa; /* Fallback sólido claro */
-    --body-background: radial-gradient(ellipse at center, #ffffff 0%, #e9ecef 100%); /* Degradado claro */
-    --card-bg-color: #ffffff; /* Tarjeta blanca */
-    --primary-light-bg: #e7f3ff; /* Azul muy claro para hover */
+    --body-bg-fallback: #f8f9fa;
+    --body-background: radial-gradient(ellipse at center, #ffffff 0%, #e9ecef 100%);
+    --card-bg-color: #ffffff;
+    --primary-light-bg: #e7f3ff;
     --feedback-correct-bg: #d4edda;
     --feedback-incorrect-bg: #f8d7da;
     --feedback-mastery-bg: #e9d8f3;
@@ -19,11 +19,11 @@
     --th-bg-color: #e9ecef;
 
     /* Textos */
-    --text-color: #2d3748; /* Texto oscuro principal (fuera de 'main') */
-    --main-text-color: #333333; /* Texto oscuro dentro de 'main' */
-    --secondary-text-color: #718096; /* Texto secundario oscuro (fuera de 'main') */
-    --main-secondary-text-color: #6c757d; /* Texto secundario dentro de 'main' */
-    --primary-color-text: #ffffff; /* Texto blanco sobre botones primarios */
+    --text-color: #2d3748;
+    --main-text-color: #333333;
+    --secondary-text-color: #718096;
+    --main-secondary-text-color: #6c757d;
+    --primary-color-text: #ffffff;
     --success-color-text: #ffffff;
     --error-color-text: #ffffff;
     --mastery-color-text: #ffffff;
@@ -33,8 +33,8 @@
     --warning-text-color: #856404;
 
     /* Colores Primarios y Acentos */
-    --primary-color: #007bff; /* Azul estándar */
-    --primary-dark-color: #0056b3; /* Azul oscuro */
+    --primary-color: #007bff; /* Azul para modo claro */
+    --primary-dark-color: #0056b3;
     --accent-teal-color: #17a2b8;
     --success-color: #28a745;
     --success-dark-color: #218838;
@@ -45,8 +45,8 @@
     --mastery-dark-color: #5a32a3;
 
     /* Bordes */
-    --border-color: #dee2e6; /* Gris claro */
-    --border-color-light: #ced4da; /* Borde más oscuro para inputs claros */
+    --border-color: #dee2e6;
+    --border-color-light: #ced4da;
     --feedback-correct-border: #c3e6cb;
     --feedback-incorrect-border: #f5c6cb;
     --feedback-mastery-border: #d3b6e3;
@@ -55,11 +55,11 @@
     /* Otros */
     --disabled-color: #ced4da;
     --locked-color: #adb5bd;
-    --border-radius: 5px;
-    /* Sombra estándar para elementos como botones */
-    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    --border-radius: 8px; /* Radio de borde general (ej. para main) */
+    --button-border-radius: 5px; /* Radio de borde específico para botones */
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra estándar clara */
     --box-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.15);
-    --progress-width: 10%; /* Para stepper */
+    --progress-width: 10%;
 
     /* Fuentes */
     --font-body: 'Montserrat', sans-serif;
@@ -72,7 +72,7 @@ body.dark-mode {
     /* Fondos */
     --body-bg-fallback: #0a0c10;
     --body-background: radial-gradient(ellipse at center, #1c2a3a 0%, #0a0c10 100%);
-    --card-bg-color: #2d3748; /* Tarjeta oscura (Tu ajuste) */
+    --card-bg-color: #2d3748; /* Fondo de main ajustado */
     --primary-light-bg: rgba(66, 153, 225, 0.1);
     --feedback-correct-bg: #1a472a;
     --feedback-incorrect-bg: #5a2129;
@@ -83,9 +83,9 @@ body.dark-mode {
     /* Textos */
     --text-color: #e2e8f0;
     --main-text-color: #e2e8f0;
-    --secondary-text-color: #a0aec0;
-    --main-secondary-text-color: #a0aec0;
-    --primary-color-text: #ffffff;
+    --secondary-text-color: #a0aec0; /* Gris claro secundario */
+    --main-secondary-text-color: #a0aec0; /* Mismo que secundario general */
+    --primary-color-text: #ffffff; /* Blanco */
     --success-color-text: #ffffff;
     --error-color-text: #ffffff;
     --mastery-color-text: #ffffff;
@@ -95,7 +95,7 @@ body.dark-mode {
     --warning-text-color: #fbd38d;
 
     /* Colores Primarios y Acentos */
-    --primary-color: #4299e1;
+    --primary-color: #4299e1; /* Azul brillante */
     --primary-dark-color: #63b3ed;
     --accent-teal-color: #4fd1c5;
     --success-color: #48bb78;
@@ -107,7 +107,7 @@ body.dark-mode {
     --mastery-dark-color: #805ad5;
 
     /* Bordes */
-    --border-color: #4a5568; /* Gris oscuro */
+    --border-color: #4a5568; /* Borde oscuro estándar */
     --border-color-light: #a0aec0; /* Borde input ajustado */
     --feedback-correct-border: #2f6f49;
     --feedback-incorrect-border: #9b2c2c;
@@ -126,17 +126,18 @@ body.dark-mode {
 body.dark-mode main {
     /* Aplica la animación de pulso cyan */
     animation: pulse-glow 2.25s infinite ease-in-out;
-
-    border: 1px solid rgba(66, 153, 225, 0.2);
+    /* Borde sutil cyan para complementar el glow (opcional) */
+    /* border: 1px solid rgba(0, 184, 255, 0.2); */
+    /* La sombra base es sobrescrita por la animación */
 }
 
 @keyframes pulse-glow {
     0% {
-        /* Estado inicial/final del glow cyan (más intenso) */
+        /* Estado inicial/final del glow cyan (intensidad ajustada) */
         box-shadow: 0 0 20px rgba(0, 184, 255, 0.75);
     }
     50% {
-        /* Pico del pulso (más intenso) */
+        /* Pico del pulso (intensidad ajustada) */
         box-shadow: 0 0 35px rgba(0, 184, 255, 0.95);
     }
     100% {
@@ -162,45 +163,67 @@ body {
     transition: background 0.3s ease, color 0.3s ease;
 }
 
+/* --- Estilos Main (Ajustados) --- */
 main {
-    flex-grow: 1;
+    flex-grow: 1; /* Ocupa espacio verticalmente */
     max-width: 800px;
-    margin: 20px auto 20px auto; /* Reducido margen superior al quitar header */
-    padding: 20px; /* El padding interno sigue igual */
+    min-width: 375px; /* Ancho mínimo */
+    margin: 35px auto; /* Margen superior/inferior, centrado horizontal */
+    padding: 0 20px 20px 20px; /* Padding: 0 arriba, 20px lados/abajo (la barra tiene su propio padding) */
     background-color: var(--card-bg-color);
     color: var(--main-text-color);
     box-shadow: var(--box-shadow); /* Sombra base para modo claro */
-    border-radius: 8px;
-    /* border: 1px solid var(--border-color); /* Añadido borde base */
+    border-radius: var(--border-radius); /* Usa variable general */
+    border: 1px solid transparent; /* Borde transparente por defecto (para que no cambie tamaño al añadir borde en dark mode) */
     display: flex;
     flex-direction: column;
-    /* justify-content: center; /* Quitado para que el contenido empiece arriba */
-    position: relative;
+    justify-content: center; /* Centra verticalmente el contenido principal */
+    position: relative; /* Necesario para posicionar la barra interna */
     z-index: 1;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Estilos generales para títulos y enlaces (sin cambios) */
-h1, h2 { /* h1 ya no se usa en header */
-    font-family: var(--font-title);
-    color: var(--primary-dark-color);
+/* --- Títulos, enlaces, hr --- */
+h2 {
+    margin-bottom: 25px;
     text-align: center;
     font-weight: 700;
+    color: var(--primary-dark-color);
+    font-family: var(--font-title);
 }
-h2 { margin-bottom: 25px; }
-a { color: var(--primary-color); text-decoration: none; }
-a:hover { color: var(--primary-dark-color); text-decoration: underline; }
-hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; }
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+a:hover {
+    color: var(--primary-dark-color);
+    text-decoration: underline;
+}
+hr {
+    border: 0;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 25px 0;
+}
 
 /* === Nueva Barra de Control Minimalista === */
 .minimal-control-bar {
+    /* Posicionamiento absoluto en la parte superior de 'main' */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px; /* Altura fija para la barra */
     display: flex;
-    justify-content: space-between; /* Separa izq, centro, der */
-    align-items: center;
-    padding: 10px 0px; /* Padding vertical, sin padding horizontal (se añade en los hijos si es necesario) */
-    margin-bottom: 20px; /* Espacio antes del contenido principal */
-    border-bottom: 1px solid var(--border-color); /* Borde inferior sutil */
-    transition: border-color 0.3s ease;
+    justify-content: space-between;
+    align-items: center; /* Centrado vertical para todos los hijos */
+    padding: 0 20px; /* Padding horizontal */
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg-color); /* Fondo igual al main */
+    border-top-left-radius: var(--border-radius); /* Redondear esquinas superiores */
+    border-top-right-radius: var(--border-radius);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    z-index: 10; /* Encima de las secciones */
 }
 
 .control-bar-section {
@@ -209,33 +232,38 @@ hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px
 }
 
 /* Sección Izquierda (Telegram) */
-.control-bar-left {
-    padding-left: 10px; /* Pequeño espacio izquierdo */
-}
 .control-bar-left a {
-    color: var(--main-secondary-text-color); /* Color icono */
-    font-size: 1.5em; /* Tamaño icono */
+    color: var(--primary-color); /* Azul en modo claro */
+    font-size: 1.4em;
     text-decoration: none;
     transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
 }
 .control-bar-left a:hover {
-    color: var(--primary-color); /* Color hover */
+    color: var(--primary-dark-color);
+}
+body.dark-mode .control-bar-left a {
+    color: var(--primary-color-text); /* Blanco en modo oscuro */
+}
+body.dark-mode .control-bar-left a:hover {
+    color: var(--secondary-text-color);
 }
 
 /* Sección Central (Título) */
 .control-bar-center {
-    flex-grow: 1; /* Ocupa espacio disponible */
+    flex-grow: 1;
     text-align: center;
 }
 .game-title-in-bar {
     font-family: var(--font-title);
     font-weight: 700;
-    font-size: 1.4em;
+    font-size: 1.2em; /* Tamaño reducido */
     color: var(--primary-dark-color);
     transition: color 0.3s ease;
 }
 body.dark-mode .game-title-in-bar {
-     color: var(--primary-color); /* Color más brillante en modo oscuro */
+     color: var(--primary-color);
 }
 .game-title-in-bar .rocket {
     display: inline-block;
@@ -245,50 +273,36 @@ body.dark-mode .game-title-in-bar {
 /* Sección Derecha (Idioma/Tema) */
 .control-bar-right {
     display: flex;
-    gap: 10px; /* Espacio entre botones */
-    padding-right: 10px; /* Pequeño espacio derecho */
+    gap: 12px; /* Espacio entre botones */
 }
 
 /* Estilo botones DENTRO de la barra */
-.control-bar-right #language-toggle-button,
-.control-bar-right #theme-toggle-button {
-    padding: 4px 8px; /* Más pequeños */
-    font-size: 0.9em;
-    background-color: transparent; /* Sin fondo por defecto */
-    border: 1px solid transparent; /* Sin borde por defecto */
-    color: var(--main-secondary-text-color); /* Color icono/texto */
-    border-radius: var(--border-radius);
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+.control-bar-right button {
+    padding: 4px 6px;
+    font-size: 0.85em;
+    background-color: transparent;
+    border: none;
+    color: var(--primary-color); /* Azul en modo claro */
+    border-radius: var(--button-border-radius); /* Usar radio específico si es diferente */
+    transition: color 0.2s ease, opacity 0.2s ease;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    opacity: 0.8; /* Ligeramente tenues */
+    opacity: 0.7;
 }
-
-.control-bar-right #language-toggle-button:hover,
-.control-bar-right #theme-toggle-button:hover {
-    opacity: 1; /* Opacidad completa al pasar ratón */
-    background-color: var(--primary-light-bg); /* Fondo sutil */
-    color: var(--primary-dark-color); /* Color primario */
-}
-
-body.dark-mode .control-bar-right #language-toggle-button,
-body.dark-mode .control-bar-right #theme-toggle-button {
-    color: var(--secondary-text-color); /* Icono/texto claro */
-    background-color: transparent;
-    border: 1px solid transparent;
-    opacity: 0.8;
-}
-
-body.dark-mode .control-bar-right #language-toggle-button:hover,
-body.dark-mode .control-bar-right #theme-toggle-button:hover {
+.control-bar-right button:hover {
     opacity: 1;
-    background-color: rgba(255, 255, 255, 0.1); /* Fondo claro sutil */
-    color: var(--text-color); /* Color claro primario */
+    color: var(--primary-dark-color);
 }
+body.dark-mode .control-bar-right button {
+    color: var(--primary-color-text); /* Blanco en modo oscuro */
+}
+ body.dark-mode .control-bar-right button:hover {
+    color: var(--secondary-text-color);
+ }
 
-/* Estilos para mostrar/ocultar icono sol/luna (sin cambios) */
+/* Estilos para mostrar/ocultar icono sol/luna */
 #theme-toggle-button .fa-sun { display: none; }
 body.dark-mode #theme-toggle-button .fa-moon { display: none; }
 body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
@@ -297,38 +311,77 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 
 /* --- Estilos Generales para Secciones DENTRO de main --- */
 .game-section {
-    margin-bottom: 0; /* Quitar margen inferior si la barra ya da espacio */
-    padding: 25px 30px;
+    margin-bottom: 0;
+    /* Ajustar padding superior para dejar espacio a la barra absoluta */
+    padding: 65px 20px 20px 20px; /* 50px (altura barra) + 15px (margen deseado), padding lateral igual a main */
     border: none;
     background-color: transparent;
+    width: 100%; /* Ocupar ancho para centrar contenido interno */
+    box-sizing: border-box; /* Incluir padding en el ancho */
+    display: flex; /* Usar flex para centrar contenido de la sección si es necesario */
+    flex-direction: column;
+    align-items: center; /* Centrar horizontalmente el contenido de la sección */
+    flex-grow: 1; /* Permitir que la sección activa crezca para el centrado vertical de main */
 }
-.minimal-control-bar + .game-section {
-   /* padding-top: 0; /* Opcional: si quieres que esté más pegada a la barra */
-}
+/* Ocultar secciones no activas (manejado por JS) */
+/* .game-section { display: none; } */
+/* .game-section.active { display: flex; } */
 
 
-/* === Formulario User Setup (Sin cambios estructurales) === */
-#user-setup { text-align: center; min-height: 300px; display: flex; flex-direction: column; justify-content: center; padding-top: 0; padding-bottom: 0; border: none; background-color: transparent; }
-.login-icon-area { font-size: 3.5em; color: var(--primary-color); margin-bottom: 20px; }
-#user-setup h2 { margin-top: 0; margin-bottom: 30px; color: var(--primary-dark-color); }
-#username-form { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; max-width: 350px; margin: 0 auto; }
-#username-form label { font-weight: bold; color: var(--main-secondary-text-color); font-size: 0.95em; }
+/* === Formulario User Setup === */
+#user-setup {
+    text-align: center;
+    /* No necesita min-height ni justify-content si main se encarga */
+    padding-top: 0; /* El padding ya está en .game-section */
+    padding-bottom: 0;
+}
+.login-icon-area {
+    font-size: 3.5em;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+#user-setup h2 {
+    margin-top: 0;
+    margin-bottom: 30px;
+    color: var(--primary-dark-color);
+}
+#username-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    width: 100%;
+    max-width: 350px; /* Limitar ancho del formulario */
+    margin: 0 auto;
+}
+#username-form label {
+    font-weight: bold;
+    color: var(--main-secondary-text-color);
+    font-size: 0.95em;
+}
 #username-form input[type="text"] {
     padding: 12px 15px;
-    border: 1px solid var(--border-color-light); /* Borde input */
+    border: 1px solid var(--border-color-light);
     color: var(--main-text-color);
     background-color: var(--card-bg-color);
-    border-radius: var(--border-radius); width: 100%; box-sizing: border-box; font-family: var(--font-body); text-align: center; font-size: 1.1em; transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    border-radius: var(--button-border-radius); /* Usar radio de botón */
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-body);
+    text-align: center;
+    font-size: 1.1em;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 #username-form input[type="text"]:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.25); /* Usar color primario dark mode */
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.25); /* Ajustar color shadow focus */
     outline: none;
 }
 
-/* --- Estilos Selección de Nivel (Stepper + Tarjeta) (Sin cambios) --- */
+/* --- Estilos Selección de Nivel (Stepper + Tarjeta) --- */
+#level-select { padding-top: 0; } /* Ajustar padding si es necesario */
 #level-select h2 { margin-bottom: 30px; color: var(--primary-dark-color); }
-#level-stepper-container { display: flex; justify-content: space-around; align-items: center; margin-bottom: 35px; padding: 10px 0; position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+#level-stepper-container { display: flex; justify-content: space-around; align-items: center; margin-bottom: 35px; padding: 10px 0; position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; width: 100%; }
 #level-stepper-container::-webkit-scrollbar { display: none; }
 #level-stepper-container::before { content: ''; position: absolute; top: 50%; left: 5%; right: 5%; height: 4px; background-color: var(--border-color); transform: translateY(-50%); z-index: 1; border-radius: 2px; transition: background-color 0.3s ease; }
 #level-stepper-container::after { content: ''; position: absolute; top: 50%; left: 5%; width: var(--progress-width, 5%); height: 4px; background-color: var(--primary-color); transform: translateY(-50%); z-index: 2; border-radius: 2px; transition: width 0.5s ease-in-out, background-color 0.3s ease; }
@@ -347,18 +400,17 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 .stepper-item.selected .stepper-icon-wrapper { border-color: var(--primary-dark-color); background-color: var(--primary-color); transform: scale(1.1); }
 .stepper-item.selected .stepper-icon-wrapper i { color: var(--primary-color-text); }
 .stepper-item.selected .stepper-label { color: var(--primary-dark-color); font-weight: 900; }
-#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--primary-light-bg); min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--primary-light-bg); min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); width: 100%; max-width: 500px; /* Limitar ancho tarjeta */ }
 #level-card-content { width: 100%; }
 #level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
 #level-card-content .level-status { font-weight: bold; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--main-secondary-text-color); }
 #level-card-content .level-status.locked { color: var(--locked-color); }
 #level-card-content .level-score { margin-bottom: 15px; color: var(--main-secondary-text-color); }
 #level-card-content .level-score strong { color: var(--main-text-color); font-size: 1.1em; }
-#level-card-content .level-requirement { margin-bottom: 20px; color: var(--warning-text-color); background-color: var(--warning-bg-color); border: 1px solid var(--warning-border-color); font-style: italic; font-size: 0.9em; padding: 8px 12px; border-radius: var(--border-radius); display: inline-block; max-width: 90%; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
+#level-card-content .level-requirement { margin-bottom: 20px; color: var(--warning-text-color); background-color: var(--warning-bg-color); border: 1px solid var(--warning-border-color); font-style: italic; font-size: 0.9em; padding: 8px 12px; border-radius: var(--button-border-radius); display: inline-block; max-width: 90%; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
 #level-card-content .level-requirement i { margin-right: 5px; color: var(--warning-text-color); transition: color 0.3s ease; }
 
-/* === Base para Botones de Acción Principales (Sin cambios) === */
-/* (login-submit-button, start-level-button, play-again-button) */
+/* === Base para Botones de Acción Principales === */
 .login-submit-button,
 .start-level-button,
 #play-again-button {
@@ -370,53 +422,38 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
     gap: 8px;
     margin-top: 10px;
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: var(--button-border-radius);
     cursor: pointer;
     font-family: var(--font-body);
     font-weight: 600;
-    box-shadow: var(--box-shadow); /* Usa la sombra estándar */
+    box-shadow: var(--box-shadow); /* Usa sombra estándar */
     transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
     color: var(--primary-color-text);
 }
 .login-submit-button,
-.start-level-button {
-    background-color: var(--primary-color);
-}
+.start-level-button { background-color: var(--primary-color); }
 .login-submit-button:hover,
-.start-level-button:hover {
-    background-color: var(--primary-dark-color);
-    box-shadow: var(--box-shadow-hover); /* Usa la sombra hover estándar */
-}
-#play-again-button {
-    background-color: var(--success-color);
-}
-#play-again-button:hover {
-    background-color: var(--success-dark-color);
-    box-shadow: var(--box-shadow-hover);
-}
+.start-level-button:hover { background-color: var(--primary-dark-color); box-shadow: var(--box-shadow-hover); }
+#play-again-button { background-color: var(--success-color); }
+#play-again-button:hover { background-color: var(--success-dark-color); box-shadow: var(--box-shadow-hover); }
 .login-submit-button:active,
 .start-level-button:active,
-#play-again-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
+#play-again-button:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 .login-submit-button i { transition: transform 0.2s ease-in-out; }
 .login-submit-button:hover i { transform: translateX(4px); }
 
-/* --- Estilos Área de Juego (Sin cambios estructurales) --- */
-.game-controls { text-align: right; margin-bottom: 15px; }
+/* --- Estilos Área de Juego --- */
+#game-area { padding-top: 0; } /* Ajustar padding si es necesario */
+.game-controls { text-align: right; margin-bottom: 15px; width: 100%; }
 .game-controls button {
-    background-color: var(--card-bg-color);
-    color: var(--main-secondary-text-color);
-    border: 1px solid var(--border-color);
-    padding: 6px 12px; font-size: 0.85em; margin-left: 8px; box-shadow: none;
-    font-weight: 600; border-radius: var(--border-radius); cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    font-family: var(--font-body);
+    background-color: var(--card-bg-color); color: var(--main-secondary-text-color); border: 1px solid var(--border-color);
+    padding: 6px 12px; font-size: 0.85em; margin-left: 8px; box-shadow: none; font-weight: 600;
+    border-radius: var(--button-border-radius); cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; font-family: var(--font-body);
 }
 .game-controls button:hover { background-color: var(--primary-light-bg); color: var(--primary-dark-color); border-color: var(--primary-light-bg); }
 .game-controls button i { margin-right: 5px; opacity: 0.8; }
-#game-info { text-align: center; margin-bottom: 15px; color: var(--main-secondary-text-color); font-size: 0.9em; }
+#game-info { text-align: center; margin-bottom: 15px; color: var(--main-secondary-text-color); font-size: 0.9em; width: 100%; }
 #game-info #main-game-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 15px; margin-bottom: 8px; }
 #game-info #main-game-info span { white-space: nowrap; }
 #game-info i { margin-right: 5px; color: var(--primary-color); font-size: 0.95em; vertical-align: baseline; transition: color 0.3s ease, transform 0.3s ease; display: inline-block; }
@@ -427,16 +464,16 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 #round-progress-stars .star-pending { color: var(--locked-color); margin: 0 1px; }
 #round-progress-stars .star-mastery { color: var(--mastery-color); margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-#question-container { width: 90%; margin: 30px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
-.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; }
-hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; transition: background-color 0.3s ease; }
-#options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; }
+#question-container { width: 90%; margin: 20px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
+.theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; width: 90%; /* Ajustar ancho si es necesario */ box-sizing: border-box; }
+hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; transition: background-color 0.3s ease; width: 90%; }
+#options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; width: 100%; }
 .option-button {
     width: 80%; max-width: 450px; background-color: var(--card-bg-color); color: var(--primary-dark-color);
-    border: 1px solid var(--border-color); padding: 14px 20px; border-radius: var(--border-radius);
+    border: 1px solid var(--border-color); padding: 14px 20px; border-radius: var(--button-border-radius);
     cursor: pointer; font-size: 1em; font-family: var(--font-body); font-weight: 600; text-align: center;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    box-shadow: var(--box-shadow); /* Usa sombra estándar */
+    box-shadow: var(--box-shadow);
 }
 .option-button:hover { background-color: var(--primary-light-bg); border-color: var(--primary-color); color: var(--primary-dark-color); box-shadow: var(--box-shadow-hover); }
 .option-button:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
@@ -454,10 +491,10 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 .options-disabled .option-button.mastery,
 .options-disabled .option-button.correct.mastery { opacity: 1; box-shadow: var(--box-shadow); }
 
-/* --- Timer y Feedback (Sin cambios) --- */
+/* --- Timer y Feedback --- */
 #timer-display { color: var(--primary-color); font-size: 0.9em; margin-top: 10px; }
 #timer-display.low-time { color: var(--error-color); font-weight: bold; }
-#feedback-area { margin-top: 30px; text-align: center; font-weight: bold; min-height: 5em; padding: 20px; border-radius: var(--border-radius); position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
+#feedback-area { margin-top: 30px; text-align: center; font-weight: bold; min-height: 5em; padding: 20px; border-radius: var(--border-radius); position: relative; display: flex; flex-direction: column; justify-content: space-between; align-items: center; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; width: 90%; /* Ajustar ancho */ box-sizing: border-box; }
 #feedback-area.correct { color: var(--feedback-correct-text); background-color: var(--feedback-correct-bg); border: 1px solid var(--feedback-correct-border); }
 #feedback-area.incorrect { color: var(--feedback-incorrect-text); background-color: var(--feedback-incorrect-bg); border: 1px solid var(--feedback-incorrect-border); }
 #feedback-area.mastery { color: var(--feedback-mastery-text); background-color: var(--feedback-mastery-bg); border: 1px solid var(--feedback-mastery-border); }
@@ -469,25 +506,26 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 .explanation-table .highlight-row td { background-color: var(--primary-light-bg); font-weight: bold; transition: background-color 0.3s ease; }
 #next-question-button {
     padding: 10px 25px; font-size: 1em; background-color: var(--primary-color); color: var(--primary-color-text);
-    align-self: flex-end; margin-top: 15px; border: none; border-radius: var(--border-radius); cursor: pointer;
+    align-self: flex-end; margin-top: 15px; border: none; border-radius: var(--button-border-radius); cursor: pointer;
     transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    font-family: var(--font-body); font-weight: 600; box-shadow: var(--box-shadow); /* Usa sombra estándar */
+    font-family: var(--font-body); font-weight: 600; box-shadow: var(--box-shadow);
 }
 #next-question-button:hover { background-color: var(--primary-dark-color); box-shadow: var(--box-shadow-hover); }
 #next-question-button:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 
-/* --- Game Over (Sin cambios) --- */
-#game-over { text-align: center; }
+/* --- Game Over --- */
+#game-over { text-align: center; padding-top: 0; }
 #game-over h2 { color: var(--primary-dark-color); }
 #final-score { font-size: 1.8em; color: var(--primary-dark-color); }
 #high-score-message { font-style: italic; color: var(--accent-teal-color); min-height: 1.2em; margin-top: 10px; margin-bottom: 20px; transition: color 0.3s ease; }
 
-/* --- Progreso Desbloqueo (Sin cambios) --- */
+/* --- Progreso Desbloqueo --- */
 #unlock-progress-section { display: none !important; }
 
-/* --- High Scores (Sin cambios) --- */
+/* --- High Scores --- */
+#high-scores-section { padding-top: 0; }
 #high-scores-section h2 { margin-bottom: 15px; color: var(--primary-dark-color); }
-#score-list { list-style: none; padding: 0; margin: 0; text-align: left; }
+#score-list { list-style: none; padding: 0; margin: 0; text-align: left; width: 100%; max-width: 500px; /* Limitar ancho lista */ }
 .score-entry { padding: 12px 0; border-bottom: 1px dashed var(--border-color); transition: border-color 0.3s ease; }
 .score-entry:last-child { border-bottom: none; }
 .score-username { font-weight: bold; font-size: 1.2em; color: var(--main-text-color); margin-bottom: 5px; }
@@ -498,7 +536,8 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
-    /* Ajustes para tabletas (sin cambios relevantes a la barra aquí) */
+    /* Ajustes generales para tabletas */
+    main { min-width: 90%; } /* Permitir que main sea más flexible */
     #level-stepper-container { justify-content: flex-start; padding-left: 10px; padding-right: 10px; }
     #level-stepper-container::before { left: 2%; right: 2%; }
     #level-stepper-container::after { left: 2%; }
@@ -511,9 +550,8 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 }
 
 @media (max-width: 600px) {
-    /* Ajustes para móviles */
-    main { margin: 10px; padding: 10px 15px; }
-    /* header h1 { font-size: 1.6em; } /* Eliminado */
+    /* Ajustes generales para móviles */
+    main { margin: 10px; padding: 0 15px 15px 15px; min-width: calc(100% - 20px); } /* Margen pequeño, padding ajustado */
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 12px 15px; }
     #question-container { font-size: 1.2em; width: 95%; }
@@ -531,53 +569,28 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     .game-controls button { margin: 5px; }
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
-    /* .global-controls { top: 5px; right: 10px; } /* Eliminado - Se maneja en la nueva barra */
 
-    /* --- NUEVO: Ajustes responsive para la barra minimalista --- */
-    .minimal-control-bar {
-        padding: 8px 15px; /* Reducir padding */
-    }
-    .game-title-in-bar {
-        font-size: 1.2em; /* Reducir título */
-    }
-    .control-bar-left a {
-        font-size: 1.3em; /* Ajustar icono Telegram */
-    }
-    .control-bar-right {
-        gap: 5px; /* Menos espacio botones */
-    }
-     .control-bar-right #language-toggle-button,
-     .control-bar-right #theme-toggle-button {
-        padding: 3px 6px; /* Botones más pequeños */
-        font-size: 0.8em;
-     }
-    /* --- FIN NUEVO --- */
+    /* Ajustes responsive para la barra minimalista */
+    .minimal-control-bar { padding: 8px 15px; height: 45px; }
+    .game-title-in-bar { font-size: 1.1em; }
+    .control-bar-left a { font-size: 1.2em; }
+    .control-bar-right { gap: 8px; }
+     .control-bar-right button { padding: 3px 5px; font-size: 0.8em; }
+     .game-section { padding: 55px 15px 15px 15px; } /* Ajustar padding con barra y padding de main */
 }
 
 @media (max-width: 400px) {
+    /* Ajustes generales para móviles muy pequeños */
+    main { margin: 5px; padding: 0 10px 10px 10px; min-width: calc(100% - 10px); }
     .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
 
-    /* --- NUEVO: Ajustes responsive barra minimalista < 400px --- */
-     .game-title-in-bar {
-         font-size: 1.1em; /* Título aún más pequeño */
-         /* Considera ocultarlo si es necesario */
-         /* display: none; */
-     }
-     .minimal-control-bar {
-        padding: 6px 10px; /* Menos padding aún */
-        /* Si ocultas el título, podrías centrar los iconos: */
-        /* justify-content: space-around; */
-     }
-     .control-bar-right {
-         gap: 3px;
-     }
-     .control-bar-right #language-toggle-button,
-     .control-bar-right #theme-toggle-button {
-        padding: 2px 5px;
-        font-size: 0.75em;
-     }
-     /* Ocultar el texto 'EN'/'ES' si no cabe */
-     /* #language-toggle-text { display: none; } */
-    /* --- FIN NUEVO --- */
+    /* Ajustes responsive barra minimalista < 400px */
+     .game-title-in-bar { display: none; } /* Ocultar título */
+     .minimal-control-bar { padding: 6px 10px; height: 40px; justify-content: space-between; }
+     .control-bar-center { flex-grow: 0; }
+     .control-bar-right { gap: 5px; }
+     .control-bar-right button { padding: 2px 4px; font-size: 0.75em; }
+     #language-toggle-text { display: none; } /* Ocultar texto idioma */
+     .game-section { padding: 50px 10px 10px 10px; } /* Ajustar padding con barra y padding de main */
 }
