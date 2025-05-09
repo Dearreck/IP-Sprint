@@ -123,6 +123,11 @@ body.dark-mode {
     100% { box-shadow: 0 0 20px rgba(0, 184, 255, 0.75); }
 }
 
+html {
+    height: 100%;
+    overflow: hidden; /* Previene scroll en el html */
+}
+
 /* --- Estilos Generales --- */
 body {
     font-family: var(--font-body);
