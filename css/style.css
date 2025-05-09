@@ -1,6 +1,6 @@
 /* ================================================== */
 /* Hoja de Estilos Principal para IP Sprint          */
-/* v2.2 - Barra de Control Minimalista Centrada      */
+/* v2.3 - Ajustes Centrado Vertical y Scroll         */
 /* ================================================== */
 
 /* --- Variables CSS --- */
@@ -139,31 +139,34 @@ body {
     color: var(--text-color);
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100vh; /* Asegura que body ocupe al menos toda la altura de la pantalla */
     font-weight: 400;
     position: relative;
     overflow-x: hidden;
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* --- Estilos Main (Ajustados para centrado y barra) --- */
+/* --- Estilos Main (Ajustados para centrado y scroll) --- */
 main {
-    flex-grow: 1;
+    flex-grow: 1; /* Permite que main crezca para ocupar el espacio disponible en body */
     max-width: 800px;
-    min-width: 375px; /* Punto 2 */
-    margin: 35px auto; /* Punto 1 */
-    padding: 0; /* El padding se manejará por la barra y las secciones */
+    min-width: 375px;
+    width: 90%; /* Que sea un poco más flexible que un max-width fijo en pantallas más grandes */
+    margin: 35px auto;
     background-color: var(--card-bg-color);
     color: var(--main-text-color);
     box-shadow: var(--box-shadow);
     border-radius: var(--border-radius);
-    border: 1px solid transparent; /* Para evitar saltos de layout */
-    display: flex;
+    border: 1px solid transparent;
+    display: flex; /* Mantenemos flex para el centrado vertical de la sección activa */
     flex-direction: column;
-    justify-content: center; /* Punto 6: Centra verticalmente el contenido principal (secciones) */
+    /* justify-content: center; Lo quitamos para que el contenido scrolleable empiece arriba */
     position: relative;
     z-index: 1;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    overflow-y: auto; /* Permite scroll vertical DENTRO de main si el contenido es muy largo */
+    padding-top: 65px; /* ALTURA DE LA BARRA (50px) + MARGEN DESEADO (15px) */
+    box-sizing: border-box; /* Para que el padding-top no aumente la altura total de main */
 }
 
 /* --- Títulos, enlaces, hr --- */
@@ -178,39 +181,34 @@ a { color: var(--primary-color); text-decoration: none; }
 a:hover { color: var(--primary-dark-color); text-decoration: underline; }
 hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; }
 
-/* === Nueva Barra de Control Minimalista (Con Posicionamiento Absoluto Interno) === */
+/* === Nueva Barra de Control Minimalista === */
 .minimal-control-bar {
-    position: absolute; /* Anclada a 'main' */
+    position: absolute;
     top: 0;
     left: 0;
-    width: 100%; /* Ocupa todo el ancho de 'main' */
-    height: 50px; /* Altura fija para la barra */
-    display: flex; /* Para alinear verticalmente los elementos posicionados absolutamente */
-    align-items: center;
-    padding: 0 20px; /* Padding horizontal general de la barra */
-    box-sizing: border-box; /* Para que el padding no aumente el width:100% */
-    border-bottom: 1px solid var(--border-color);
-    background-color: var(--card-bg-color);
-    border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
-    transition: border-color 0.3s ease, background-color 0.3s ease;
-    z-index: 10;
-}
-
-.control-bar-section { /* Esta clase ya no es necesaria para layout principal de la barra */
+    width: 100%;
+    height: 50px;
     display: flex;
     align-items: center;
+    padding: 0 20px;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg-color); /* Fondo para tapar contenido scrolleable */
+    border-top-left-radius: var(--border-radius); /* Heredar radio de main */
+    border-top-right-radius: var(--border-radius); /* Heredar radio de main */
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    z-index: 10; /* Asegurar que esté por encima del contenido scrolleable */
 }
 
-/* Sección Izquierda (Telegram) - Posicionada Absolutamente */
+/* Sección Izquierda (Telegram) */
 .control-bar-left {
     position: absolute;
-    left: 20px; /* Igual al padding de la barra */
+    left: 20px;
     top: 50%;
-    transform: translateY(-50%); /* Centrado vertical perfecto */
+    transform: translateY(-50%);
 }
 .control-bar-left a {
-    color: var(--primary-color); /* Punto 3: Azul en modo claro */
+    color: var(--primary-color);
     font-size: 1.4em;
     text-decoration: none;
     transition: color 0.3s ease;
@@ -218,37 +216,34 @@ hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px
     align-items: center;
 }
 .control-bar-left a:hover { color: var(--primary-dark-color); }
-body.dark-mode .control-bar-left a {
-    color: var(--primary-color-text); /* Punto 3: Blanco en modo oscuro */
-}
+body.dark-mode .control-bar-left a { color: var(--primary-color-text); }
 body.dark-mode .control-bar-left a:hover { color: var(--secondary-text-color); }
 
-/* Sección Central (Título) - Posicionada Absolutamente */
+/* Sección Central (Título) */
 .control-bar-center {
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%); /* Centrado horizontal y vertical perfecto */
-    /* text-align: center; /* No es necesario si el span es inline-block */
+    transform: translate(-50%, -50%);
 }
 .game-title-in-bar {
     font-family: var(--font-title);
     font-weight: 700;
-    font-size: 1.2em; /* Punto 4: Tamaño reducido */
+    font-size: 1.2em;
     color: var(--primary-dark-color);
     transition: color 0.3s ease;
-    white-space: nowrap; /* Evitar que el título se rompa en dos líneas */
+    white-space: nowrap;
 }
 body.dark-mode .game-title-in-bar { color: var(--primary-color); }
 .game-title-in-bar .rocket { display: inline-block; margin-left: 5px; }
 
-/* Sección Derecha (Idioma/Tema) - Posicionada Absolutamente */
+/* Sección Derecha (Idioma/Tema) */
 .control-bar-right {
     position: absolute;
-    right: 20px; /* Igual al padding de la barra */
+    right: 20px;
     top: 50%;
-    transform: translateY(-50%); /* Centrado vertical perfecto */
-    display: flex; /* Para alinear los botones internos */
+    transform: translateY(-50%);
+    display: flex;
     align-items: center;
     gap: 12px;
 }
@@ -259,7 +254,7 @@ body.dark-mode .game-title-in-bar { color: var(--primary-color); }
     font-size: 0.85em;
     background-color: transparent;
     border: none;
-    color: var(--primary-color); /* Punto 5: Azul en modo claro */
+    color: var(--primary-color);
     border-radius: var(--button-border-radius);
     transition: color 0.2s ease, opacity 0.2s ease;
     cursor: pointer;
@@ -270,12 +265,10 @@ body.dark-mode .game-title-in-bar { color: var(--primary-color); }
 }
 .control-bar-right button i { font-size: 1em; line-height: 1; }
 .control-bar-right button:hover { opacity: 1; color: var(--primary-dark-color); }
-body.dark-mode .control-bar-right button {
-    color: var(--primary-color-text); /* Punto 5: Blanco en modo oscuro */
-}
+body.dark-mode .control-bar-right button { color: var(--primary-color-text); }
 body.dark-mode .control-bar-right button:hover { color: var(--secondary-text-color); }
 
-/* Iconos de tema (sin cambios) */
+/* Iconos de tema */
 #theme-toggle-button .fa-sun { display: none; }
 body.dark-mode #theme-toggle-button .fa-moon { display: none; }
 body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
@@ -284,30 +277,30 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 
 /* --- Estilos Generales para Secciones DENTRO de main --- */
 .game-section {
-    margin-bottom: 0;
-    /* Padding superior para dejar espacio a la barra (50px altura + 20px deseado) */
-    padding: 70px 20px 20px 20px;
+    /* El padding-top grande ya no es necesario aquí, main lo maneja */
+    padding: 20px; /* Padding interno para el contenido de la sección */
     border: none;
     background-color: transparent;
     width: 100%;
     box-sizing: border-box;
     display: none; /* Ocultar por defecto, JS muestra la activa */
     flex-direction: column;
-    align-items: center;
-    flex-grow: 1; /* Para que la sección activa pueda crecer y centrarse en 'main' */
+    align-items: center; /* Centra horizontalmente el contenido de la sección */
+    /* flex-grow: 1; /* No es necesario si main no usa justify-content para centrar */
+    /* Para centrar verticalmente el contenido de la sección SI la sección es más alta que su contenido */
+    justify-content: center;
+    min-height: calc(100% - 65px); /* Ocupar al menos el espacio restante en main (menos el padding-top de main) */
 }
 .game-section.active {
     display: flex; /* Mostrar la sección activa */
-    /* El justify-content: center; en main se encargará del centrado vertical de esta sección */
 }
 
 
 /* === Formulario User Setup === */
 #user-setup {
     text-align: center;
-    /* No necesita min-height ni justify-content si main y .game-section.active se encargan */
-    padding-top: 0; /* El padding ya está en .game-section */
-    padding-bottom: 0;
+    /* padding-top: 0; /* Ya no es necesario */
+    /* padding-bottom: 0; */
 }
 .login-icon-area { font-size: 3.5em; color: var(--primary-color); margin-bottom: 20px; }
 #user-setup h2 { margin-top: 0; margin-bottom: 30px; color: var(--primary-dark-color); }
@@ -324,7 +317,6 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 }
 
 /* --- Estilos Selección de Nivel (Stepper + Tarjeta) --- */
-#level-select { padding-top: 0; }
 #level-select h2 { margin-bottom: 30px; color: var(--primary-dark-color); }
 #level-stepper-container { display: flex; justify-content: space-around; align-items: center; margin-bottom: 35px; padding: 10px 0; position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; width: 100%; }
 #level-stepper-container::-webkit-scrollbar { display: none; }
@@ -374,7 +366,6 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 .login-submit-button:hover i { transform: translateX(4px); }
 
 /* --- Estilos Área de Juego --- */
-#game-area { padding-top: 0; }
 .game-controls { text-align: right; margin-bottom: 15px; width: 100%; }
 .game-controls button {
     background-color: var(--card-bg-color); color: var(--main-secondary-text-color); border: 1px solid var(--border-color);
@@ -445,7 +436,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 #next-question-button:active { transform: translateY(1px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 
 /* --- Game Over --- */
-#game-over { text-align: center; padding-top: 0; }
+#game-over { text-align: center; }
 #game-over h2 { color: var(--primary-dark-color); }
 #final-score { font-size: 1.8em; color: var(--primary-dark-color); }
 #high-score-message { font-style: italic; color: var(--accent-teal-color); min-height: 1.2em; margin-top: 10px; margin-bottom: 20px; transition: color 0.3s ease; }
@@ -454,7 +445,6 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 #unlock-progress-section { display: none !important; }
 
 /* --- High Scores --- */
-#high-scores-section { padding-top: 0; }
 #high-scores-section h2 { margin-bottom: 15px; color: var(--primary-dark-color); }
 #score-list { list-style: none; padding: 0; margin: 0; text-align: left; width: 100%; max-width: 500px; }
 .score-entry { padding: 12px 0; border-bottom: 1px dashed var(--border-color); transition: border-color 0.3s ease; }
@@ -467,7 +457,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
-    main { min-width: 90%; }
+    main { width: 95%; min-width: 0; } /* Permitir que main sea más flexible */
     #level-stepper-container { justify-content: flex-start; padding-left: 10px; padding-right: 10px; }
     #level-stepper-container::before { left: 2%; right: 2%; }
     #level-stepper-container::after { left: 2%; }
@@ -480,7 +470,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 }
 
 @media (max-width: 600px) {
-    main { margin: 10px; padding: 0 15px 15px 15px; min-width: calc(100% - 20px); }
+    main { margin: 10px; width: calc(100% - 20px); min-width: 0; padding-top: 60px; } /* 45px altura barra + 15px margen */
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 12px 15px; }
     #question-container { font-size: 1.2em; width: 95%; }
@@ -499,24 +489,26 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
 
-    .minimal-control-bar { padding: 8px 15px; height: 45px; }
+    .minimal-control-bar { padding: 0 15px; height: 45px; }
+    .control-bar-left { left: 15px; }
+    .control-bar-right { right: 15px; gap: 8px; }
     .game-title-in-bar { font-size: 1.1em; }
     .control-bar-left a { font-size: 1.2em; }
-    .control-bar-right { gap: 8px; }
-     .control-bar-right button { padding: 3px 5px; font-size: 0.8em; }
-     .game-section { padding: 60px 15px 15px 15px; } /* 45px altura barra + 15px margen */
+    .control-bar-right button { padding: 3px 5px; font-size: 0.8em; }
+    .game-section { padding: 15px; } /* Padding general para secciones en móvil */
 }
 
 @media (max-width: 400px) {
-    main { margin: 5px; padding: 0 10px 10px 10px; min-width: calc(100% - 10px); }
+    main { margin: 5px; width: calc(100% - 10px); min-width: 0; padding-top: 50px; } /* 40px altura barra + 10px margen */
     .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
 
      .game-title-in-bar { display: none; }
-     .minimal-control-bar { padding: 6px 10px; height: 40px; justify-content: space-between; }
-     .control-bar-center { flex-grow: 0; } /* No necesita crecer si el título está oculto */
-     .control-bar-right { gap: 5px; }
+     .minimal-control-bar { padding: 0 10px; height: 40px; }
+     .control-bar-left { left: 10px; }
+     .control-bar-right { right: 10px; gap: 5px; }
+     /* .control-bar-center { flex-grow: 0; } /* No es necesario si el título está oculto */
      .control-bar-right button { padding: 2px 4px; font-size: 0.75em; }
      #language-toggle-text { display: none; }
-     .game-section { padding: 50px 10px 10px 10px; } /* 40px altura barra + 10px margen */
+     .game-section { padding: 10px; } /* Padding general para secciones en móvil muy pequeño */
 }
