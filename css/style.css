@@ -148,7 +148,7 @@ body {
 
 /* --- Estilos Main (Ajustados para centrado y scroll) --- */
 main {
-    flex: 1;
+    flex-grow: 1;
     max-width: 800px;
     min-width: 375px;
     width: 65%; /* Que sea un poco más flexible que un max-width fijo en pantallas más grandes */
