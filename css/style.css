@@ -117,12 +117,6 @@ body.dark-mode {
     --box-shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* --- Animación Glow para Main en Modo Oscuro --- */
-body.dark-mode main {
-    animation: pulse-glow 2.25s infinite ease-in-out;
-    /* border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
-}
-
 @keyframes pulse-glow {
     0% { box-shadow: 0 0 20px rgba(0, 184, 255, 0.75); }
     50% { box-shadow: 0 0 35px rgba(0, 184, 255, 0.95); }
@@ -167,6 +161,10 @@ main {
     overflow-y: auto; /* Permite scroll vertical DENTRO de main si el contenido es muy largo */
     padding-top: 65px; /* ALTURA DE LA BARRA (50px) + MARGEN DESEADO (15px) */
     box-sizing: border-box; /* Para que el padding-top no aumente la altura total de main */
+
+    /* --- Animación Glow --- */
+    animation: pulse-glow 2.25s infinite ease-in-out;
+    /* border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
 }
 
 /* --- Títulos, enlaces, hr --- */
