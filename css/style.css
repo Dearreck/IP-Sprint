@@ -127,12 +127,7 @@ body.dark-mode {
     100% { box-shadow: 0 0 20px rgba(0, 184, 255, 0.75); }
 }
 
-html {
-    height: 100%; /* Ocupa la altura del viewport */
-    overflow: hidden; /* No permitir scroll en html */
-    margin: 0;
-    padding: 0;
-}
+
 
 /* --- Estilos Generales --- */
 body {
@@ -153,7 +148,7 @@ body {
 
 /* --- Estilos Main (Ajustados para centrado y scroll) --- */
 main {
-    flex: 1 1 0;
+    flex: 1;
     max-width: 800px;
     min-width: 375px;
     width: 65%; /* Que sea un poco más flexible que un max-width fijo en pantallas más grandes */
