@@ -1,6 +1,6 @@
 /* ================================================== */
 /* Hoja de Estilos Principal para IP Sprint          */
-/* v2.3 - Ajustes Centrado Vertical y Scroll         */
+/* v2.7 - Scroll Móvil y Centrado Vertical           */
 /* ================================================== */
 
 /* --- Variables CSS --- */
@@ -55,17 +55,22 @@
     --locked-color: #adb5bd;
     --border-radius: 8px;
     --button-border-radius: 5px;
-    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra estándar clara */
     --box-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.15);
     --progress-width: 10%;
+
+    /* Variables para la barra de control y offset de contenido */
+    --control-bar-height: 50px;
+    --content-top-offset: calc(var(--control-bar-height) + 15px); /* 65px */
+    --control-bar-height-mobile: 45px;
+    --content-top-offset-mobile: calc(var(--control-bar-height-mobile) + 10px); /* 55px */
+    --control-bar-height-small-mobile: 40px;
+    --content-top-offset-small-mobile: calc(var(--control-bar-height-small-mobile) + 10px); /* 50px */
+
 
     /* Fuentes */
     --font-body: 'Montserrat', sans-serif;
     --font-title: 'Comfortaa', sans-serif;
-
-    /* Variables */
-    --control-bar-height-mobile: 45px;
-    --control-bar-height-small-mobile: 40px;
 }
 
 body.dark-mode {
@@ -117,8 +122,15 @@ body.dark-mode {
     /* Otros */
     --disabled-color: #718096;
     --locked-color: #a0aec0;
+    /* Sombra estándar oscura para elementos como botones */
     --box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
     --box-shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Animación Glow para Main en Modo Oscuro --- */
+body.dark-mode main {
+    animation: pulse-glow 2.25s infinite ease-in-out;
+    /* border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
 }
 
 @keyframes pulse-glow {
@@ -127,9 +139,14 @@ body.dark-mode {
     100% { box-shadow: 0 0 20px rgba(0, 184, 255, 0.75); }
 }
 
-
-
 /* --- Estilos Generales --- */
+html {
+    height: 100%;
+    overflow: hidden; /* Previene scroll en el html */
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: var(--font-body);
     line-height: 1.6;
@@ -139,36 +156,34 @@ body {
     color: var(--text-color);
     display: flex;
     flex-direction: column;
+    height: 100%; /* Ocupa el 100% de la altura de html */
     font-weight: 400;
     position: relative;
-    overflow-x: hidden;
+    overflow: hidden; /* Previene scroll en body; main se encargará */
     transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* --- Estilos Main (Ajustados para centrado y scroll) --- */
 main {
-    flex-grow: 1;
+    flex: 1 1 0; /* flex-grow: 1, flex-shrink: 1, flex-basis: 0 */
+    min-height: 0; /* Permite que main se encoja y overflow funcione */
     max-width: 800px;
-    min-width: 375px;
-    width: 65%; /* Que sea un poco más flexible que un max-width fijo en pantallas más grandes */
-    margin: 35px auto;
+    min-width: 320px; /* Ancho mínimo absoluto más pequeño */
+    width: 90%; /* Ancho base, se ajusta en móviles */
+    margin: 35px auto; /* Margen para escritorio */
     background-color: var(--card-bg-color);
     color: var(--main-text-color);
+    box-shadow: var(--box-shadow); /* Sombra base para modo claro */
     border-radius: var(--border-radius);
     border: 1px solid transparent;
-    display: flex; /* Mantenemos flex para el centrado vertical de la sección activa */
+    display: flex;
     flex-direction: column;
-    justify-content: center;
     position: relative;
     z-index: 1;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-    overflow-y: auto; /* Permite scroll vertical DENTRO de main si el contenido es muy largo */
-    padding-top: 65px; /* ALTURA DE LA BARRA (50px) + MARGEN DESEADO (15px) */
-    box-sizing: border-box; /* Para que el padding-top no aumente la altura total de main */
-
-    /* --- Animación Glow --- */
-    animation: pulse-glow 2.25s infinite ease-in-out;
-    border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
+    overflow-y: auto; /* Permite scroll vertical DENTRO de main */
+    padding-top: var(--content-top-offset);
+    box-sizing: border-box;
 }
 
 /* --- Títulos, enlaces, hr --- */
@@ -189,17 +204,17 @@ hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px
     top: 0;
     left: 0;
     width: 100%;
-    height: 50px;
+    height: var(--control-bar-height);
     display: flex;
     align-items: center;
     padding: 0 20px;
     box-sizing: border-box;
     border-bottom: 1px solid var(--border-color);
-    background-color: var(--card-bg-color); /* Fondo para tapar contenido scrolleable */
-    border-top-left-radius: var(--border-radius); /* Heredar radio de main */
-    border-top-right-radius: var(--border-radius); /* Heredar radio de main */
+    background-color: var(--card-bg-color);
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
     transition: border-color 0.3s ease, background-color 0.3s ease;
-    z-index: 10; /* Asegurar que esté por encima del contenido scrolleable */
+    z-index: 10;
 }
 
 /* Sección Izquierda (Telegram) */
@@ -279,30 +294,25 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 
 /* --- Estilos Generales para Secciones DENTRO de main --- */
 .game-section {
-    /* El padding-top grande ya no es necesario aquí, main lo maneja */
-    padding: 20px; /* Padding interno para el contenido de la sección */
+    padding: 20px; /* Padding interno de la sección */
     border: none;
     background-color: transparent;
     width: 100%;
     box-sizing: border-box;
-    display: none; /* Ocultar por defecto, JS muestra la activa */
+    display: none; /* Ocultar por defecto */
     flex-direction: column;
     align-items: center; /* Centra horizontalmente el contenido de la sección */
-    /* flex-grow: 1; /* No es necesario si main no usa justify-content para centrar */
-    /* Para centrar verticalmente el contenido de la sección SI la sección es más alta que su contenido */
-    justify-content: center;
-    min-height: calc(100% - 65px); /* Ocupar al menos el espacio restante en main (menos el padding-top de main) */
 }
 .game-section.active {
-    display: flex; /* Mostrar la sección activa */
+    display: flex;
+    flex-grow: 1; /* Ocupa el espacio vertical restante en main */
+    justify-content: center; /* Centra verticalmente el contenido DENTRO de la sección */
 }
 
 
 /* === Formulario User Setup === */
 #user-setup {
     text-align: center;
-    /* padding-top: 0; /* Ya no es necesario */
-    /* padding-bottom: 0; */
 }
 .login-icon-area { font-size: 3.5em; color: var(--primary-color); margin-bottom: 20px; }
 #user-setup h2 { margin-top: 0; margin-bottom: 30px; color: var(--primary-dark-color); }
@@ -340,20 +350,12 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 .stepper-item.selected .stepper-icon-wrapper i { color: var(--primary-color-text); }
 .stepper-item.selected .stepper-label { color: var(--primary-dark-color); font-weight: 900; }
 #level-card-area {
-    margin-top: 20px;
-    padding: 25px; 
-    border: 1px solid var(--border-color); 
-    border-radius: var(--border-radius); 
-    background-color: var(--primary-light-bg); 
-    min-height: 180px; 
-    display: flex; 
-    flex-direction: column; 
-    justify-content: center; 
-    align-items: center; 
-    text-align: center; 
-    transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); 
-    width: 100%; 
-    box-sizing: border-box; 
+    margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius);
+    background-color: var(--primary-light-bg); min-height: 180px; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    width: 100%;
+    box-sizing: border-box; /* Añadido para que el padding no desborde */
 }
 #level-card-content { width: 100%; }
 #level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
@@ -403,7 +405,7 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 #round-progress-stars .star-pending { color: var(--locked-color); margin: 0 1px; }
 #round-progress-stars .star-mastery { color: var(--mastery-color); margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-#question-container { width: 100%; margin: 20px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
+#question-container { width: 100%; /* Ocupa el ancho de .game-section */ box-sizing: border-box; padding: 0 5%; /* Padding interno para no pegar a bordes */ margin: 20px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
 .theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; width: 100%; box-sizing: border-box; }
 hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; transition: background-color 0.3s ease; width: 100%; }
 #options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; width: 100%; }
@@ -474,7 +476,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 
 /* --- Responsiveness --- */
 @media (max-width: 768px) {
-    main { width: 95%; min-width: 0; } /* Permitir que main sea más flexible */
+    main { width: 95%; min-width: 0; }
     #level-stepper-container { justify-content: flex-start; padding-left: 10px; padding-right: 10px; }
     #level-stepper-container::before { left: 2%; right: 2%; }
     #level-stepper-container::after { left: 2%; }
@@ -488,15 +490,14 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
 
 @media (max-width: 600px) {
     main {
-        margin: 10px auto; 
+        margin: 10px auto;
         width: calc(100% - 20px);
-        min-width: 0; 
-        padding-top: calc(var(--control-bar-height-mobile) + 10px); /* Altura barra móvil + margen interno deseado */
+        min-width: 0;
+        padding-top: var(--content-top-offset-mobile);
     }
-    
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 12px 15px; }
-    #question-container { font-size: 1.2em; width: 95%; }
+    #question-container { font-size: 1.2em; width: 100%; padding: 0 2.5%; } /* Ajustar padding */
     #game-info #main-game-info { gap: 5px 10px; }
     #game-info i { font-size: 1em; }
     #level-stepper-container::before { left: 1%; right: 1%; }
@@ -512,32 +513,32 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     .score-username { font-size: 1.1em; }
     .level-scores { font-size: 0.85em; gap: 3px 10px; padding-left: 5px; }
 
-    .minimal-control-bar { padding: 0 15px; height: 45px; }
+    .minimal-control-bar { padding: 0 15px; height: var(--control-bar-height-mobile); }
     .control-bar-left { left: 15px; }
     .control-bar-right { right: 15px; gap: 8px; }
     .game-title-in-bar { font-size: 1.1em; }
     .control-bar-left a { font-size: 1.2em; }
     .control-bar-right button { padding: 3px 5px; font-size: 0.8em; }
-    .game-section { padding: 15px; } /* Padding general para secciones en móvil */
+    .game-section { padding: 15px; }
 }
 
 @media (max-width: 400px) {
     main {
-        margin: 5px auto; /* Márgenes aún más pequeños */
+        margin: 5px auto;
         width: calc(100% - 10px);
-        padding-top: calc(var(--control-bar-height-small-mobile) + 10px); /* Altura barra muy pequeña + margen interno */
+        padding-top: var(--content-top-offset-small-mobile);
         min-width: 0;
     }
-    
     .stepper-item { min-width: 50px; }
     #level-card-content h3 { font-size: 1.2em; }
 
      .game-title-in-bar { display: none; }
-     .minimal-control-bar { padding: 0 10px; height: 40px; }
+     .minimal-control-bar { padding: 0 10px; height: var(--control-bar-height-small-mobile); }
      .control-bar-left { left: 10px; }
      .control-bar-right { right: 10px; gap: 5px; }
-     /* .control-bar-center { flex-grow: 0; } /* No es necesario si el título está oculto */
      .control-bar-right button { padding: 2px 4px; font-size: 0.75em; }
      #language-toggle-text { display: none; }
-     .game-section { padding: 10px; } /* Padding general para secciones en móvil muy pequeño */
+     .game-section { padding: 10px; }
+     #question-container { padding: 0; } /* Sin padding horizontal extra en pantallas muy pequeñas */
 }
+
