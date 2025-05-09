@@ -334,7 +334,22 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 .stepper-item.selected .stepper-icon-wrapper { border-color: var(--primary-dark-color); background-color: var(--primary-color); transform: scale(1.1); }
 .stepper-item.selected .stepper-icon-wrapper i { color: var(--primary-color-text); }
 .stepper-item.selected .stepper-label { color: var(--primary-dark-color); font-weight: 900; }
-#level-card-area { margin-top: 20px; padding: 25px; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--primary-light-bg); min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); width: 100%; max-width: 500px; }
+#level-card-area {
+    margin-top: 20px;
+    padding: 25px; 
+    border: 1px solid var(--border-color); 
+    border-radius: var(--border-radius); 
+    background-color: var(--primary-light-bg); 
+    min-height: 180px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    text-align: center; 
+    transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); 
+    width: 100%; 
+    box-sizing: border-box; 
+}
 #level-card-content { width: 100%; }
 #level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
 #level-card-content .level-status { font-weight: bold; margin-bottom: 10px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--main-secondary-text-color); }
