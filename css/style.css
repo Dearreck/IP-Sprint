@@ -130,7 +130,7 @@ body.dark-mode {
 /* --- Animación Glow para Main en Modo Oscuro --- */
 body.dark-mode main {
     animation: pulse-glow 2.25s infinite ease-in-out;
-    /* border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
+    border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
 }
 
 @keyframes pulse-glow {
@@ -189,6 +189,8 @@ main {
     overflow-y: auto; /* Permite scroll vertical DENTRO de main */
     padding-top: var(--content-top-offset);
     box-sizing: border-box;
+    animation: pulse-glow 2.25s infinite ease-in-out;
+    border: 1px solid rgba(0, 184, 255, 0.2);
 }
 
 /* --- Títulos, enlaces, hr --- */
