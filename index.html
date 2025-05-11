@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
+<html lang="es"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="IP Sprint: Juego interactivo para practicar y aprender direccionamiento IPv4. ¡Pon a prueba tu velocidad y conocimientos!">
@@ -9,10 +8,58 @@
 
     <link rel="icon" href="assets/images/favicon.png" type="image/png">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <script>
+      (function() {
+        // Definir claves de localStorage y valores por defecto
+        const themeKey = 'ipSprintThemePreference';
+        const langKey = 'preferredLanguage';
+        const defaultLang = 'es';
+        const defaultTheme = 'light';
+
+        // --- Aplicar Tema ---
+        let currentTheme = localStorage.getItem(themeKey);
+        if (currentTheme === null) { // Si no hay preferencia guardada
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            currentTheme = 'dark';
+          } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+            currentTheme = 'light';
+          } else {
+            currentTheme = defaultTheme; // Fallback si no se puede detectar
+          }
+          // Guardar la preferencia determinada (del sistema o default) en localStorage
+          localStorage.setItem(themeKey, currentTheme);
+        }
+        // Aplicar la clase del tema al elemento <html>
+        if (currentTheme === 'dark') {
+          document.documentElement.classList.add('dark-mode');
+        } else {
+          document.documentElement.classList.remove('dark-mode');
+        }
+
+        // --- Aplicar Idioma y Precargar JSON ---
+        const currentLang = localStorage.getItem(langKey) || defaultLang;
+        document.documentElement.setAttribute('lang', currentLang);
+
+        // Inyectar tag de preload para el archivo JSON del idioma actual
+        // Esto le dice al navegador que comience a descargar el archivo de idioma prioritario antes.
+        const preloadLangLink = document.createElement('link');
+        preloadLangLink.rel = 'preload';
+        preloadLangLink.href = `lang/${currentLang}.json`; // Asume que tus archivos son lang/es.json, lang/en.json
+        preloadLangLink.as = 'fetch';
+        preloadLangLink.setAttribute('crossorigin', 'anonymous');
+        document.head.appendChild(preloadLangLink);
+
+        // Añadir clase para indicar que las preferencias iniciales se han aplicado
+        // Esto se usará en CSS para mostrar el contenido suavemente (si se implementa la técnica de opacidad).
+        document.documentElement.classList.add('initial-prefs-applied');
+      })();
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/style.css">
@@ -38,12 +85,11 @@
                 </div>
                 <div id="theme-selector">
                     <button id="theme-toggle-button" title="Cambiar Tema / Change Theme">
-                        <i class="fas fa-moon"></i>
-                        <i class="fas fa-sun"></i>
-                    </button>
+                        <i class="fas fa-moon"></i> <i class="fas fa-sun"></i>  </button>
                 </div>
             </div>
         </div>
+
         <section id="user-setup" class="game-section active">
             <div class="login-icon-area">
                 <i class="fas fa-network-wired"></i>
