@@ -19,9 +19,9 @@ import {
     initializeGame
 } from './game.js';
 // Importar funciones de internacionalización (i18n)
-import { setLanguage, getCurrentLanguage, getTranslation, applyStaticTranslations } from './i18n.js'; // Asumiendo que applyStaticTranslations existe o se crea
-// Importar funciones de Tema
-import { toggleTheme, initThemeButton, updateThemeUI } from './theme.js'; // Cambiado applySavedTheme por updateThemeUI
+import { setLanguage, getCurrentLanguage, getTranslation } from './i18n.js';
+// Importar funciones de Tema (nombres ajustados)
+import { toggleTheme, initThemeButton, updateThemeUI } from './theme.js';
 
 // --- Ejecución Principal al Cargar el DOM ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -39,13 +39,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 2. Idioma: Obtiene el idioma (ya establecido en <html> por el script del <head>),
     // carga el archivo JSON de ese idioma y aplica traducciones estáticas.
-    const initialLang = getCurrentLanguage(); // i18n.js lee de localStorage o usa default
+    const initialLang = getCurrentLanguage(); // i18n.js lee de localStorage o usa default (o de <html>)
     console.log(`[Main] Idioma inicial (post-head script): ${initialLang}`);
     try {
         // setLanguage ahora debería enfocarse en cargar JSON y aplicar traducciones,
         // y actualizar el botón de idioma. No necesita volver a setear document.documentElement.lang
         // si initialLang ya es el correcto (lo cual debería ser).
-        await setLanguage(initialLang, true); // true indica que es la carga inicial
+        // El segundo parámetro 'true' indica que es la carga inicial.
+        await setLanguage(initialLang, true);
         console.log("[Main] Archivo de idioma cargado y traducciones estáticas aplicadas.");
     } catch (error) {
         console.error("[Main] Error inicializando idioma:", error);
@@ -83,7 +84,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             toggleTheme(); // theme.js cambia el tema y actualiza localStorage y el icono
         });
     } else {
-        console.error("[Main] #theme-toggle-button no encontrado para el listener.");
+        // El error ya se reportaría desde initThemeButton si no se encuentra
+        // console.error("[Main] #theme-toggle-button no encontrado para el listener.");
     }
 
     // Listener para el botón toggle de idioma
@@ -96,7 +98,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 // setLanguage ahora sí debe cambiar el atributo lang en <html>,
                 // guardar en localStorage, cargar nuevo JSON y reaplicar traducciones.
-                await setLanguage(targetLang, false); // false indica que NO es la carga inicial
+                // El segundo parámetro 'false' indica que NO es la carga inicial.
+                await setLanguage(targetLang, false);
                 console.log(`[Main] Idioma cambiado a ${targetLang}.`);
 
                 // Refrescar UI dinámica si es necesario
@@ -118,10 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error("[Main] #language-toggle-button no encontrado.");
     }
 
-    // Indicar que la página está lista para ser mostrada (si usas la técnica de opacidad en CSS)
-    // El script del <head> ya añade 'initial-prefs-applied'.
-    // Si necesitas una segunda clase para indicar que el JS principal ha terminado, podrías añadirla aquí.
-    // document.body.classList.add('main-scripts-loaded');
-
-    console.log("[Main] Configuración principal de DOMContentLoaded completada.");
+    // La clase 'initial-prefs-applied' ya fue añadida por el script del <head>.
+    // Si se usara la técnica de body.classList.add('ready'), se haría aquí.
+    // console.log("[Main] Configuración principal de DOMContentLoaded completada.");
 }); // Fin DOMContentLoaded
