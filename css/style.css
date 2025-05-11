@@ -7,6 +7,9 @@
 html {
   /* Inicia con opacidad 0 para evitar el flash del contenido sin estilo o con estilo incorrecto */
   opacity: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
   /* Prepara una transición para cuando se muestre */
   transition: opacity 0.15s ease-in-out;
 }
@@ -166,7 +169,7 @@ body {
 
 /* --- Estilos Main --- */
 main {
-    flex: 1 1 0;
+    flex: 1;
     min-height: 0;
     max-width: 800px;
     min-width: 320px;
