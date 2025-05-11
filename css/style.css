@@ -166,7 +166,7 @@ body {
 
 /* --- Estilos Main --- */
 main {
-    flex: 1 1 0;
+    flex: 1;
     min-height: 0;
     max-width: 800px;
     min-width: 320px;
