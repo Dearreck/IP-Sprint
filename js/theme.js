@@ -1,78 +1,90 @@
 // ip-sprint-main/js/theme.js
 // ==================================================
 // Módulo para la gestión del Tema Claro/Oscuro
+// Optimizado para coordinar con script anti-FOUC en <head>
 // ==================================================
 
 const THEME_STORAGE_KEY = 'ipSprintThemePreference';
 const DARK_MODE_CLASS = 'dark-mode';
 
-// Elementos del DOM (se obtienen una vez para evitar búsquedas repetidas)
-const body = document.body;
-let themeToggleButton = null; // Se inicializará en initTheme
+// Referencia al botón de cambio de tema, se inicializará una vez
+let themeToggleButton = null;
 
 /**
- * Actualiza el icono del botón de cambio de tema.
+ * Actualiza los iconos de luna/sol en el botón de cambio de tema.
+ * Se asegura de que solo uno esté visible según el tema actual en <html>.
  */
 function updateToggleButtonIcon() {
-    if (!themeToggleButton) return;
+    if (!themeToggleButton) {
+        // Este error no debería ocurrir si initThemeButton se llama correctamente.
+        console.error("[Theme] updateToggleButtonIcon: Botón #theme-toggle-button no inicializado.");
+        return;
+    }
 
     const moonIcon = themeToggleButton.querySelector('.fa-moon');
     const sunIcon = themeToggleButton.querySelector('.fa-sun');
 
-    if (body.classList.contains(DARK_MODE_CLASS)) {
-        // Modo Oscuro: Mostrar sol, ocultar luna
-        if (moonIcon) moonIcon.style.display = 'none';
-        if (sunIcon) sunIcon.style.display = 'inline-block';
-    } else {
-        // Modo Claro: Mostrar luna, ocultar sol
-        if (moonIcon) moonIcon.style.display = 'inline-block';
-        if (sunIcon) sunIcon.style.display = 'none';
+    if (!moonIcon || !sunIcon) {
+        console.error("[Theme] Íconos de luna (.fa-moon) o sol (.fa-sun) no encontrados dentro del botón de tema.");
+        return;
     }
+
+    // Verifica el tema directamente desde la clase en <html>
+    const isDarkMode = document.documentElement.classList.contains(DARK_MODE_CLASS);
+
+    if (isDarkMode) {
+        moonIcon.style.display = 'none';
+        sunIcon.style.display = 'inline-block';
+    } else {
+        moonIcon.style.display = 'inline-block';
+        sunIcon.style.display = 'none';
+    }
+    // console.log(`[Theme] Icono del botón actualizado. Modo oscuro: ${isDarkMode}`);
 }
 
 /**
- * Aplica el tema guardado (claro/oscuro) al cargar la página.
- */
-export function applySavedTheme() {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme === 'dark') {
-        body.classList.add(DARK_MODE_CLASS);
-    } else {
-        body.classList.remove(DARK_MODE_CLASS); // Asegura el modo claro si no hay preferencia o es 'light'
-    }
-    updateToggleButtonIcon();
-    console.log(`[Theme] Tema aplicado al cargar: ${body.classList.contains(DARK_MODE_CLASS) ? 'dark' : 'light'}`);
-}
-
-/**
- * Alterna entre el tema claro y oscuro.
+ * Alterna entre el tema claro y oscuro cuando se hace clic en el botón.
+ * Actualiza la clase en <html>, localStorage y el icono del botón.
  */
 export function toggleTheme() {
-    body.classList.toggle(DARK_MODE_CLASS);
-    if (body.classList.contains(DARK_MODE_CLASS)) {
+    // Alternar la clase dark-mode en <html>
+    document.documentElement.classList.toggle(DARK_MODE_CLASS);
+
+    // Guardar la nueva preferencia de tema en localStorage
+    if (document.documentElement.classList.contains(DARK_MODE_CLASS)) {
         localStorage.setItem(THEME_STORAGE_KEY, 'dark');
-        console.log("[Theme] Tema cambiado a: dark");
+        // console.log("[Theme] Tema cambiado a: dark");
     } else {
         localStorage.setItem(THEME_STORAGE_KEY, 'light');
-        console.log("[Theme] Tema cambiado a: light");
+        // console.log("[Theme] Tema cambiado a: light");
     }
+    // Actualizar el icono del botón para que refleje el nuevo tema
     updateToggleButtonIcon();
 }
 
 /**
- * Inicializa el módulo de tema.
- * Busca el botón y configura el estado inicial del icono.
- * Esta función debe llamarse después de que el DOM esté cargado.
+ * Inicializa la referencia al botón de tema.
+ * Esta función es llamada desde main.js después de que el DOM esté cargado.
  */
-export function initTheme() {
+export function initThemeButton() {
     themeToggleButton = document.getElementById('theme-toggle-button');
     if (!themeToggleButton) {
         console.error("[Theme] Botón #theme-toggle-button no encontrado durante la inicialización.");
-        return;
     }
-    // Aplicar el tema guardado y actualizar el icono al iniciar.
-    // Esto es importante porque applySavedTheme se llama antes en main.js,
-    // pero el icono necesita que themeToggleButton ya esté asignado.
-    // O, mejor aún, applySavedTheme actualiza el icono directamente.
-    applySavedTheme(); // Llama para asegurar que el icono esté correcto al cargar.
+    // console.log("[Theme] Botón de tema inicializado.");
+}
+
+/**
+ * Actualiza la UI del botón de tema (icono) para que coincida con el
+ * tema actual (que ya fue aplicado por el script del <head>).
+ * Esta función se llama desde main.js en DOMContentLoaded.
+ */
+export function updateThemeUI() {
+    if (!themeToggleButton) {
+        // Si initThemeButton aún no ha sido llamado o falló, intenta obtener el botón.
+        // Esto es una salvaguarda, pero initThemeButton debería llamarse primero.
+        initThemeButton();
+    }
+    updateToggleButtonIcon();
+    // console.log("[Theme] UI del botón de tema actualizada.");
 }
