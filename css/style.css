@@ -1,7 +1,21 @@
 /* ================================================== */
 /* Hoja de Estilos Principal para IP Sprint          */
-/* v2.7 - Scroll Móvil y Centrado Vertical           */
+/* v2.8 - Anti-FOUC y Optimizaciones Iniciales       */
 /* ================================================== */
+
+/* --- Anti-FOUC (Flash Of Unstyled Content) --- */
+html {
+  /* Inicia con opacidad 0 para evitar el flash del contenido sin estilo o con estilo incorrecto */
+  opacity: 0;
+  /* Prepara una transición para cuando se muestre */
+  transition: opacity 0.15s ease-in-out;
+}
+
+html.initial-prefs-applied {
+  /* Una vez que el script en <head> ha aplicado el tema y el idioma,
+     y añadido esta clase, hacemos el contenido visible con una transición. */
+  opacity: 1;
+}
 
 /* --- Variables CSS --- */
 :root {
@@ -67,14 +81,14 @@
     --control-bar-height-small-mobile: 40px;
     --content-top-offset-small-mobile: calc(var(--control-bar-height-small-mobile) + 10px); /* 50px */
 
-
     /* Fuentes */
     --font-body: 'Montserrat', sans-serif;
     --font-title: 'Comfortaa', sans-serif;
 }
 
-body.dark-mode {
-    /* --- Configuración Tema Oscuro --- */
+/* --- Configuración Tema Oscuro --- */
+/* CAMBIO: Selector de body.dark-mode a html.dark-mode */
+html.dark-mode {
     --body-bg-fallback: #0a0c10;
     --body-background: radial-gradient(ellipse at center, #1c2a3a 0%, #0a0c10 100%);
     --card-bg-color: #2d3748;
@@ -127,12 +141,6 @@ body.dark-mode {
     --box-shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* --- Animación Glow para Main en Modo Oscuro --- */
-body.dark-mode main {
-    animation: pulse-glow 2.25s infinite ease-in-out;
-    border: 1px solid rgba(0, 184, 255, 0.2); /* Borde cyan opcional */
-}
-
 @keyframes pulse-glow {
     0% { box-shadow: 0 0 20px rgba(0, 184, 255, 0.75); }
     50% { box-shadow: 0 0 35px rgba(0, 184, 255, 0.95); }
@@ -140,14 +148,6 @@ body.dark-mode main {
 }
 
 /* --- Estilos Generales --- */
-html {
-    height: 100%;
-    overflow: hidden; /* Previene scroll en el html */
-    margin: 0;
-    padding: 0;
-}
-
-
 body {
     font-family: var(--font-body);
     line-height: 1.6;
@@ -157,37 +157,36 @@ body {
     color: var(--text-color);
     display: flex;
     flex-direction: column;
-    height: 100%; /* Ocupa el 100% de la altura de html */
+    height: 100%;
     font-weight: 400;
     position: relative;
     overflow: hidden; /* Previene scroll en body; main se encargará */
     transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* --- Estilos Main (Ajustados para centrado y scroll) --- */
+/* --- Estilos Main --- */
 main {
-    flex-grow: 1; /* flex-grow: 1, flex-shrink: 1, flex-basis: 0 */
-    min-height: 0; /* Permite que main se encoja y overflow funcione */
+    flex: 1 1 0;
+    min-height: 0;
     max-width: 800px;
-    min-width: 320px; /* Ancho mínimo absoluto más pequeño */
-    width: 90%; /* Ancho base, se ajusta en móviles */
-    margin: 35px auto; /* Margen para escritorio */
+    min-width: 320px;
+    width: 90%;
+    margin: 35px auto;
     background-color: var(--card-bg-color);
     color: var(--main-text-color);
-    box-shadow: var(--box-shadow); /* Sombra base para modo claro */
+    box-shadow: var(--box-shadow); /* Sombra para modo claro */
     border-radius: var(--border-radius);
-    border: 1px solid transparent;
+    border: 1px solid transparent; /* Borde base, puede colorearse en modo oscuro por el glow */
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: center; /* Centra .game-section horizontalmente si es más estrecho */
     position: relative;
     z-index: 1;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-    overflow-y: auto; /* Permite scroll vertical DENTRO de main */
+    overflow-y: auto;
     padding-top: var(--content-top-offset);
     box-sizing: border-box;
     animation: pulse-glow 2.25s infinite ease-in-out;
-    border: 1px solid rgba(0, 184, 255, 0.2);
 }
 
 /* --- Títulos, enlaces, hr --- */
@@ -237,8 +236,9 @@ hr { border: 0; height: 1px; background-color: var(--border-color); margin: 25px
     align-items: center;
 }
 .control-bar-left a:hover { color: var(--primary-dark-color); }
-body.dark-mode .control-bar-left a { color: var(--primary-color-text); }
-body.dark-mode .control-bar-left a:hover { color: var(--secondary-text-color); }
+/* CAMBIO: Selector de body.dark-mode a html.dark-mode */
+html.dark-mode .control-bar-left a { color: var(--primary-color-text); }
+html.dark-mode .control-bar-left a:hover { color: var(--secondary-text-color); }
 
 /* Sección Central (Título) */
 .control-bar-center {
@@ -255,7 +255,8 @@ body.dark-mode .control-bar-left a:hover { color: var(--secondary-text-color); }
     transition: color 0.3s ease;
     white-space: nowrap;
 }
-body.dark-mode .game-title-in-bar { color: var(--primary-color); }
+/* CAMBIO: Selector de body.dark-mode a html.dark-mode */
+html.dark-mode .game-title-in-bar { color: var(--primary-color); }
 .game-title-in-bar .rocket { display: inline-block; margin-left: 5px; }
 
 /* Sección Derecha (Idioma/Tema) */
@@ -286,32 +287,34 @@ body.dark-mode .game-title-in-bar { color: var(--primary-color); }
 }
 .control-bar-right button i { font-size: 1em; line-height: 1; }
 .control-bar-right button:hover { opacity: 1; color: var(--primary-dark-color); }
-body.dark-mode .control-bar-right button { color: var(--primary-color-text); }
-body.dark-mode .control-bar-right button:hover { color: var(--secondary-text-color); }
+/* CAMBIO: Selector de body.dark-mode a html.dark-mode */
+html.dark-mode .control-bar-right button { color: var(--primary-color-text); }
+html.dark-mode .control-bar-right button:hover { color: var(--secondary-text-color); }
 
 /* Iconos de tema */
-#theme-toggle-button .fa-sun { display: none; }
-body.dark-mode #theme-toggle-button .fa-moon { display: none; }
-body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
+/* CAMBIO: Selector de body.dark-mode a html.dark-mode */
+#theme-toggle-button .fa-sun { display: none; } /* Sol oculto por defecto */
+html.dark-mode #theme-toggle-button .fa-moon { display: none; } /* Luna oculta en modo oscuro */
+html.dark-mode #theme-toggle-button .fa-sun { display: inline-block; } /* Sol visible en modo oscuro */
 /* === Fin Nueva Barra de Control === */
 
 
 /* --- Estilos Generales para Secciones DENTRO de main --- */
 .game-section {
-    padding: 20px; /* Padding interno de la sección */
+    padding: 20px;
     border: none;
     background-color: transparent;
     width: 100%;
     box-sizing: border-box;
-    display: none; /* Ocultar por defecto */
+    display: none;
     flex-direction: column;
-    align-items: center; /* Centra horizontalmente el contenido de la sección */
+    align-items: center;
 }
 .game-section.active {
     display: flex;
-    flex-grow: 1; /* Ocupa el espacio vertical restante en main */
-    justify-content: center; /* Centra verticalmente el contenido DENTRO de la sección */
-    align-content: center;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center; /* Asegura que el contenido interno también se centre si es más pequeño */
 }
 
 
@@ -360,7 +363,7 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
     justify-content: center; align-items: center; text-align: center;
     transition: background-color 0.3s ease, border-color 0.3s ease; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     width: 100%;
-    box-sizing: border-box; /* Añadido para que el padding no desborde */
+    box-sizing: border-box;
 }
 #level-card-content { width: 100%; }
 #level-card-content h3 { font-family: var(--font-title); color: var(--primary-dark-color); margin-top: 0; margin-bottom: 15px; font-size: 1.6em; }
@@ -410,7 +413,7 @@ body.dark-mode #theme-toggle-button .fa-sun { display: inline-block; }
 #round-progress-stars .star-pending { color: var(--locked-color); margin: 0 1px; }
 #round-progress-stars .star-mastery { color: var(--mastery-color); margin: 0 1px; }
 #round-progress-stars .fa-crown { margin: 0 1px; font-size: inherit; vertical-align: baseline; }
-#question-container { width: 100%; /* Ocupa el ancho de .game-section */ box-sizing: border-box; padding: 0 5%; /* Padding interno para no pegar a bordes */ margin: 20px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
+#question-container { width: 100%; box-sizing: border-box; padding: 0 5%; margin: 20px auto; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--main-text-color); min-height: 50px; }
 .theory-presentation { font-size: 0.9em; font-weight: normal; text-align: left; margin-bottom: 20px; padding: 15px; background-color: var(--primary-light-bg); border-left: 4px solid var(--primary-color); border-radius: var(--border-radius); color: var(--main-text-color); transition: background-color 0.3s ease, color 0.3s ease, border-left-color 0.3s ease; width: 100%; box-sizing: border-box; }
 hr.theory-separator { border: 0; height: 1px; background-color: var(--border-color); margin: 25px 0; transition: background-color 0.3s ease; width: 100%; }
 #options-container { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 25px; width: 100%; }
@@ -502,7 +505,7 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
     }
     #username-form input[type="text"] { width: 95%; }
     .option-button { width: 95%; padding: 12px 15px; }
-    #question-container { font-size: 1.2em; width: 100%; padding: 0 2.5%; } /* Ajustar padding */
+    #question-container { font-size: 1.2em; width: 100%; padding: 0 2.5%; }
     #game-info #main-game-info { gap: 5px 10px; }
     #game-info i { font-size: 1em; }
     #level-stepper-container::before { left: 1%; right: 1%; }
@@ -544,6 +547,6 @@ hr.theory-separator { border: 0; height: 1px; background-color: var(--border-col
      .control-bar-right button { padding: 2px 4px; font-size: 0.75em; }
      #language-toggle-text { display: none; }
      .game-section { padding: 10px; }
-     #question-container { padding: 0; } /* Sin padding horizontal extra en pantallas muy pequeñas */
+     #question-container { padding: 0; }
 }
 
