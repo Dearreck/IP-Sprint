@@ -1,197 +1,179 @@
 // js/i18n.js
 // ==================================================
 // Módulo de Internacionalización (i18n) para IP Sprint
-// Carga archivos de idioma y aplica traducciones a la UI.
-// MODIFICADO: Actualiza el texto del botón toggle de idioma.
+// Optimizado para coordinar con script anti-FOUC en <head>
 // ==================================================
 
-let currentLanguageStrings = {}; // Almacena las traducciones cargadas
-let currentLangCode = 'es'; // Guarda el código del idioma actual ('es' o 'en')
+let currentLanguageStrings = {};
+let currentLangCode = 'es'; // Se actualizará con la preferencia del usuario o del script <head>
+
+// Clave para guardar la preferencia de idioma en localStorage
+const LANG_STORAGE_KEY = 'preferredLanguage';
+// Elemento del DOM para el texto del botón de idioma (se cachea una vez)
+let languageToggleButtonTextSpan = null;
 
 /**
  * Carga el archivo JSON del idioma especificado de forma asíncrona.
  * @param {string} lang - Código del idioma ('es', 'en').
  * @returns {Promise<object>} Promesa que resuelve con los datos del idioma o un objeto vacío en caso de error.
  */
-async function loadLanguage(lang) {
+async function loadLanguageFile(lang) {
     try {
-        // Construye la ruta al archivo JSON del idioma
         const response = await fetch(`lang/${lang}.json`);
-        // Verifica si la carga fue exitosa
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}, lang: ${lang}`);
         }
-        // Parsea la respuesta como JSON
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
         console.error(`Error cargando el archivo de idioma ${lang}.json:`, error);
-        // Intenta cargar el idioma por defecto (español) si falla el solicitado
         if (lang !== 'es') {
-             console.warn("Intentando cargar idioma por defecto 'es'.");
-             try {
-                 return await loadLanguage('es'); // Intenta cargar español como fallback
-             } catch (fallbackError) {
-                 console.error("Error cargando idioma por defecto 'es':", fallbackError);
-                 return {}; // Devuelve objeto vacío si incluso el fallback falla
-             }
-        } else {
-            // Si falla el español, devuelve objeto vacío
-             return {};
+            console.warn("Intentando cargar idioma por defecto 'es' como fallback.");
+            try {
+                return await loadLanguageFile('es');
+            } catch (fallbackError) {
+                console.error("Error cargando idioma por defecto 'es':", fallbackError);
+                return {};
+            }
         }
+        return {};
     }
 }
 
 /**
  * Aplica las traducciones a los elementos del DOM que tienen atributos 'data-translate'
- * o 'data-translate-placeholder'.
- * @param {object} languageData - Objeto con las claves y textos del idioma cargado.
+ * o 'data-translate-placeholder', usando las cadenas de currentLanguageStrings.
  */
-function applyTranslations(languageData) {
-    // Salir si no hay datos de idioma
-    if (!languageData || Object.keys(languageData).length === 0) {
-        console.warn("applyTranslations llamado sin datos de idioma válidos.");
+function applyStaticTranslations() {
+    if (!currentLanguageStrings || Object.keys(currentLanguageStrings).length === 0) {
+        console.warn("[i18n] applyStaticTranslations llamado sin datos de idioma cargados.");
         return;
     }
 
-    // Guardar las cadenas cargadas para uso posterior por getTranslation
-    currentLanguageStrings = languageData;
-
-    // Traducir elementos con data-translate (contenido interno)
     document.querySelectorAll('[data-translate]').forEach(element => {
         const key = element.getAttribute('data-translate');
-        if (languageData.hasOwnProperty(key)) { // Usar hasOwnProperty para evitar problemas con prototipos
-            // Usar innerHTML permite incluir etiquetas HTML (ej. <strong>) en las traducciones
-            element.innerHTML = languageData[key];
-        } else {
-            // Opcional: Advertir si falta una clave (puede ser útil en desarrollo)
-            // console.warn(`Clave de traducción [data-translate] no encontrada: ${key}`);
+        if (currentLanguageStrings.hasOwnProperty(key)) {
+            element.innerHTML = currentLanguageStrings[key];
         }
     });
 
-    // Traducir atributos placeholder
     document.querySelectorAll('[data-translate-placeholder]').forEach(element => {
         const key = element.getAttribute('data-translate-placeholder');
-        if (languageData.hasOwnProperty(key)) {
-            element.placeholder = languageData[key];
-        } else {
-            // console.warn(`Clave de traducción [data-translate-placeholder] no encontrada: ${key}`);
+        if (currentLanguageStrings.hasOwnProperty(key)) {
+            element.placeholder = currentLanguageStrings[key];
         }
     });
 
-    // Traducir el título de la página (eliminando el emoji si existe)
-    if (languageData['app_title']) {
-        document.title = languageData['app_title'].replace(/🚀/g, '').trim();
+    if (currentLanguageStrings['app_title']) {
+        document.title = currentLanguageStrings['app_title'].replace(/🚀/g, '').trim();
     }
+    // console.log("[i18n] Traducciones estáticas aplicadas para el idioma:", currentLangCode);
+}
+
+/**
+ * Actualiza el texto del botón de cambio de idioma (ej. "EN" o "ES").
+ */
+function updateLanguageButtonUI() {
+    if (!languageToggleButtonTextSpan) {
+        languageToggleButtonTextSpan = document.getElementById('language-toggle-text');
+        if (!languageToggleButtonTextSpan) {
+            console.warn("[i18n] Elemento #language-toggle-text no encontrado para actualizar UI del botón.");
+            return;
+        }
+    }
+    // Muestra el código del *otro* idioma (al que se cambiará al hacer clic)
+    const nextLangDisplay = currentLangCode === 'es' ? 'EN' : 'ES';
+    languageToggleButtonTextSpan.textContent = nextLangDisplay;
 }
 
 /**
  * Establece el idioma de la aplicación.
- * Carga el archivo de idioma correspondiente, aplica las traducciones a los elementos estáticos,
- * actualiza el atributo lang del HTML, guarda la preferencia en localStorage y actualiza el botón toggle.
  * @param {string} lang - Código del idioma a establecer ('es' o 'en').
+ * @param {boolean} [isInitialLoad=false] - Indica si es la carga inicial (para no re-setear lang en <html>).
  */
-export async function setLanguage(lang) {
-    // Validar que el idioma solicitado sea 'es' o 'en'
+export async function setLanguage(lang, isInitialLoad = false) {
     const validLangs = ['es', 'en'];
     if (!validLangs.includes(lang)) {
-        console.warn(`Idioma inválido solicitado: ${lang}. Usando ${currentLangCode} o 'es'.`);
-        lang = getCurrentLanguage(); // Revertir al actual o al default si es inválido
+        console.warn(`[i18n] Idioma inválido solicitado: ${lang}. Usando ${currentLangCode} o 'es'.`);
+        lang = getCurrentLanguage(); // Revertir al actual o al default
     }
 
-    console.log(`[i18n] Estableciendo idioma a: ${lang}`); // Log
+    // console.log(`[i18n] setLanguage llamado con: ${lang}, esCargaInicial: ${isInitialLoad}`);
 
     try {
-        // Cargar los datos del idioma (JSON)
-        const languageData = await loadLanguage(lang);
-        // Aplicar las traducciones a los elementos HTML estáticos
-        applyTranslations(languageData);
-        // Actualizar el código del idioma actual
-        currentLangCode = lang;
+        currentLanguageStrings = await loadLanguageFile(lang);
+        currentLangCode = lang; // Actualizar el código de idioma actual del módulo
 
-        // Actualizar el atributo 'lang' de la etiqueta <html> para accesibilidad y CSS
-        document.documentElement.lang = lang;
-
-        // Guardar el idioma seleccionado en localStorage para persistencia
-        localStorage.setItem('preferredLanguage', lang);
-
-        // Actualizar el texto del botón toggle de idioma
-        const toggleButtonTextSpan = document.getElementById('language-toggle-text');
-        if (toggleButtonTextSpan) {
-            // Mostrar el código del *otro* idioma (al que se cambiará al hacer clic)
-            const nextLangDisplay = lang === 'es' ? 'EN' : 'ES';
-            toggleButtonTextSpan.textContent = nextLangDisplay;
-            console.log(`[i18n] Texto del botón toggle actualizado a: ${nextLangDisplay}`); // Log
-        } else {
-            console.warn("[i18n] Elemento #language-toggle-text no encontrado.");
+        if (!isInitialLoad) {
+            // Solo si NO es la carga inicial (es decir, el usuario hizo clic para cambiar),
+            // actualizamos el atributo lang en <html> y guardamos en localStorage.
+            // El script del <head> ya se encargó de esto en la carga inicial.
+            document.documentElement.lang = lang;
+            localStorage.setItem(LANG_STORAGE_KEY, lang);
+            // console.log(`[i18n] Atributo lang y localStorage actualizados a: ${lang}`);
         }
 
+        applyStaticTranslations(); // Aplicar traducciones a elementos estáticos
+        updateLanguageButtonUI(); // Actualizar el texto del botón (ej. "EN" o "ES")
+
     } catch (error) {
-        console.error("Error al establecer el idioma:", error);
-        // Aquí se podría mostrar un mensaje de error más visible al usuario si falla
+        console.error(`[i18n] Error al establecer el idioma a ${lang}:`, error);
     }
 }
 
 /**
  * Obtiene el código del idioma preferido actual.
- * Prioriza: 1. localStorage, 2. Idioma del navegador, 3. 'es' por defecto.
+ * El script del <head> ya establece document.documentElement.lang,
+ * por lo que podemos confiar en él como fuente primaria después de la carga inicial.
+ * Si no, recurre a localStorage o a un default.
  * @returns {string} Código del idioma ('es' o 'en').
  */
 export function getCurrentLanguage() {
-    // 1. Intentar obtener del localStorage
-    const savedLang = localStorage.getItem('preferredLanguage');
+    // El script del <head> ya debería haber establecido esto.
+    // Si estamos antes de que el DOM esté listo y se llama desde el script del <head>,
+    // esta función aún no será llamada. Cuando main.js la llama, el DOM está listo.
+    const htmlLang = document.documentElement.lang;
+    if (htmlLang && (htmlLang === 'es' || htmlLang === 'en')) {
+        // console.log("[i18n] getCurrentLanguage: Usando document.documentElement.lang:", htmlLang);
+        currentLangCode = htmlLang; // Sincronizar estado interno del módulo
+        return htmlLang;
+    }
+
+    // Fallback a localStorage si documentElement.lang no está (poco probable después del script del <head>)
+    const savedLang = localStorage.getItem(LANG_STORAGE_KEY);
     if (savedLang && (savedLang === 'es' || savedLang === 'en')) {
+        // console.log("[i18n] getCurrentLanguage: Usando localStorage:", savedLang);
+        currentLangCode = savedLang;
         return savedLang;
     }
 
-    // 2. Intentar obtener del navegador (solo la parte del idioma, ej: 'es' de 'es-MX')
-    // Usar optional chaining por si navigator o language no existen
-    const browserLang = navigator?.language?.split('-')[0];
-    if (browserLang && (browserLang === 'es' || browserLang === 'en')) {
-        return browserLang;
-    }
-
-    // 3. Devolver 'es' como idioma por defecto si los anteriores fallan
+    // console.log("[i18n] getCurrentLanguage: Usando default 'es'.");
+    currentLangCode = 'es'; // Default si todo lo demás falla
     return 'es';
 }
 
 /**
  * Obtiene una cadena de texto traducida según la clave proporcionada.
- * Permite reemplazar placeholders en la cadena traducida.
- * @param {string} key - La clave de la cadena de traducción (ej. "welcome_title").
+ * @param {string} key - La clave de la cadena de traducción.
  * @param {object} [replacements={}] - Un objeto opcional con pares clave-valor para reemplazar placeholders.
- * Ej: { username: "Player1" } para reemplazar "{username}".
- * @returns {string} La cadena traducida con los reemplazos hechos, o la clave original si no se encuentra la traducción.
+ * @returns {string} La cadena traducida, o la clave original si no se encuentra.
  */
 export function getTranslation(key, replacements = {}) {
-    // Obtener la cadena del objeto cargado, o usar la clave como fallback
     let translatedString = currentLanguageStrings.hasOwnProperty(key) ? currentLanguageStrings[key] : key;
 
-    // Si no es un string (podría ser null o undefined si la clave existe pero está vacía), devolver la clave
     if (typeof translatedString !== 'string') {
-        // console.warn(`[i18n] Clave '${key}' encontrada pero no es un string.`);
         return key;
     }
 
-    // Reemplazar placeholders como {variable} en la cadena traducida
     try {
         for (const placeholder in replacements) {
-            // Crear una expresión regular global para reemplazar todas las ocurrencias
-            const regex = new RegExp(`{${placeholder}}`, 'g');
-            // Usar una función de reemplazo para manejar valores que no sean string
-            translatedString = translatedString.replace(regex, (match) => {
-                 // Convertir el valor de reemplazo a string, o devolver el placeholder original si el valor es null/undefined
-                 return String(replacements[placeholder] ?? match);
-            });
+            if (replacements.hasOwnProperty(placeholder)) {
+                const regex = new RegExp(`{${placeholder}}`, 'g');
+                translatedString = translatedString.replace(regex, String(replacements[placeholder] ?? `{${placeholder}}`));
+            }
         }
     } catch (e) {
-        // Capturar errores durante el reemplazo (ej. si translatedString se vuelve inválido)
         console.error(`[i18n] Error reemplazando placeholder en clave '${key}':`, e);
-        return key; // Devolver la clave original en caso de error
+        return key;
     }
-
-    // Si después de todo, la cadena es igual a la clave, podría significar que no se encontró traducción
-    // (o que la traducción es idéntica a la clave, lo cual es posible).
-    // Devolvemos la cadena resultante. Si es la clave, el código que llama puede detectarlo si necesita.
     return translatedString;
 }
