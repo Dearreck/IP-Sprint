@@ -145,11 +145,8 @@ html {
     overflow: hidden; /* Previene scroll en el html */
     margin: 0;
     padding: 0;
-    opacity: 0;
-    transition: opacity 0.15s ease-in-out;
 }
 
-html.initial-prefs-applied { opacity: 1; }
 
 body {
     font-family: var(--font-body);
