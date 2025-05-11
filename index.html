@@ -9,44 +9,6 @@
 
     <link rel="icon" href="assets/images/favicon.png" type="image/png">
 
-    <script>
-      (function() {
-        // Definir claves de localStorage
-        const themeKey = 'ipSprintThemePreference';
-        const langKey = 'preferredLanguage';
-        const defaultLang = 'es';
-        const defaultTheme = 'light'; // Tema por defecto si todo falla
-
-        // Aplicar Tema
-        let currentTheme = localStorage.getItem(themeKey);
-
-        if (currentTheme === null) { // Si no hay preferencia guardada
-          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            currentTheme = 'dark';
-          } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-            currentTheme = 'light';
-          } else {
-            currentTheme = defaultTheme; // Fallback si no se puede detectar
-          }
-          // Guardar la preferencia determinada (del sistema o default) en localStorage
-          localStorage.setItem(themeKey, currentTheme);
-        }
-
-        // Aplicar la clase del tema al elemento <html>
-        if (currentTheme === 'dark') {
-          document.documentElement.classList.add('dark-mode');
-        } else {
-          document.documentElement.classList.remove('dark-mode');
-        }
-
-        // Aplicar Idioma
-        const currentLang = localStorage.getItem(langKey) || defaultLang;
-        document.documentElement.setAttribute('lang', currentLang);
-
-        document.documentElement.classList.add('initial-prefs-applied');
-      })();
-    </script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
